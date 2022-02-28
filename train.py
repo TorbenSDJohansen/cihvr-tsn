@@ -14,9 +14,11 @@ from datetime import datetime
 import yaml
 
 import torch
-import torch.nn as nn
-import torchvision.utils
+
 from torch.nn.parallel import DistributedDataParallel as NativeDDP
+from torch import nn
+
+import torchvision.utils
 
 # timm imports
 from timm.data import (
@@ -86,7 +88,7 @@ except ImportError:
 torch.backends.cudnn.benchmark = True
 _logger = logging.getLogger('train') # pylint: disable=C0103
 
-def _parse_args():
+def _parse_args(): # TODO move to argparser.py?
     config_parser, parser = construct_parser()
     # Do we have a config file to parse?
     args_config, remaining = config_parser.parse_known_args()
@@ -128,13 +130,6 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
     else:
         assert args.num_classes is None or len(args.num_classes) == 1
         args.num_classes = None if args.num_classes is None else args.num_classes[0]
-
-    if args.log_wandb:
-        if has_wandb:
-            wandb.init(project=args.experiment, config=args)
-        else:
-            _logger.warning("You've requested to log metrics to wandb but package not found. "
-                            "Metrics not being logged to wandb, try `pip install wandb`")
 
     args.prefetcher = not args.no_prefetcher
     args.distributed = False
@@ -443,10 +438,26 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
         with open(os.path.join(output_dir, 'args.yaml'), 'w') as f: # pylint: disable=C0103
             f.write(args_text)
 
+    if args.log_wandb and args.local_rank == 0:
+        if has_wandb:
+            wandb.init(
+                project=os.path.split(args.output)[-1], # TODO use arg if avail else this
+                name=args.experiment,
+                dir=output_dir,
+                resume='auto',
+                config=args,
+                )
+        else:
+            _logger.warning("You've requested to log metrics to wandb but package not found. "
+                            "Metrics not being logged to wandb, try `pip install wandb`")
+
     if args.initial_log:
         assert clean_pred is not None
         if args.rank == 0:
-            initial_log(args, output_dir, loader_train, loader_eval, clean_pred)
+            initial_log(
+                args, output_dir, loader_train, loader_eval, clean_pred,
+                log_wandb=args.log_wandb and has_wandb,
+                )
 
     try:
         for epoch in range(start_epoch, num_epochs):
