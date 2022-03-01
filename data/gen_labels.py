@@ -3,12 +3,8 @@
 Created on Fri Jun 19 10:42:15 2020
 
 @author: tsdj
-
-XXX...
-
-STATUS:
-    WIP
 """
+
 
 import os
 import pickle
@@ -20,42 +16,6 @@ from sklearn.model_selection import train_test_split
 
 import numpy as np
 import pandas as pd
-
-def gen_labels_legacy():
-    """
-    Depreceated labels generation.
-
-    """
-    fn_df_main = 'Y:/RegionH/SPJ/Database/export_181106.txt'
-    df_main = pd.read_table(fn_df_main, sep=';')
-
-    fn_map_lookup_df = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_lookup_df.pkl'
-    map_lookup_df = pickle.load(open(fn_map_lookup_df, 'rb'))
-
-    fn_map_images_ds = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_images_ds.pkl'
-    map_images_ds = pickle.load(open(fn_map_images_ds, 'rb'))
-
-    labels_root = 'Y:/RegionH/Scripts/users/tsdj/storage/labels/'
-
-    for key, value in map_lookup_df.items():
-        sub = df_main[['Filename', value]].drop_duplicates('Filename').dropna()
-        sub['Filename'] = [''.join((x, '.page-0.jpg')) for x in sub['Filename']]
-
-        assert set(sub['Filename']).issubset(set(map_images_ds.values()))
-
-        labels = np.array(sub)
-        labels_train, labels_test = train_test_split(
-            labels,
-            test_size=0.1, # add as variable
-            random_state=1,
-            )
-
-        np.save(''.join((labels_root, key, '.npy')), labels_train)
-        np.save(''.join((labels_root, 'test/', key, '.npy')), labels_test)
-
-    coolstuff = {x: np.load(''.join((labels_root, x, '.npy')), allow_pickle=True) for x in map_lookup_df.keys()} # pylint: disable=C0301
-    print({k: len(v) for k, v in coolstuff.items()})
-    print({k: len(set(v[:, 1])) for k, v in coolstuff.items()})
 
 
 def _load_mod_weight():
@@ -91,94 +51,11 @@ def _load_mod_weight():
     return empty_cells, bad_cpd_files
 
 
-def gen_labels_mod(labels_root: str, share_test: float): # pylint: disable=R0914
-    """
-    XXX...
-
-    Parameters
-    ----------
-    labels_root : str
-        The directory where the label files are exported to.
-    share_test : float
-        Share of observations sorted away to test set.
-
-    Returns
-    -------
-    None.
-
-    """
-    fn_df_main = 'Y:/RegionH/SPJ/Database/export_181106.txt'
-    df_main = pd.read_table(fn_df_main, sep=';')
-
-    fn_map_lookup_df = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_lookup_df.pkl'
-    map_lookup_df = pickle.load(open(fn_map_lookup_df, 'rb'))
-
-    fn_map_images_ds = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_images_ds.pkl'
-    map_images_ds = pickle.load(open(fn_map_images_ds, 'rb'))
-
-    empty_cells, bad_cpd_files = _load_mod_weight()
-
-    df_main['Filename'] = [''.join((x, '.page-0.jpg')) for x in df_main['Filename']]
-    assert set(empty_cells['fname']).issubset(set(df_main['Filename'].drop_duplicates()))
-    assert bad_cpd_files.issubset(set(df_main['Filename'].drop_duplicates()))
-
-    # Need the specific PAGE of the journal - currently it is just the journal!
-    # Use `map_journals_images_ss` to somehow do this is probably easiest
-
-    # Over time, need a mapping between the specific cell in a journal and its
-    # associated page number.
-
-    for key, value in map_lookup_df.items():
-        sub = df_main[['Filename', value]].drop_duplicates('Filename')
-
-        # Handle empty
-        idxs_empty = sub['Filename'].isin(empty_cells.loc[empty_cells['cell'] == key, 'fname'])
-        sub.loc[idxs_empty, value] = 'empty'
-
-        # Handle bad cpd
-        idxs_bad_cpd = sub['Filename'].isin(bad_cpd_files)
-        sub.loc[idxs_bad_cpd, value] = 'bad cpd'
-
-        sub = sub.dropna()
-
-        assert set(sub['Filename']).issubset(set(map_images_ds.values()))
-
-        labels = np.array(sub)
-        labels_train, labels_test = train_test_split(
-            labels,
-            test_size=share_test,
-            random_state=1,
-            )
-
-        fn_out_train = ''.join((labels_root, key, '.npy'))
-        fn_out_test = ''.join((labels_root, 'test/', key, '.npy'))
-
-        assert not os.path.isfile(fn_out_train)
-        assert not os.path.isfile(fn_out_test)
-
-        np.save(fn_out_train, labels_train)
-        np.save(fn_out_test, labels_test)
-
-    # Recall labels may not be correct, such as the ~50 weights that stem
-    # from really being lengths
-
-    coolstuff = {x: np.load(''.join((labels_root, x, '.npy')), allow_pickle=True) for x in map_lookup_df.keys()} # pylint: disable=C0301
-    print({k: len(v) for k, v in coolstuff.items()})
-    print({k: len(set(v[:, 1])) for k, v in coolstuff.items()})
-
-    # Maybe also use this script to generate auxillary columns, as this allows
-    # us to use 'date-0-mo', for example (derive from the birth date cols or
-    # even CPR).
-    # Prob do in other script run BEFORE this, so it can be incorporated
-    # directly in `gen_map_lookup_df.py` as well!!
-
-
 def _get_mat_summary(tm): # pylint: disable=C0103
     if tm is None:
         return None, None, None
 
     det = np.linalg.det(tm)
-    # eigenvals = np.linalg.eigvals(tm)
 
     rotx, roty = tm[:2, 2]
 
@@ -336,7 +213,7 @@ def gen_labels(labels_root: str, share_test: float, log_file: str):
     # CONSTANTS: Could be made arguments...
     fn_df_main = 'Y:/RegionH/SPJ/Database/export_181106.txt'
     fn_map_lookup_df = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_lookup_df.pkl'
-    fn_df_nurse_names = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv'
+    fn_df_nurse_names = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv' # TODO check if update, use prepare_nuse_name_data
 
     # FUNCTION START
     df_main = pd.read_table(fn_df_main, sep=';')
@@ -369,13 +246,13 @@ def gen_labels(labels_root: str, share_test: float, log_file: str):
 
     # Handle bad cpd (manual checks)
     idxs_bad_cpd1 = merged['page'].isin(bad_cpd_files)
-    merged.loc[idxs_bad_cpd1, list(map_lookup_df.values())] = 'bad cpd'
+    merged.loc[idxs_bad_cpd1, list(map_lookup_df.values())] = 'bad cpd' # TODO disable, at least make both versions
 
     # Handle bad CPD based on matrix determinant.
     det_ut = 1.03 # Maybe change?
     det_lt = 0.91 # Maybe change?
     idxs_bad_cpd2 = ~((merged['det'] <= det_ut) & (merged['det'] >= det_lt))
-    merged.loc[idxs_bad_cpd2, list(map_lookup_df.values())] = 'bad cpd'
+    merged.loc[idxs_bad_cpd2, list(map_lookup_df.values())] = 'bad cpd' # TODO disable, at least make both versions
 
     # Potentially more CPD checks...
 
@@ -430,7 +307,7 @@ def gen_labels(labels_root: str, share_test: float, log_file: str):
     for key, value in map_lookup_df.items():
         sub = merged[['page', 'det', value]].copy()
 
-        # Handle empty
+        # Handle empty (this is only for weight, see `_load_mod_weight`)
         idxs_empty = sub['page'].isin(empty_cells.loc[empty_cells['cell'] == key, 'fname'])
         sub.loc[idxs_empty, value] = 'empty'
 
@@ -471,27 +348,9 @@ def gen_labels(labels_root: str, share_test: float, log_file: str):
     # directly in `gen_map_lookup_df.py` as well!!
 
 
-def _gen_pr_date_labels():
-    # image dir: Z:/data_cropouts/PolitietsRegisterblade/Dates
-    raw = np.load('Z:/data_cropouts/Labels/date_police.npy', allow_pickle=True)
-    mod = np.array(list(zip(raw[:, 1], raw[:, 0])))
-
-    # find proper crops by considering the last name set, which has been sorted
-    # by limits on transformation matrix
-    _names = np.load('Z:/data_cropouts/Labels/register_names_revised.npy', allow_pickle=True)
-    valid = set(_names[:, 0])
-    mod_valid = np.array([x for x in mod if x[0] in valid])
-
-    np.save('Y:/RegionH/Scripts/users/tsdj/storage/labels/pr_dates.npy', mod_valid)
-
-
 if __name__ == '__main__':
-    # gen_labels_mod(
-    #     labels_root='Y:/RegionH/Scripts/users/tsdj/storage/labels-root/2010090/',
-    #     share_test=0.1,
-    #     )
     gen_labels(
-        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/labels-root/210304-tab-b-cmd-tsdj-merge/', # pylint: disable=C0301
+        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets/labels/',
         share_test=0.1,
         log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
         )
