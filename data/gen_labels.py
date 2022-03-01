@@ -1,0 +1,497 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jun 19 10:42:15 2020
+
+@author: tsdj
+
+XXX...
+
+STATUS:
+    WIP
+"""
+
+import os
+import pickle
+import json
+import time
+import string
+
+from sklearn.model_selection import train_test_split
+
+import numpy as np
+import pandas as pd
+
+def gen_labels_legacy():
+    """
+    Depreceated labels generation.
+
+    """
+    fn_df_main = 'Y:/RegionH/SPJ/Database/export_181106.txt'
+    df_main = pd.read_table(fn_df_main, sep=';')
+
+    fn_map_lookup_df = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_lookup_df.pkl'
+    map_lookup_df = pickle.load(open(fn_map_lookup_df, 'rb'))
+
+    fn_map_images_ds = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_images_ds.pkl'
+    map_images_ds = pickle.load(open(fn_map_images_ds, 'rb'))
+
+    labels_root = 'Y:/RegionH/Scripts/users/tsdj/storage/labels/'
+
+    for key, value in map_lookup_df.items():
+        sub = df_main[['Filename', value]].drop_duplicates('Filename').dropna()
+        sub['Filename'] = [''.join((x, '.page-0.jpg')) for x in sub['Filename']]
+
+        assert set(sub['Filename']).issubset(set(map_images_ds.values()))
+
+        labels = np.array(sub)
+        labels_train, labels_test = train_test_split(
+            labels,
+            test_size=0.1, # add as variable
+            random_state=1,
+            )
+
+        np.save(''.join((labels_root, key, '.npy')), labels_train)
+        np.save(''.join((labels_root, 'test/', key, '.npy')), labels_test)
+
+    coolstuff = {x: np.load(''.join((labels_root, x, '.npy')), allow_pickle=True) for x in map_lookup_df.keys()} # pylint: disable=C0301
+    print({k: len(v) for k, v in coolstuff.items()})
+    print({k: len(set(v[:, 1])) for k, v in coolstuff.items()})
+
+
+def _load_mod_weight():
+    map_raw_to_final = {'0': 'empty', 0: 'empty', '1': 'bad cpd', 1: 'bad cpd'}
+    entires_new = json.load(open('Y:/RegionH/Scripts/users/cmd/BW_low_confidence5200.json', 'rb'))
+    entries = entires_new['elements'][:entires_new['cursor']]
+    new_label_info = {'fname': [], 'cell': [], 'label': []}
+
+    for entry in entries:
+        label_raw = entry['properties']['Birth Weight']
+
+        if not label_raw in map_raw_to_final.keys():
+            print(entry)
+            continue
+
+        new_label_info['fname'].append(entry['name'])
+        new_label_info['cell'].append(entry['folder'].split('\\')[-1])
+        new_label_info['label'].append(map_raw_to_final[label_raw])
+
+    new_label_info = pd.DataFrame(new_label_info)
+
+    bad_cpd_files = set(new_label_info[new_label_info['label'] == 'bad cpd']['fname'])
+
+    # check if any cell is implicitly double labelled, i.e. both empty and
+    # bad cpd!
+    nli_empty = new_label_info[new_label_info['label'] == 'empty']
+    idxs_to_change = nli_empty[nli_empty['fname'].isin(bad_cpd_files)].index
+    new_label_info.loc[idxs_to_change, 'label'] = 'bad cpd'
+    assert new_label_info[new_label_info['label'] == 'empty']['fname'].isin(bad_cpd_files).sum() == 0 # pylint: disable=C0301
+
+    empty_cells = new_label_info[new_label_info['label'] == 'empty']
+
+    return empty_cells, bad_cpd_files
+
+
+def gen_labels_mod(labels_root: str, share_test: float): # pylint: disable=R0914
+    """
+    XXX...
+
+    Parameters
+    ----------
+    labels_root : str
+        The directory where the label files are exported to.
+    share_test : float
+        Share of observations sorted away to test set.
+
+    Returns
+    -------
+    None.
+
+    """
+    fn_df_main = 'Y:/RegionH/SPJ/Database/export_181106.txt'
+    df_main = pd.read_table(fn_df_main, sep=';')
+
+    fn_map_lookup_df = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_lookup_df.pkl'
+    map_lookup_df = pickle.load(open(fn_map_lookup_df, 'rb'))
+
+    fn_map_images_ds = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_images_ds.pkl'
+    map_images_ds = pickle.load(open(fn_map_images_ds, 'rb'))
+
+    empty_cells, bad_cpd_files = _load_mod_weight()
+
+    df_main['Filename'] = [''.join((x, '.page-0.jpg')) for x in df_main['Filename']]
+    assert set(empty_cells['fname']).issubset(set(df_main['Filename'].drop_duplicates()))
+    assert bad_cpd_files.issubset(set(df_main['Filename'].drop_duplicates()))
+
+    # Need the specific PAGE of the journal - currently it is just the journal!
+    # Use `map_journals_images_ss` to somehow do this is probably easiest
+
+    # Over time, need a mapping between the specific cell in a journal and its
+    # associated page number.
+
+    for key, value in map_lookup_df.items():
+        sub = df_main[['Filename', value]].drop_duplicates('Filename')
+
+        # Handle empty
+        idxs_empty = sub['Filename'].isin(empty_cells.loc[empty_cells['cell'] == key, 'fname'])
+        sub.loc[idxs_empty, value] = 'empty'
+
+        # Handle bad cpd
+        idxs_bad_cpd = sub['Filename'].isin(bad_cpd_files)
+        sub.loc[idxs_bad_cpd, value] = 'bad cpd'
+
+        sub = sub.dropna()
+
+        assert set(sub['Filename']).issubset(set(map_images_ds.values()))
+
+        labels = np.array(sub)
+        labels_train, labels_test = train_test_split(
+            labels,
+            test_size=share_test,
+            random_state=1,
+            )
+
+        fn_out_train = ''.join((labels_root, key, '.npy'))
+        fn_out_test = ''.join((labels_root, 'test/', key, '.npy'))
+
+        assert not os.path.isfile(fn_out_train)
+        assert not os.path.isfile(fn_out_test)
+
+        np.save(fn_out_train, labels_train)
+        np.save(fn_out_test, labels_test)
+
+    # Recall labels may not be correct, such as the ~50 weights that stem
+    # from really being lengths
+
+    coolstuff = {x: np.load(''.join((labels_root, x, '.npy')), allow_pickle=True) for x in map_lookup_df.keys()} # pylint: disable=C0301
+    print({k: len(v) for k, v in coolstuff.items()})
+    print({k: len(set(v[:, 1])) for k, v in coolstuff.items()})
+
+    # Maybe also use this script to generate auxillary columns, as this allows
+    # us to use 'date-0-mo', for example (derive from the birth date cols or
+    # even CPR).
+    # Prob do in other script run BEFORE this, so it can be incorporated
+    # directly in `gen_map_lookup_df.py` as well!!
+
+
+def _get_mat_summary(tm): # pylint: disable=C0103
+    if tm is None:
+        return None, None, None
+
+    det = np.linalg.det(tm)
+    # eigenvals = np.linalg.eigvals(tm)
+
+    rotx, roty = tm[:2, 2]
+
+    return det, rotx, roty
+
+
+def _construct_df(log: dict) -> pd.DataFrame:
+    data = []
+
+    for key, value in log.items():
+        tm = value['transform-matrix'] if 'transform-matrix' in value.keys() else None # pylint: disable=C0103
+        det, rotx, roty = _get_mat_summary(tm)
+        nx, ny = value['nx'], value['ny']  # pylint: disable=C0103
+
+        data.append((
+            key, value['succesful'],
+            nx, ny,
+            det, rotx, roty,
+            ))
+
+    columns = ['page', 'succesful', 'nx', 'ny', 'det', 'rotx', 'roty']
+
+    data = pd.DataFrame(data, columns=columns)
+
+    return data
+
+
+class Verifiers: # pylint: disable=C0115
+    _allowed_chars_names = set(list(string.ascii_lowercase) + ['æ', 'ø', 'å'])
+
+    @staticmethod
+    def verify_weight(weight): # pylint: disable=C0116
+        if weight in ('bad cpd', 'empty'):
+            return weight
+
+        _allowed_range = set(range(1000, 20_000)) # Maybe change?
+
+        if int(weight) not in _allowed_range:
+            print(f'Bad weight value: {weight}. Casting to None.')
+            return None
+
+        return weight
+
+    @staticmethod
+    def verify_length(length): # pylint: disable=C0116
+        if length == 'bad cpd':
+            return length
+
+        _allowed_range = set(range(20, 100)) # Maybe change?
+
+        if int(length) not in _allowed_range:
+            print(f'Bad length value: {length}. Casting to None.')
+            return None
+
+        return length
+
+    @staticmethod
+    def verify_date(date): # pylint: disable=C0116
+        if date in ('bad cpd', ',:,:,'):
+            return date
+
+        try:
+            time.strptime(':'.join(date.split(':')[:2]), '%d:%m')
+        except ValueError:
+            print(f'Bad date value: {date}. Casting to None.')
+
+        return date
+
+    @staticmethod
+    def verify_tab_b_123(tab_b_entry): # pylint: disable=C0116
+        if tab_b_entry in ('bad cpd', '0=Mangler'):
+            return tab_b_entry
+
+        _allowed = {1, 2, 3}
+
+        if int(tab_b_entry[0]) not in _allowed:
+            print(f'Bad table B (1, 2, 3) value: {tab_b_entry}. Casting to None.')
+            return None
+
+        return tab_b_entry
+
+    @staticmethod
+    def verify_tab_b_12(tab_b_entry): # pylint: disable=C0116
+        if tab_b_entry in ('bad cpd', '0=Mangler'):
+            return tab_b_entry
+
+        _allowed = {1, 2}
+
+        if int(tab_b_entry[0]) not in _allowed:
+            print(f'Bad table B (1, 2) value: {tab_b_entry}. Casting to None.')
+            return None
+
+        return tab_b_entry
+
+    @staticmethod
+    def verify_tab_b_int(tab_b_entry): # pylint: disable=C0116
+        if tab_b_entry in ('bad cpd', '0=Mangler'):
+            return tab_b_entry
+
+        _allowed = set(range(24))
+
+        if int(tab_b_entry) not in _allowed:
+            print(f'Bad table B (int) value: {tab_b_entry}. Casting to None.')
+            return None
+
+        return tab_b_entry
+
+    @staticmethod
+    def verify_bfdurany(duration): # pylint: disable=C0116
+        if duration == 'bad cpd':
+            return duration
+
+        _allowed = set(range(14)) # from "tasteinstruktion"
+
+        if int(duration) not in _allowed:
+            print(f'Bad duration value: {duration}. Casting to None.')
+            return None
+
+        return duration
+
+    def verify_nurse_name(self, name: str): # pylint: disable=C0116
+        if name in ('bad cpd', '0=Mangler'):
+            return name
+
+        for subname in name.split():
+            if not set(subname).issubset(self._allowed_chars_names):
+                print(f'Bad nurse name: {name}. Casting to None.')
+                return None
+
+        return name
+
+
+def gen_labels(labels_root: str, share_test: float, log_file: str):
+    """
+    Generate label files based on transcribed data. The aim of this function is
+    to serve as a final functio to generate labels. It is built after the cmd-
+    tsdj merge project.
+
+    Parameters
+    ----------
+    labels_root : str
+        The directory where the label files are exported to.
+    share_test : float
+        Share of observations sorted away to test set.
+    log_file : str
+        Log file used for CPD. Includes info useful to identify bad CPD cases
+        etc.
+
+    Returns
+    -------
+    None.
+
+    """
+
+    # CONSTANTS: Could be made arguments...
+    fn_df_main = 'Y:/RegionH/SPJ/Database/export_181106.txt'
+    fn_map_lookup_df = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_lookup_df.pkl'
+    fn_df_nurse_names = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv'
+
+    # FUNCTION START
+    df_main = pd.read_table(fn_df_main, sep=';')
+    df_main = df_main.drop_duplicates('Filename')
+
+    map_lookup_df = pickle.load(open(fn_map_lookup_df, 'rb'))
+    log = pickle.load(open(log_file, 'rb'))
+    empty_cells, bad_cpd_files = _load_mod_weight()
+
+    log_df = _construct_df(log)
+    log_df = log_df[log_df['succesful']]
+    log_df['Filename'] = log_df['page'].str.split('.page').apply(
+        lambda x: x[0],
+        )
+
+    nurse_names = pd.read_csv(fn_df_nurse_names)
+
+    # Merge info on nurse names into main_df
+    df_main = df_main.merge(nurse_names, on='Filename', how='left')
+
+    # The below "clones" whenever multiple pages present. Note, however, that
+    # the page is sometimes missing -> as is the case due to unsuccesful
+    # cropping.
+    merged = df_main.merge(log_df, how='left', on='Filename')
+    merged.loc[merged['page'].isna(), 'page'] = merged['Filename'] + '.page-UNKNOWN'
+
+    # Check manual labelling of empty and bad CPD matches in format.
+    assert set(empty_cells['fname']).issubset(set(merged['page']))
+    assert bad_cpd_files.issubset(set(merged['page']))
+
+    # Handle bad cpd (manual checks)
+    idxs_bad_cpd1 = merged['page'].isin(bad_cpd_files)
+    merged.loc[idxs_bad_cpd1, list(map_lookup_df.values())] = 'bad cpd'
+
+    # Handle bad CPD based on matrix determinant.
+    det_ut = 1.03 # Maybe change?
+    det_lt = 0.91 # Maybe change?
+    idxs_bad_cpd2 = ~((merged['det'] <= det_ut) & (merged['det'] >= det_lt))
+    merged.loc[idxs_bad_cpd2, list(map_lookup_df.values())] = 'bad cpd'
+
+    # Potentially more CPD checks...
+
+    verifiers = Verifiers()
+    lookup_verify = {
+        'weight-0-mo': verifiers.verify_weight,
+        'weight-1-mo': verifiers.verify_weight,
+        'weight-2-mo': verifiers.verify_weight,
+        'weight-3-mo': verifiers.verify_weight,
+        'weight-4-mo': verifiers.verify_weight,
+        'weight-6-mo': verifiers.verify_weight,
+        'weight-9-mo': verifiers.verify_weight,
+        'weight-12-mo': verifiers.verify_weight,
+        'length-0-mo': verifiers.verify_length,
+        'length-12-mo': verifiers.verify_length,
+        'date-1-mo': verifiers.verify_date,
+        'date-2-mo': verifiers.verify_date,
+        'date-3-mo': verifiers.verify_date,
+        'date-4-mo': verifiers.verify_date,
+        'date-6-mo': verifiers.verify_date,
+        'date-9-mo': verifiers.verify_date,
+        'date-12-mo': verifiers.verify_date,
+        'tab-b-c1-1-mo': verifiers.verify_tab_b_123,
+        'tab-b-c2-1-mo': verifiers.verify_tab_b_123,
+        'tab-b-c3-1-mo': verifiers.verify_tab_b_123,
+        'tab-b-c4-1-mo': verifiers.verify_tab_b_123,
+        'tab-b-c5-1-mo': verifiers.verify_tab_b_int,
+        'tab-b-c6-1-mo': verifiers.verify_tab_b_int,
+        'tab-b-c7-1-mo': verifiers.verify_tab_b_12,
+        'tab-b-c8-1-mo': verifiers.verify_tab_b_123,
+        'tab-b-c1-6-mo': verifiers.verify_tab_b_123,
+        'tab-b-c2-6-mo': verifiers.verify_tab_b_123,
+        'tab-b-c3-6-mo': verifiers.verify_tab_b_123,
+        'tab-b-c4-6-mo': verifiers.verify_tab_b_123,
+        'tab-b-c5-6-mo': verifiers.verify_tab_b_int,
+        'tab-b-c6-6-mo': verifiers.verify_tab_b_int,
+        'tab-b-c7-6-mo': verifiers.verify_tab_b_12,
+        'tab-b-c8-6-mo': verifiers.verify_tab_b_123,
+        'tab-b-c15-1-mo': verifiers.verify_tab_b_123,
+        'tab-b-c15-2-mo': verifiers.verify_tab_b_123,
+        'tab-b-c15-3-mo': verifiers.verify_tab_b_123,
+        'tab-b-c15-4-mo': verifiers.verify_tab_b_123,
+        'tab-b-c15-6-mo': verifiers.verify_tab_b_123,
+        'tab-b-c15-9-mo': verifiers.verify_tab_b_123,
+        'tab-b-c15-12-mo': verifiers.verify_tab_b_123,
+        'dura-any-breastfeed': verifiers.verify_bfdurany,
+        'nurse-name-1': verifiers.verify_nurse_name,
+        'nurse-name-2': verifiers.verify_nurse_name,
+        'nurse-name-3': verifiers.verify_nurse_name,
+        }
+
+    for key, value in map_lookup_df.items():
+        sub = merged[['page', 'det', value]].copy()
+
+        # Handle empty
+        idxs_empty = sub['page'].isin(empty_cells.loc[empty_cells['cell'] == key, 'fname'])
+        sub.loc[idxs_empty, value] = 'empty'
+
+        # Keep only where we have the label
+        labels = sub[['page', value]].dropna()
+
+        # Verify labels meaningful - else cast to None
+        labels[value] = list(map(lookup_verify[key], labels[value]))
+        labels = labels[['page', value]].dropna() # Drop bad cases
+
+        labels = np.array(labels)
+        labels_train, labels_test = train_test_split(
+            labels,
+            test_size=share_test,
+            random_state=1,
+            )
+
+        fn_out_train = ''.join((labels_root, key, '.npy'))
+        fn_out_test = ''.join((labels_root, 'test/', key, '.npy'))
+
+        if not os.path.isfile(fn_out_train):
+            np.save(fn_out_train, labels_train)
+
+        if not os.path.isfile(fn_out_test):
+            np.save(fn_out_test, labels_test)
+
+    coolstuff = {x: np.load(
+        ''.join((labels_root, x, '.npy')), allow_pickle=True,
+        ) for x in map_lookup_df.keys()}
+    print({k: len(v) for k, v in coolstuff.items()})
+    print({k: len(set(v[:, 1])) for k, v in coolstuff.items()})
+    print({k: sum(v[:, 1] == 'bad cpd') for k, v in coolstuff.items()})
+
+    # Maybe also use this script to generate auxillary columns, as this allows
+    # us to use 'date-0-mo', for example (derive from the birth date cols or
+    # even CPR).
+    # Prob do in other script run BEFORE this, so it can be incorporated
+    # directly in `gen_map_lookup_df.py` as well!!
+
+
+def _gen_pr_date_labels():
+    # image dir: Z:/data_cropouts/PolitietsRegisterblade/Dates
+    raw = np.load('Z:/data_cropouts/Labels/date_police.npy', allow_pickle=True)
+    mod = np.array(list(zip(raw[:, 1], raw[:, 0])))
+
+    # find proper crops by considering the last name set, which has been sorted
+    # by limits on transformation matrix
+    _names = np.load('Z:/data_cropouts/Labels/register_names_revised.npy', allow_pickle=True)
+    valid = set(_names[:, 0])
+    mod_valid = np.array([x for x in mod if x[0] in valid])
+
+    np.save('Y:/RegionH/Scripts/users/tsdj/storage/labels/pr_dates.npy', mod_valid)
+
+
+if __name__ == '__main__':
+    # gen_labels_mod(
+    #     labels_root='Y:/RegionH/Scripts/users/tsdj/storage/labels-root/2010090/',
+    #     share_test=0.1,
+    #     )
+    gen_labels(
+        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/labels-root/210304-tab-b-cmd-tsdj-merge/', # pylint: disable=C0301
+        share_test=0.1,
+        log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
+        )
