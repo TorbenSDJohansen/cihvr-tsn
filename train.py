@@ -63,6 +63,7 @@ from timmsn.data.parsers import setup_sqnet_parser, setup_bdatasets_parser
 
 # other imports
 from argparser import construct_parser
+import formatters
 
 try:
     from apex import amp
