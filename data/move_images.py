@@ -28,6 +28,9 @@ def _mp_copy(cells, inroot, outroot, nb_pools):
         indir = os.path.join(inroot, cell)
         outdir = os.path.join(outroot, cell)
 
+        if not os.path.isdir(outdir):
+            os.makedirs(outdir, exist_ok=False)
+
         files = os.listdir(indir)
         existing_files = set(os.listdir(outdir))
         new_files = [x for x in files if x not in existing_files]
