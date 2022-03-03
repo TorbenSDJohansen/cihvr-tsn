@@ -77,6 +77,8 @@ def _run():
         'tab-b-c15-12-mo': 'bvf8',
         # various
         'dura-any-breastfeed': 'bfdurany',
+        'breastfed-7-do': 'bfv1',
+        'preterm-birth': 'preterm',
         # nurse names. note these are named by tsdj, see the following script
         # `~/code/data/prepare_nuse_name_data.py`
         'nurse-name-1': 'nurse-name-1',
