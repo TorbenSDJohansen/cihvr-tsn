@@ -303,6 +303,7 @@ def gen_labels(labels_root: str, share_test: float, log_file: str, add_bad_cpd: 
         'tab-b-c15-12-mo': verifiers.verify_tab_b_123,
         'dura-any-breastfeed': verifiers.verify_bfdurany,
         'preterm-birth': verifiers.verify_tab_b_12,
+        'preterm-birth-weeks': verifiers.verify_tab_b_int,
         'brestfeed-7-do': verifiers.verify_tab_b_123,
         'nurse-name-1': verifiers.verify_nurse_name,
         'nurse-name-2': verifiers.verify_nurse_name,

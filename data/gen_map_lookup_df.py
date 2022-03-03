@@ -79,6 +79,7 @@ def _run():
         'dura-any-breastfeed': 'bfdurany',
         'breastfeed-7-do': 'bfv1',
         'preterm-birth': 'preterm',
+        'preterm-birth-weeks': 'pretermwk',
         # nurse names. note these are named by tsdj, see the following script
         # `~/code/data/prepare_nuse_name_data.py`
         'nurse-name-1': 'nurse-name-1',
