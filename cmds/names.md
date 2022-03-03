@@ -112,5 +112,24 @@ First:
 
 ## Evaluate
 
-**TODO**: For eval, only really nurse-name-1 is particularly interesting.
+### Baseline
+
+Last:
+```
+python evaluate.py ^
+--formatter last_name_long_cast_0 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last-names ^
+-b 1024 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets ^
+--dataset nurse-names ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last-names\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+
+```
+
+**TODO**: For eval, only really nurse-name-1 is particularly interesting:
+`--dataset-cells nurse-name-1`
 
