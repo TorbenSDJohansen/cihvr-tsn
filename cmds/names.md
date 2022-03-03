@@ -34,7 +34,27 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 
 ```
 
+First name model:
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter first_name_long ^
+--experiment pr-first-names ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names ^
+--lr 1.5 ^
+-b 384 ^
+-j 8 ^
+--input-size 3 80 522 ^
+--epochs 90 ^
+--warmup-epochs 5 ^
+--data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
+--dataset HANA ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--log-wandb
+
+```
+
 ### Evaluate
+Last:
 ```
 python evaluate.py ^
 --formatter last_name_long ^
@@ -47,3 +67,50 @@ python evaluate.py ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr-last-names\last.pth.tar
 
 ```
+
+First:
+```
+python evaluate.py ^
+--formatter first_name_long ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\pr-first-names ^
+-b 2048 ^
+--input-size 3 80 522 ^
+--data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
+--dataset HANA ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr-first-names\last.pth.tar
+
+```
+
+## Training
+
+Notice larger image size, back to "default" epochs, smaller LR and batch size.
+
+### Basline
+Baseline model (from "scratch"; only "default" labels; no bad cpd).
+
+Last:
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter last_name_long_cast_0 ^
+--experiment last-names ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names ^
+--lr 0.5 ^
+-b 128 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets ^
+--dataset nurse-names ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--log-wandb ^
+--initial-log
+
+```
+
+First:
+
+### TL from PR
+
+## Evaluate
+
+**TODO**: For eval, only really nurse-name-1 is particularly interesting.
+

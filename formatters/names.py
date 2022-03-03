@@ -68,8 +68,8 @@ class NameFormatter():
         else:
             assert isinstance(self.max_nb_names, int)
 
-        assert self.max_name_len >= self.min_name_len >= 1
-        assert self.max_nb_names >= self.min_nb_names >= 1
+        assert self.max_name_len >= self.min_name_len >= 0
+        assert self.max_nb_names >= self.min_nb_names >= 0
 
         assert isinstance(self.name_separator, str)
         assert isinstance(self.cast_to_empty, set)
@@ -85,7 +85,7 @@ class NameFormatter():
         assert isinstance(raw_input, str)
 
         if raw_input in self.cast_to_empty:
-            raise NotImplementedError('...?') # How to handle cast downsteam?
+            raw_input = ''
 
         split_input = raw_input.split(self.name_separator)
 
@@ -212,6 +212,12 @@ def last_name_long() -> NameFormatter:
 @register_formatter
 def first_name_long() -> NameFormatter:
     return NameFormatter('first', 18, 1)
+
+
+@register_formatter
+def last_name_long_cast_0() -> NameFormatter:
+    return NameFormatter('last', 18, 0, cast_to_empty={'0=Mangler'})
+
 
 # NOTES
 # In '~/labels-root/210304-tab-b-cmd-tsdj-merge/nurse-name-{}.npy', using all
