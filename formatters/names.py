@@ -12,7 +12,7 @@ from timmsn.data.formatters import register_formatter
 
 
 def _construct_maps():
-    letters = sorted(list(string.ascii_lowercase)) + ['æ', 'ø', 'å']
+    letters = sorted(string.ascii_lowercase) + ['æ', 'ø', 'å']
     assert len(letters) == len(set(letters))
 
     map_letter_idx = {letter: idx for idx, letter in enumerate(letters)}
@@ -23,16 +23,6 @@ def _construct_maps():
     return map_letter_idx, map_idx_letter, missing_indicator
 
 
-# NOTES
-# In '~/labels-root/210304-tab-b-cmd-tsdj-merge/nurse-name-{}.npy', using all
-# three concatenated, the longest name is christophersen, at 14 letters. The
-# second longest is at 12, such as christiansen. 3 cases of christophersen.
-# The highest number of names is 5. However, only 1 case of 4 and 5, and only
-# 19 of 1. This motivates numbers below, maybe make more tight.
-# MAX_NAME_LEN = 14
-# MAX_NB_NAMES = 5
-
-
 class NameFormatter():
     def __init__(
             self,
@@ -41,14 +31,13 @@ class NameFormatter():
             min_name_len: int = 1,
             max_nb_names: int = None,
             min_nb_names: int = 1,
-            name_separator: str = ' ',
+            name_separator: str = ' ', # TODO or allow list
             cast_to_empty: set = None, # TODO does this encompass bad cpd? No, not quite the same in CIHVR, i.e., not recorded weight vs. not transcribed on our side is not the same
-            # TODO some option to crash if char not in map_letter_idx or instead have an unknown token in place
         ):
         self.map_format = {
-            'last': (self.transform_label_last_name, self.clean_pred_last_name),
-            'first': None, # TODO what if only 1 name, is there then a first name or is it "empty" ?
-            'full': None,
+            'last': (self.transform_label_last_name, self.clean_pred_individual_name),
+            'first': (self.transform_label_first_name, self.clean_pred_individual_name),
+            'full': (self.transform_label_full_name, self.clean_pred_full_name),
             }
         self.label_format = label_format
 
@@ -56,13 +45,7 @@ class NameFormatter():
         self.max_name_len = max_name_len
 
         self.min_nb_names = min_nb_names
-
-        if self.label_format == 'last' or self.label_format == 'first':
-            assert max_nb_names is None
-            self.max_nb_names = 1
-        else:
-            assert isinstance(max_nb_names, 1)
-            self.max_nb_names = max_nb_names
+        self.max_nb_names = max_nb_names
 
         self.name_separator = name_separator
         self.cast_to_empty = cast_to_empty if cast_to_empty else set()
@@ -76,16 +59,20 @@ class NameFormatter():
 
         self.num_classes = self.get_output_size()
 
-    def __repr__(self): # TODO
-        reprstr = ''
-        reprstr = reprstr.format()
-
-        return self.__class__.__name__ + reprstr
-
-    def _assert_inputs(self): # TODO all inputs
+    def _assert_inputs(self):
         assert self.label_format in self.map_format.keys()
+
+        if self.label_format == 'last' or self.label_format == 'first':
+            assert self.max_nb_names is None
+            self.max_nb_names = 1
+        else:
+            assert isinstance(self.max_nb_names, int)
+
         assert self.max_name_len >= self.min_name_len >= 1
         assert self.max_nb_names >= self.min_nb_names >= 1
+
+        assert isinstance(self.name_separator, str)
+        assert isinstance(self.cast_to_empty, set)
 
     def get_output_size(self):
         '''
@@ -98,10 +85,7 @@ class NameFormatter():
         assert isinstance(raw_input, str)
 
         if raw_input in self.cast_to_empty:
-            raise NotImplementedError('...?') # TODO how to know what to cast to?
-
-        # TODO check subset for chars. Or not, if name is "torben ? johansen"
-        # and only interested in last name, does the "?" matter?
+            raise NotImplementedError('...?') # How to handle cast downsteam?
 
         split_input = raw_input.split(self.name_separator)
 
@@ -114,6 +98,8 @@ class NameFormatter():
         johansen". In such cases, all first on "torben", then on "johansen".
 
         '''
+        assert len(raw_pred) == self.max_name_len
+
         non_missings = []
 
         for i, val in enumerate(raw_pred):
@@ -141,6 +127,7 @@ class NameFormatter():
         label = []
 
         for char in raw_input:
+            # Possible to have some option to map unkncown chars to unk-token
             label.append(self.map_letter_idx[char])
 
         label += (self.max_name_len - name_len) * [self.missing_indicator]
@@ -153,7 +140,7 @@ class NameFormatter():
         return label.astype('float')
 
     def clean_pred_individual_name(
-            self, raw_pred: np.ndarray, assert_consistency: bool = True
+            self, raw_pred: np.ndarray, assert_consistency: bool = True,
             ) -> str:
         '''
         Maps predictions back from integer to string representation.
@@ -190,27 +177,47 @@ class NameFormatter():
         label = self.transform_label_individual_name(raw_input)
 
         # Assert cycle consistency
-        assert raw_input == self.clean_pred_last_name(label, False)
+        assert raw_input == self.clean_pred_individual_name(label)
 
         return label.astype('float')
 
-    def clean_pred_last_name(
+    def transform_label_first_name(self, raw_input: str) -> np.ndarray:
+        raw_input = self._sanitize(raw_input)
+
+        assert len(raw_input) >= self.min_nb_names
+
+        # TODO if len(raw_input) == 1, discard or use?
+        raw_input = raw_input[0]
+        label = self.transform_label_individual_name(raw_input)
+
+        # Assert cycle consistency
+        assert raw_input == self.clean_pred_individual_name(label)
+
+        return label.astype('float')
+
+    def transform_label_full_name(self, raw_input: str) -> np.ndarray:
+        raise NotImplementedError
+
+    def clean_pred_full_name(
             self, raw_pred: np.ndarray, assert_consistency: bool = True,
             ) -> str:
-        clean = self.clean_pred_individual_name(raw_pred)
-
-        # Need to be cycle consistent - however, the function may be called
-        # from `transform_label*`, and we do not want infinite recursion, hence
-        # the if.
-        if assert_consistency:
-            transformed_clean = self.transform_label_individual_name(clean)
-
-            if not all(raw_pred.astype('float') == transformed_clean):
-                raise Exception(raw_pred, clean, transformed_clean)
-
-        return clean
+        raise NotImplementedError
 
 
 @register_formatter
 def last_name_long() -> NameFormatter:
     return NameFormatter('last', 18, 1)
+
+
+@register_formatter
+def first_name_long() -> NameFormatter:
+    return NameFormatter('first', 18, 1)
+
+# NOTES
+# In '~/labels-root/210304-tab-b-cmd-tsdj-merge/nurse-name-{}.npy', using all
+# three concatenated, the longest name is christophersen, at 14 letters. The
+# second longest is at 12, such as christiansen. 3 cases of christophersen.
+# The highest number of names is 5. However, only 1 case of 4 and 5, and only
+# 19 of 1. This motivates numbers below, maybe make more tight.
+# MAX_NAME_LEN = 14
+# MAX_NB_NAMES = 5
