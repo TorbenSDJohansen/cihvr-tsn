@@ -356,7 +356,7 @@ def gen_labels(labels_root: str, share_test: float, log_file: str, add_bad_cpd: 
 
 if __name__ == '__main__':
     gen_labels(
-        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets/labels/',
+        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets/1-all-labels/',
         share_test=0.1,
         log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
         )
