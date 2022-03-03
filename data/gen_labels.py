@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 
-def _load_mod_weight():
+def _load_mod_weight(add_bad_cpd: bool):
     map_raw_to_final = {'0': 'empty', 0: 'empty', '1': 'bad cpd', 1: 'bad cpd'}
     entires_new = json.load(open('Y:/RegionH/Scripts/users/cmd/BW_low_confidence5200.json', 'rb'))
     entries = entires_new['elements'][:entires_new['cursor']]
@@ -43,8 +43,10 @@ def _load_mod_weight():
     # bad cpd!
     nli_empty = new_label_info[new_label_info['label'] == 'empty']
     idxs_to_change = nli_empty[nli_empty['fname'].isin(bad_cpd_files)].index
-    new_label_info.loc[idxs_to_change, 'label'] = 'bad cpd'
-    assert new_label_info[new_label_info['label'] == 'empty']['fname'].isin(bad_cpd_files).sum() == 0 # pylint: disable=C0301
+    
+    if add_bad_cpd:
+        new_label_info.loc[idxs_to_change, 'label'] = 'bad cpd'
+        assert new_label_info[new_label_info['label'] == 'empty']['fname'].isin(bad_cpd_files).sum() == 0 # pylint: disable=C0301
 
     empty_cells = new_label_info[new_label_info['label'] == 'empty']
 
@@ -188,10 +190,10 @@ class Verifiers: # pylint: disable=C0115
         return name
 
 
-def gen_labels(labels_root: str, share_test: float, log_file: str):
+def gen_labels(labels_root: str, share_test: float, log_file: str, add_bad_cpd: bool = False):
     """
     Generate label files based on transcribed data. The aim of this function is
-    to serve as a final functio to generate labels. It is built after the cmd-
+    to serve as a final function to generate labels. It is built after the cmd-
     tsdj merge project.
 
     Parameters
@@ -221,7 +223,7 @@ def gen_labels(labels_root: str, share_test: float, log_file: str):
 
     map_lookup_df = pickle.load(open(fn_map_lookup_df, 'rb'))
     log = pickle.load(open(log_file, 'rb'))
-    empty_cells, bad_cpd_files = _load_mod_weight()
+    empty_cells, bad_cpd_files = _load_mod_weight(add_bad_cpd)
 
     log_df = _construct_df(log)
     log_df = log_df[log_df['succesful']]
@@ -244,15 +246,16 @@ def gen_labels(labels_root: str, share_test: float, log_file: str):
     assert set(empty_cells['fname']).issubset(set(merged['page']))
     assert bad_cpd_files.issubset(set(merged['page']))
 
-    # Handle bad cpd (manual checks)
-    idxs_bad_cpd1 = merged['page'].isin(bad_cpd_files)
-    merged.loc[idxs_bad_cpd1, list(map_lookup_df.values())] = 'bad cpd' # TODO disable, at least make both versions
-
-    # Handle bad CPD based on matrix determinant.
-    det_ut = 1.03 # Maybe change?
-    det_lt = 0.91 # Maybe change?
-    idxs_bad_cpd2 = ~((merged['det'] <= det_ut) & (merged['det'] >= det_lt))
-    merged.loc[idxs_bad_cpd2, list(map_lookup_df.values())] = 'bad cpd' # TODO disable, at least make both versions
+    if add_bad_cpd:
+        # Handle bad cpd (manual checks)
+        idxs_bad_cpd1 = merged['page'].isin(bad_cpd_files)
+        merged.loc[idxs_bad_cpd1, list(map_lookup_df.values())] = 'bad cpd'
+    
+        # Handle bad CPD based on matrix determinant.
+        det_ut = 1.03 # Maybe change?
+        det_lt = 0.91 # Maybe change?
+        idxs_bad_cpd2 = ~((merged['det'] <= det_ut) & (merged['det'] >= det_lt))
+        merged.loc[idxs_bad_cpd2, list(map_lookup_df.values())] = 'bad cpd'
 
     # Potentially more CPD checks...
 
@@ -299,6 +302,8 @@ def gen_labels(labels_root: str, share_test: float, log_file: str):
         'tab-b-c15-9-mo': verifiers.verify_tab_b_123,
         'tab-b-c15-12-mo': verifiers.verify_tab_b_123,
         'dura-any-breastfeed': verifiers.verify_bfdurany,
+        'preterm-birth': verifiers.verify_tab_b_12,
+        'brestfeed-7-do': verifiers.verify_tab_b_123,
         'nurse-name-1': verifiers.verify_nurse_name,
         'nurse-name-2': verifiers.verify_nurse_name,
         'nurse-name-3': verifiers.verify_nurse_name,
@@ -325,8 +330,9 @@ def gen_labels(labels_root: str, share_test: float, log_file: str):
             random_state=1,
             )
 
-        fn_out_train = ''.join((labels_root, key, '.npy'))
-        fn_out_test = ''.join((labels_root, 'test/', key, '.npy'))
+        # TODO consider if .csv instead
+        fn_out_train = os.path.join(labels_root, 'train', f'{key}.npy')
+        fn_out_test = os.path.join(labels_root, 'test', f'{key}.npy')
 
         if not os.path.isfile(fn_out_train):
             np.save(fn_out_train, labels_train)
@@ -335,7 +341,7 @@ def gen_labels(labels_root: str, share_test: float, log_file: str):
             np.save(fn_out_test, labels_test)
 
     coolstuff = {x: np.load(
-        ''.join((labels_root, x, '.npy')), allow_pickle=True,
+        ''.join((labels_root, 'train/', x, '.npy')), allow_pickle=True,
         ) for x in map_lookup_df.keys()}
     print({k: len(v) for k, v in coolstuff.items()})
     print({k: len(set(v[:, 1])) for k, v in coolstuff.items()})
