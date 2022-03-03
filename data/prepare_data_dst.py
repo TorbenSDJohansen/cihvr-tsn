@@ -75,6 +75,7 @@ def _prepare_main() -> pd.DataFrame:
 def _prepare_cpr() -> pd.DataFrame:
     cpr = pd.read_stata(FN_CPR)
 
+    # TODO derive birth date col(s; maybe split into 3) and add for upload
     cpr = cpr.rename(columns={'id_s': 'Id'})
     cpr = cpr.drop(columns=['id_c'])
 
