@@ -109,6 +109,42 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 First:
 
 ### TL from PR
+**TODO**: Tune, esp. LR, but potentially also could be train for shorter, remove weight decay, etc.
+
+Last:
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter last_name_long_cast_0 ^
+--experiment last-names-tl ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names ^
+--lr 0.5 ^
+-b 128 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets ^
+--dataset nurse-names ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr-last-names\last.pth.tar ^
+--log-wandb 
+
+```
+
+Last (lower LR; disable weight decay):
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter last_name_long_cast_0 ^
+--experiment last-names-tl_mod ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names ^
+--lr 0.0625 ^
+--weight-decay 0 ^
+-b 128 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets ^
+--dataset nurse-names ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr-last-names\last.pth.tar ^
+--log-wandb 
+
+```
 
 ## Evaluate
 
