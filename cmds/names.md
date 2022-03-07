@@ -107,15 +107,10 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 ```
 
 First:
-
-### TL from PR
-**TODO**: Tune, esp. LR, but potentially also could be train for shorter, remove weight decay, etc.
-
-Last:
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter last_name_long_cast_0 ^
---experiment last-names-tl ^
+--formatter first_name_long_cast_0 ^
+--experiment first-names ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names ^
 --lr 0.5 ^
 -b 128 ^
@@ -123,18 +118,19 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets ^
 --dataset nurse-names ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr-last-names\last.pth.tar ^
---log-wandb 
+--log-wandb ^
+--initial-log
 
 ```
 
-Last (lower LR; disable weight decay):
+### TL from PR
+Last: Search over LRs
 ```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter last_name_long_cast_0 ^
---experiment last-names-tl_mod ^
+--experiment last-names-tl-lr-%i ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names ^
---lr 0.0625 ^
+--lr %i ^
 --weight-decay 0 ^
 -b 128 ^
 --input-size 3 95 680 ^
@@ -145,6 +141,25 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --log-wandb 
 
 ```
+
+First: Search over LRs
+```
+for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter first_name_long_cast_0 ^
+--experiment first-names-tl-lr-%i ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names ^
+--lr %i ^
+--weight-decay 0 ^
+-b 128 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets ^
+--dataset nurse-names ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr-first-names\last.pth.tar ^
+--log-wandb 
+
+```
+
 
 ## Evaluate
 

@@ -219,6 +219,10 @@ def last_name_long_cast_0() -> NameFormatter:
     return NameFormatter('last', 18, 0, cast_to_empty={'0=Mangler'})
 
 
+@register_formatter
+def first_name_long_cast_0() -> NameFormatter:
+    return NameFormatter('first', 18, 0, cast_to_empty={'0=Mangler'})
+
 # NOTES
 # In '~/labels-root/210304-tab-b-cmd-tsdj-merge/nurse-name-{}.npy', using all
 # three concatenated, the longest name is christophersen, at 14 letters. The
