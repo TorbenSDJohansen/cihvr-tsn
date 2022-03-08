@@ -139,7 +139,7 @@ def weight_keep_bad_cpd() -> NumSeqFormatter:
 
 
 @register_formatter
-def weight_keep_drop_cpd() -> NumSeqFormatter:
+def weight_drop_bad_cpd() -> NumSeqFormatter:
     return NumSeqFormatter(5, 4, 'drop', 'keep')
 
 
@@ -149,7 +149,7 @@ def lenght_keep_bad_cpd() -> NumSeqFormatter:
 
 
 @register_formatter
-def lenght_keep_drop_cpd() -> NumSeqFormatter:
+def lenght_drop_bad_cpd() -> NumSeqFormatter:
     return NumSeqFormatter(2, 2, 'drop', 'keep')
 
 
