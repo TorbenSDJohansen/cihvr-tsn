@@ -106,6 +106,26 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 
 ```
 
+Last; now drop all masked as bad cpd prior to training instead of keeping label
+when the label is available but case is probably bad cpd
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter last_name_long_cast_0 ^
+--experiment last-names-drop-bad-cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names ^
+--lr 0.5 ^
+-b 128 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir drop ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--log-wandb ^
+--initial-log
+
+```
+
 First:
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
