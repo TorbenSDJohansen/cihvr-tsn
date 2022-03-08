@@ -6,8 +6,7 @@
 
 import numpy as np
 
-# from timmsn.data.formatters import register_formatter
-register_formatter = lambda x: x
+from timmsn.data.formatters import register_formatter
 
 
 ALLOWED_EMPTY = {'0=Mangler', 'empty', ''}
