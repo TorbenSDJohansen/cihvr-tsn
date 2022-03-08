@@ -23,8 +23,18 @@ After making sure all dependencies are installed, use the following code to inst
 pip install path/to/timm-sequence-net
 ```
 
+## Replicate results
+See individual markdowns under `./cmds/`.
+
 ## License
 
 ## Citing
 
+- [ ] `timmsn`, with reference to `timm`
+- [ ] Research papers based on `timmsn`
+- [ ] Other papers used in, e.g., TL, such as HANA
+
 ## TODO
+
+- [ ] Mask for bad CPD samples
+- [ ] Optimal label construction, see `./data/gen_labels.py`

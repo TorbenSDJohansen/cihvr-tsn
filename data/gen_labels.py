@@ -368,6 +368,11 @@ def gen_labels(
 
 
 if __name__ == '__main__':
+    # TODO: Would be optimal to keep test set "fixed", or at least ensure that
+    # the union of the test images is not present in the union of the train
+    # images!
+    # TODO implement fourth method, which keeps label but also signals bad cpd;
+    # now possible to predict the likely label as well as indicator for bad cpd
     gen_labels(
         labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets/1-all-labels/keep/',
         share_test=0.1,
