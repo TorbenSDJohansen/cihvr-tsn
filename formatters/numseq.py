@@ -4,6 +4,7 @@
 """
 # pylint: disable=C0115, C0116
 
+
 import numpy as np
 
 from timmsn.data.formatters import register_formatter
@@ -110,7 +111,7 @@ class NumSeqFormatter:
         clean = []
 
         for val in raw_pred: # input, left to right, all "real" tokens
-            if val >= 10:
+            if val >= MISSING_INDICATOR:
                 continue
             clean.append(val)
 
