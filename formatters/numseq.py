@@ -52,9 +52,6 @@ class NumSeqFormatter:
         self._asserts()
         self._instantiate_contants()
 
-        self.tl = self.transform_label
-        self.cp = self.clean_pred
-
     def _instantiate_contants(self):
         self.empty = np.array([MISSING_INDICATOR] * self.max_len)
         self.bad_cpd = np.array([BAD_CPD_INDICATOR] * self.max_len)
