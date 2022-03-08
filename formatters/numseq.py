@@ -31,7 +31,7 @@ def _sanitize(raw_input: str or int or float) -> str:
     if isinstance(raw_input, float):
         assert int(raw_input) == raw_input, raw_input
 
-    mod_input = str(int(raw_input)) # FIXME do we want to strip zeros?
+    mod_input = str(int(raw_input))
 
     return mod_input
 
@@ -58,7 +58,7 @@ class NumSeqFormatter:
     def _instantiate_contants(self):
         self.empty = np.array([MISSING_INDICATOR] * self.max_len)
         self.bad_cpd = np.array([BAD_CPD_INDICATOR] * self.max_len)
-        self.num_classes = [BAD_CPD_INDICATOR] * self.max_len # FIXME if drop, e.g., bad cpd, can have fewer classes for each token
+        self.num_classes = [BAD_CPD_INDICATOR] * self.max_len
 
     def _asserts(self):
         assert isinstance(self.max_len, int), self.max_len
