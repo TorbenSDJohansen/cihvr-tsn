@@ -160,7 +160,6 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 
 ```
 
-
 ## Evaluate
 
 ### Baseline
@@ -180,6 +179,39 @@ python evaluate.py ^
 --eval-plots-omit-most-occ 3
 
 ```
+
+Last (TL):
+```
+python evaluate.py ^
+--formatter last_name_long_cast_0 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last-names-tl-lr--0.25 ^
+-b 1024 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets ^
+--dataset nurse-names ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last-names-tl-lr-0.25\model_best.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+
+```
+
+First (TL):
+```
+python evaluate.py ^
+--formatter first_name_long_cast_0 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first-names-tl-lr-0.5 ^
+-b 1024 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets ^
+--dataset nurse-names ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first-names-tl-lr-0.5\model_best.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+
+```
+
 
 **TODO**: For eval, only really nurse-name-1 is particularly interesting:
 `--dataset-cells nurse-name-1`
