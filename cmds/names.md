@@ -126,6 +126,25 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 
 ```
 
+Last; new setup where we can keep bad CPD and predict when bad cpd
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter last_name_keep_bad_cpd ^
+--experiment last-names-keep-bad-cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names ^
+--lr 0.5 ^
+-b 128 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--log-wandb ^
+--initial-log
+
+```
+
 First:
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
