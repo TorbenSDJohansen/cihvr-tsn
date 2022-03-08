@@ -43,7 +43,7 @@ def _load_mod_weight(add_bad_cpd: bool):
     # bad cpd!
     nli_empty = new_label_info[new_label_info['label'] == 'empty']
     idxs_to_change = nli_empty[nli_empty['fname'].isin(bad_cpd_files)].index
-    
+
     if add_bad_cpd:
         new_label_info.loc[idxs_to_change, 'label'] = 'bad cpd'
         assert new_label_info[new_label_info['label'] == 'empty']['fname'].isin(bad_cpd_files).sum() == 0 # pylint: disable=C0301
@@ -190,7 +190,9 @@ class Verifiers: # pylint: disable=C0115
         return name
 
 
-def gen_labels(labels_root: str, share_test: float, log_file: str, add_bad_cpd: bool = False):
+def gen_labels(
+        labels_root: str, share_test: float, log_file: str,
+        handle_bad_cpd: str = 'ignore'):
     """
     Generate label files based on transcribed data. The aim of this function is
     to serve as a final function to generate labels. It is built after the cmd-
@@ -205,6 +207,8 @@ def gen_labels(labels_root: str, share_test: float, log_file: str, add_bad_cpd: 
     log_file : str
         Log file used for CPD. Includes info useful to identify bad CPD cases
         etc.
+    handle_bad_cpd : str
+        bad cpd handling. One of "keep", "ignore", "drop". Default is "ignore".
 
     Returns
     -------
@@ -218,6 +222,11 @@ def gen_labels(labels_root: str, share_test: float, log_file: str, add_bad_cpd: 
     fn_df_nurse_names = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv' # TODO check if update, use prepare_nuse_name_data
 
     # FUNCTION START
+    assert handle_bad_cpd in ('keep', 'ignore', 'drop')
+    # Unless ignore bad cpd, add them. If drop, we need them now before we can
+    # later drop based on them
+    add_bad_cpd = handle_bad_cpd != 'ignore'
+
     df_main = pd.read_table(fn_df_main, sep=';')
     df_main = df_main.drop_duplicates('Filename')
 
@@ -250,7 +259,7 @@ def gen_labels(labels_root: str, share_test: float, log_file: str, add_bad_cpd: 
         # Handle bad cpd (manual checks)
         idxs_bad_cpd1 = merged['page'].isin(bad_cpd_files)
         merged.loc[idxs_bad_cpd1, list(map_lookup_df.values())] = 'bad cpd'
-    
+
         # Handle bad CPD based on matrix determinant.
         det_ut = 1.03 # Maybe change?
         det_lt = 0.91 # Maybe change?
@@ -304,7 +313,7 @@ def gen_labels(labels_root: str, share_test: float, log_file: str, add_bad_cpd: 
         'dura-any-breastfeed': verifiers.verify_bfdurany,
         'preterm-birth': verifiers.verify_tab_b_12,
         'preterm-birth-weeks': verifiers.verify_tab_b_int,
-        'brestfeed-7-do': verifiers.verify_tab_b_123,
+        'breastfeed-7-do': verifiers.verify_tab_b_123,
         'nurse-name-1': verifiers.verify_nurse_name,
         'nurse-name-2': verifiers.verify_nurse_name,
         'nurse-name-3': verifiers.verify_nurse_name,
@@ -325,13 +334,16 @@ def gen_labels(labels_root: str, share_test: float, log_file: str, add_bad_cpd: 
         labels = labels[['page', value]].dropna() # Drop bad cases
 
         labels = np.array(labels)
+
+        if handle_bad_cpd == 'drop':
+            labels = labels[labels[:, 1] != 'bad cpd']
+
         labels_train, labels_test = train_test_split(
             labels,
             test_size=share_test,
             random_state=1,
             )
 
-        # TODO consider if .csv instead
         fn_out_train = os.path.join(labels_root, 'train', f'{key}.npy')
         fn_out_test = os.path.join(labels_root, 'test', f'{key}.npy')
 
@@ -357,7 +369,20 @@ def gen_labels(labels_root: str, share_test: float, log_file: str, add_bad_cpd: 
 
 if __name__ == '__main__':
     gen_labels(
-        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets/1-all-labels/',
+        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets/1-all-labels/keep/',
         share_test=0.1,
         log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
+        handle_bad_cpd='keep',
+        )
+    gen_labels(
+        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets/1-all-labels/ignore/',
+        share_test=0.1,
+        log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
+        handle_bad_cpd='ignore',
+        )
+    gen_labels(
+        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets/1-all-labels/drop/',
+        share_test=0.1,
+        log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
+        handle_bad_cpd='drop',
         )
