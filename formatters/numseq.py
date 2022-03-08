@@ -2,11 +2,12 @@
 """
 @author: sa-tsdj
 """
-
+# pylint: disable=C0115, C0116
 
 import numpy as np
 
-from timmsn.data.formatters import register_formatter
+# from timmsn.data.formatters import register_formatter
+register_formatter = lambda x: x
 
 
 ALLOWED_EMPTY = {'0=Mangler', 'empty', ''}
@@ -15,7 +16,7 @@ ALLOWED_BAD_CPD = {'bad cpd', 'b'}
 MISSING_INDICATOR = 10
 EMPTY_VALUE = '0=Mangler'
 
-BAD_CPD_INDICATOR = 11 # TODO even use this?
+BAD_CPD_INDICATOR = 11
 BAD_CPD_VALUE = 'bad cpd'
 
 def _sanitize(raw_input: str or int or float) -> str:
@@ -28,9 +29,9 @@ def _sanitize(raw_input: str or int or float) -> str:
         return BAD_CPD_VALUE
 
     if isinstance(raw_input, float):
-        assert int(raw_input) == raw_input
+        assert int(raw_input) == raw_input, raw_input
 
-    mod_input = str(int(raw_input)) # strip zeros -> cast str
+    mod_input = str(int(raw_input)) # FIXME do we want to strip zeros?
 
     return mod_input
 
@@ -39,10 +40,10 @@ class NumSeqFormatter:
     def __init__(
             self,
             max_len: int,
-            min_len: int = 0,
+            min_len: int = 1,
             handle_bad_cpd: str = 'keep',
             handle_empty: str = 'keep',
-            ):
+        ):
         self.max_len = max_len
         self.min_len = min_len
         self.handle_bad_cpd = handle_bad_cpd
@@ -50,6 +51,9 @@ class NumSeqFormatter:
 
         self._asserts()
         self._instantiate_contants()
+
+        self.tl = self.transform_label
+        self.cp = self.clean_pred
 
     def _instantiate_contants(self):
         self.empty = np.array([MISSING_INDICATOR] * self.max_len)
@@ -79,7 +83,7 @@ class NumSeqFormatter:
                 return None
 
         input_len = len(mod_input)
-        assert self.max_len >= input_len >= self.min_len
+        assert self.max_len >= input_len >= self.min_len, raw_input
 
         label = [MISSING_INDICATOR] * (self.max_len - input_len)
 
@@ -94,41 +98,42 @@ class NumSeqFormatter:
         return label.astype(float)
 
     def clean_pred(self, raw_pred: np.ndarray, assert_consistency: bool = True) -> str:
-        # if some-method-to-eval-empty:
-            # return EMPTY_VALUE
+        nb_missing = sum(raw_pred == MISSING_INDICATOR)
+        nb_bad_cpd = sum(raw_pred == BAD_CPD_INDICATOR)
 
-        # if some-method-to-eval-bad cpd:
-            # return BAD_CPD_VALUE
+        if (nb_missing + nb_bad_cpd) == self.max_len: # all missing or bad cpd
+            if nb_bad_cpd > 0: # if at least one token bad cpd, cast to bad cpd
+                return BAD_CPD_VALUE
+            return EMPTY_VALUE # otherwise all are empty -> cast empty
 
-        
+        # if here: at least one token neither missing nor bad cpd
+        # assumption: in such cases, extract value better than cast based on
+        # partial missing or bad cpd info
+        # alternative: if partial bad cpd, could also cast to bad cpd
+
         clean = []
-        reordered_pred = []
 
         for val in raw_pred: # input, left to right, all "real" tokens
             if val >= 10:
                 continue
-            reordered_pred.append(val)
-            clean.append(str(val))
+            clean.append(val)
 
-        
-        reordered_pred = np.array([MISSING_INDICATOR] + reordered_pred)
+        len_clean_pred = len(clean)
+        assert len_clean_pred > 0, (raw_pred, clean)
 
-        assert len(clean) > 0, (raw_pred, clean)
-
-        clean = ''.join(clean)
+        # Place all empty fields first
+        reordered_pred = np.array([MISSING_INDICATOR] * (self.max_len - len_clean_pred) + clean)
+        clean = ''.join((str(x) for x in clean))
 
         # Need to be cycle consistent - however, the function may be called from
         # `transform_label`, and we do not want infinite recursion, hence the if.
         if assert_consistency:
             transformed_clean = self.transform_label(clean)
-            # assert transformed_clean is None or all(pred.astype('float') == transformed_clean)
-    
-            if not (transformed_clean is None or all(pred.astype('float') == transformed_clean[1:])):
-                raise Exception(raw_pred, pred, clean, transformed_clean)
 
+            if not (transformed_clean is None or all(reordered_pred.astype('float') == transformed_clean)):
+                raise Exception(raw_pred, reordered_pred, clean, transformed_clean)
 
-
-
+        return clean
 
 
 @register_formatter
@@ -139,3 +144,63 @@ def weight_keep_bad_cpd() -> NumSeqFormatter:
 @register_formatter
 def weight_keep_drop_cpd() -> NumSeqFormatter:
     return NumSeqFormatter(5, 4, 'drop', 'keep')
+
+
+@register_formatter
+def lenght_keep_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(2, 2, 'keep', 'keep')
+
+
+@register_formatter
+def lenght_keep_drop_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(2, 2, 'drop', 'keep')
+
+
+@register_formatter
+def one_digit_keep_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(1, 1, 'keep', 'keep')
+
+
+@register_formatter
+def one_digit_drop_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(1, 1, 'drop', 'keep')
+
+
+@register_formatter
+def two_digit_keep_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(2, 1, 'keep', 'keep')
+
+
+@register_formatter
+def two_digit_drop_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(3, 1, 'drop', 'keep')
+
+
+@register_formatter
+def three_digit_keep_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(3, 1, 'keep', 'keep')
+
+
+@register_formatter
+def three_digit_drop_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(3, 1, 'drop', 'keep')
+
+
+@register_formatter
+def four_digit_keep_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(4, 1, 'keep', 'keep')
+
+
+@register_formatter
+def four_digit_drop_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(4, 1, 'drop', 'keep')
+
+
+@register_formatter
+def five_digit_keep_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(5, 1, 'keep', 'keep')
+
+
+@register_formatter
+def five_digit_drop_bad_cpd() -> NumSeqFormatter:
+    return NumSeqFormatter(5, 1, 'drop', 'keep')
