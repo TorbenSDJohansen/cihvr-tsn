@@ -421,7 +421,7 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
     if args.log_wandb and args.local_rank == 0:
         if has_wandb:
             wandb.init(
-                project=os.path.split(args.output)[-1], # TODO use arg if avail else this
+                project=args.wandb_project_prefix + os.path.split(args.output)[-1],
                 name=args.experiment,
                 dir=output_dir,
                 resume='auto',

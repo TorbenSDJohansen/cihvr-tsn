@@ -303,6 +303,8 @@ def construct_parser(): # pylint: disable=R0915
                         help='convert model torchscript for inference')
     parser.add_argument('--log-wandb', action='store_true', default=False,
                         help='log training and validation metrics to wandb')
+    parser.add_argument('--wandb-project-prefix', type=str, default='',
+                        help='W&B project name will be prefixed by value')
 
     # Not for training - to harmonize train and evaluate scripts.
     parser.add_argument('--checkpoint', default='', type=str, metavar='PATH', # --resume and --checkpoint could be merged
