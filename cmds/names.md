@@ -232,6 +232,43 @@ python evaluate.py ^
 
 ```
 
+Last; new setup where we can keep bad CPD and predict when bad cpd
+```
+python evaluate.py ^
+--formatter last_name_keep_bad_cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last-names-keep-bad-cpd ^
+-b 1024 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last-names-keep-bad-cpd\model_best.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+
+```
+
+Last; now drop all masked as bad cpd prior to training instead of keeping label
+when the label is available but case is probably bad cpd
+```
+python evaluate.py ^
+--formatter last_name_long_cast_0 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last-names-drop-bad-cpd ^
+-b 1024 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir drop ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last-names-drop-bad-cpd\model_best.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+
+```
+
 
 **TODO**: For eval, only really nurse-name-1 is particularly interesting:
 `--dataset-cells nurse-name-1`
