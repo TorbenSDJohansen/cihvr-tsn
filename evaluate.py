@@ -40,7 +40,7 @@ from timmsn.data import create_loader
 from timmsn.data.parsers import setup_sqnet_parser, setup_bdatasets_parser
 
 # other imports
-from train import _parse_args
+from argparser import parse_args
 
 has_cv2 = False # pylint: disable=C0103
 try:
@@ -259,7 +259,7 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
 
 def main():
     setup_default_logging()
-    args, _ = _parse_args()
+    args, _ = parse_args()
 
     validate(args)
 

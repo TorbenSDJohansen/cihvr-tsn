@@ -11,8 +11,6 @@ from collections import OrderedDict
 from contextlib import suppress
 from datetime import datetime
 
-import yaml
-
 import torch
 
 from torch.nn.parallel import DistributedDataParallel as NativeDDP
@@ -62,8 +60,7 @@ from timmsn.data import create_loader, Mixup, FastCollateMixup
 from timmsn.data.parsers import setup_sqnet_parser, setup_bdatasets_parser
 
 # other imports
-from argparser import construct_parser
-import formatters
+from argparser import parse_args
 
 try:
     from apex import amp
@@ -89,27 +86,9 @@ except ImportError:
 torch.backends.cudnn.benchmark = True
 _logger = logging.getLogger('train') # pylint: disable=C0103
 
-def _parse_args(): # TODO move to argparser.py?
-    config_parser, parser = construct_parser()
-    # Do we have a config file to parse?
-    args_config, remaining = config_parser.parse_known_args()
-    if args_config.config:
-        with open(args_config.config, 'r') as f: # pylint: disable=C0103
-            cfg = yaml.safe_load(f)
-            parser.set_defaults(**cfg)
-
-    # The main arg parser parses the rest of the args, the usual
-    # defaults will have been overridden if config file specified.
-    args = parser.parse_args(remaining)
-
-    # Cache the args as a text string to save them in the output dir later
-    args_text = yaml.safe_dump(args.__dict__, default_flow_style=False)
-    return args, args_text
-
-
 def main(): # pylint: disable=R0914, R0912, R0915, C0116
     setup_default_logging()
-    args, args_text = _parse_args()
+    args, args_text = parse_args()
 
     if len(args.dataset) == 1:
         args.dataset = args.dataset[0]

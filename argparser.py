@@ -7,6 +7,10 @@
 
 import argparse
 
+import yaml
+
+import formatters
+
 
 HELP_STR_DATASET_STRUCTURE = '''Dataset can be structured these ways:
 -----------------
@@ -85,6 +89,14 @@ def construct_parser(): # pylint: disable=R0915
 
     parser.add_argument('--labels-subdir', type=str, nargs='+', default='',
                         help='For each dataset, specify name of subdir inside labels/ (default: do not use subdirs)')
+
+    # Options to predict directly on folders
+    parser.add_argument('--predict-folders', type=str, nargs='+', default=None,
+                        help='Overwrite normal setup and predict on explicitly chosen folders. Tarballs (.tar.gz) allowed.')
+    parser.add_argument('--predict-on-subfolders', default=False, action='store_true',
+                        help='Extend --predict-folders to subfolders of all folders.',)
+    parser.add_argument('--keep-unpacked', default=False, action='store_true',
+                        help='When predicting on, e.g., tarballs, do not delete unpacked folders.',)
 
     parser.add_argument('--train-split', metavar='NAME', default='train',
                         help='dataset train split (default: train)')
@@ -345,3 +357,21 @@ def construct_parser(): # pylint: disable=R0915
                         help='SequenceNet version to base sequence model on.')
 
     return config_parser, parser
+
+
+def parse_args(): # pylint: disable=C0116
+    config_parser, parser = construct_parser()
+    # Do we have a config file to parse?
+    args_config, remaining = config_parser.parse_known_args()
+    if args_config.config:
+        with open(args_config.config, 'r') as f: # pylint: disable=C0103
+            cfg = yaml.safe_load(f)
+            parser.set_defaults(**cfg)
+
+    # The main arg parser parses the rest of the args, the usual
+    # defaults will have been overridden if config file specified.
+    args = parser.parse_args(remaining)
+
+    # Cache the args as a text string to save them in the output dir later
+    args_text = yaml.safe_dump(args.__dict__, default_flow_style=False)
+    return args, args_text

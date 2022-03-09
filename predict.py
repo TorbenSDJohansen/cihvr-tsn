@@ -6,6 +6,7 @@
 
 import os
 import logging
+import shutil
 
 from contextlib import suppress
 
@@ -25,10 +26,14 @@ from timmsn.utils import (
     )
 from timmsn.models import create_model
 from timmsn.data import create_loader
-from timmsn.data.parsers import setup_sqnet_parser, setup_bdatasets_parser
+from timmsn.data.parsers import (
+    setup_sqnet_parser,
+    setup_bdatasets_parser,
+    setup_sqnet_parser_predict_folders,
+    )
 
 # other imports
-from train import _parse_args
+from argparser import parse_args
 
 has_cv2 = False # pylint: disable=C0103
 try:
@@ -56,7 +61,7 @@ _logger = logging.getLogger('inference') # pylint: disable=C0103
 
 def main():
     setup_default_logging()
-    args, _ = _parse_args()
+    args, _ = parse_args()
 
     args.pretrained = args.pretrained or not args.checkpoint
 
@@ -73,8 +78,10 @@ def main():
     if len(args.dataset) == 1:
         args.dataset = args.dataset[0]
 
-    parser_predict = clean_pred = None
-    if isinstance(args.dataset, str) and args.dataset.startswith('bdatasets.'):
+    parser_predict = clean_pred = unpacked_folders = None
+    if args.predict_folders is not None:
+        parser_predict, clean_pred, unpacked_folders = setup_sqnet_parser_predict_folders(args)
+    elif isinstance(args.dataset, str) and args.dataset.startswith('bdatasets.'):
         assert args.sequence_model, 'bdatasets are for sequences'
         parser_predict, _, clean_pred = setup_bdatasets_parser(
             args=args, purpose='predict', split=args.data_split or 'predict',
@@ -166,6 +173,11 @@ def main():
         channels_last=args.channels_last,
         retrieve_labels=False,
         )
+
+    if unpacked_folders is not None and not args.keep_unpacked:
+        for unpacked_folder in unpacked_folders:
+            print(f'Deleting earlier unpacked tarball "{unpacked_folder}".')
+            shutil.rmtree(unpacked_folder)
 
     print('Cleaning predictions and labels.')
     preds_clean = np.array(list(map(clean_pred, preds)))
