@@ -373,6 +373,8 @@ if __name__ == '__main__':
     # images!
     # TODO implement fourth method, which keeps label but also signals bad cpd;
     # now possible to predict the likely label as well as indicator for bad cpd
+    # TODO possible to use OLD labels? Probably not: Since we need the new cols
+    # TODO implications for test sample tab b, probably overlap train now
     gen_labels(
         labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets/1-all-labels/keep/',
         share_test=0.1,
