@@ -227,8 +227,8 @@ class NameFormatter():
 
         assert len(mod_input) >= self.min_nb_names
 
-        # TODO if len(raw_input) == 1, discard or use?
-        raw_input = raw_input[0]
+        # TODO if len(mod_input) == 1, discard or use?
+        mod_input = mod_input[0]
         label = self.transform_label_individual_name(mod_input)
 
         # Assert cycle consistency
