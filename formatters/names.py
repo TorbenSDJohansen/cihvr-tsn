@@ -66,8 +66,8 @@ class NameFormatter():
 
     def _instantiate_contants(self):
         self.max_len = self.max_name_len * self.max_nb_names
-        self.empty = np.array([MISSING_INDICATOR] * self.max_len)
-        self.bad_cpd = np.array([BAD_CPD_INDICATOR] * self.max_len)
+        self.empty = np.array([MISSING_INDICATOR] * self.max_len).astype(float)
+        self.bad_cpd = np.array([BAD_CPD_INDICATOR] * self.max_len).astype(float)
         self.num_classes = [len(MAP_IDX_LETTER) + 2] * self.max_len
 
     def _asserts(self):

@@ -68,8 +68,8 @@ class DateFormatter:
         self._instantiate_contants()
 
     def _instantiate_contants(self):
-        self.empty = np.array([MISSING_INDICATOR] * self.max_len)
-        self.bad_cpd = np.array([BAD_CPD_INDICATOR] * self.max_len)
+        self.empty = np.array([MISSING_INDICATOR] * self.max_len).astype(float)
+        self.bad_cpd = np.array([BAD_CPD_INDICATOR] * self.max_len).astype(float)
         self.num_classes = [len(MAP_NUM) + 2] * 2 + [len(MAP_MONTH) + 2]
         # TODO limit first to smaller range (1 + 1 + 3 instead og 12)?
 

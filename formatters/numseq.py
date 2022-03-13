@@ -31,7 +31,10 @@ def _sanitize(raw_input: str or int or float) -> str:
     if isinstance(raw_input, float):
         assert int(raw_input) == raw_input, raw_input
 
-    mod_input = str(int(raw_input))
+    if isinstance(raw_input, str) and '=' in raw_input:
+        mod_input = str(int(raw_input.split('=')[0]))
+    else:
+        mod_input = str(int(raw_input))
 
     return mod_input
 
@@ -53,8 +56,8 @@ class NumSeqFormatter:
         self._instantiate_contants()
 
     def _instantiate_contants(self):
-        self.empty = np.array([MISSING_INDICATOR] * self.max_len)
-        self.bad_cpd = np.array([BAD_CPD_INDICATOR] * self.max_len)
+        self.empty = np.array([MISSING_INDICATOR] * self.max_len).astype(float)
+        self.bad_cpd = np.array([BAD_CPD_INDICATOR] * self.max_len).astype(float)
         self.num_classes = [BAD_CPD_INDICATOR] * self.max_len
 
     def _asserts(self):
