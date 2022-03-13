@@ -1,4 +1,4 @@
-# Name (first and last) models
+# Weight models
 
 ## Training
 
