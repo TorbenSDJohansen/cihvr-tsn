@@ -33,15 +33,7 @@ def _sanitize(raw_input: str) -> str:
     if raw_input in ALLOWED_BAD_CPD:
         return BAD_CPD_VALUE
 
-    split_input = raw_input.split(':')
-    assert len(split_input) == 3, raw_input
-
-    day, month, year = split_input # pylint: disable=W0612
-
-    assert 2 >= len(day) >= 1, raw_input
-    assert 2 >= len(month) >= 1, raw_input
-
-    return day, month
+    return raw_input.split(':')
 
 
 def _strip_zero(elem: str):
@@ -86,9 +78,15 @@ class DateFormatter:
             if self.handle_bad_cpd == 'drop':
                 return None
 
-        day, month = mod_input
+        if not len(mod_input) == 3: # if not day, month, and year avail. drop
+            return None
+
+        day, month, _ = mod_input
         day = _strip_zero(day)
         month = _strip_zero(month)
+
+        if len(day) > 2: # sometimes label is invalid, e.g., 3 digit day
+            return None
 
         if len(day) == 1:
             day_long = EMPTY_TOKEN + day
@@ -98,15 +96,19 @@ class DateFormatter:
         label = []
 
         for token in day_long:
-            label.append(MAP_NUM[token])
+            label.append(MAP_NUM.get(token, None)) # FIXME this allows days such as 41, 52, i.e. all [01-99]..
 
-        label.append(MAP_MONTH[month])
+        label.append(MAP_MONTH.get(month, None))
+
+        if None in label: # then one token of day or month is not valid -> drop
+            return None
 
         label = np.array(label)
 
         # Assert consistency
         transformed_label = ':'.join([_strip_zero(x) for x in self.clean_pred(label, False, False).split(':')[:2]])
-        assert ':'.join((day, month)) == transformed_label, (raw_input, ':'.join((day, month)), transformed_label)
+        comparison = ':'.join((day.replace(',,', ','), month)) # if day == ',,': day = ','
+        assert comparison == transformed_label, (raw_input, comparison, transformed_label)
 
         return label.astype(float)
 
