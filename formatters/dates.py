@@ -43,7 +43,10 @@ def _strip_zero(elem: str):
         else:
             return elem
 
-    return str(int(elem))
+    if len(elem) == 2 and elem.startswith('0'):
+        elem = elem[-1] # lstrip first 0
+
+    return elem
 
 
 class DateFormatter:
@@ -62,7 +65,7 @@ class DateFormatter:
     def _instantiate_contants(self):
         self.empty = np.array([MISSING_INDICATOR] * self.max_len).astype(float)
         self.bad_cpd = np.array([BAD_CPD_INDICATOR] * self.max_len).astype(float)
-        self.num_classes = [len(MAP_NUM) + 2] * 2 + [len(MAP_MONTH) + 2]
+        self.num_classes = [len(MAP_NUM) + 1] * 2 + [len(MAP_MONTH) + 1]
         # TODO limit first to smaller range (1 + 1 + 3 instead og 12)?
 
     def _asserts(self):
@@ -126,6 +129,9 @@ class DateFormatter:
                 return BAD_CPD_VALUE
             return EMPTY_VALUE # otherwise all are empty -> cast empty
 
+        if nb_bad_cpd > 0:
+            raw_pred[raw_pred == BAD_CPD_INDICATOR] = MISSING_INDICATOR
+
         day = MAP_NUM_INV[raw_pred[0]] + MAP_NUM_INV[raw_pred[1]]
 
         month = MAP_MONTH_INV[raw_pred[2]]
@@ -148,7 +154,11 @@ class DateFormatter:
         if assert_consistency:
             transformed_clean = self.transform_label(clean)
 
-            if not (transformed_clean is None or all(raw_pred.astype('float') == transformed_clean)):
+            mod_pred = raw_pred.copy()
+            if mod_pred[0] == 2: # in case pred first digit is 0, compare for when missing
+                mod_pred[0] = 0
+
+            if not (transformed_clean is None or all(mod_pred.astype('float') == transformed_clean)):
                 raise Exception(raw_pred, clean, transformed_clean)
 
         if strip_year:
@@ -325,6 +335,14 @@ def test():
             date_mod = date
 
         assert clean_new == date_mod
+
+    import itertools # pylint: disable=C0415
+
+    for out in itertools.product(*[list(range(x)) for x in f_new.num_classes]):
+        f_new.clean_pred(np.array(out))
+
+    for out in itertools.product(*[list(range(x)) for x in f_old.num_classes]):
+        f_old.clean_pred(np.array(out))
 
 
 if __name__ == '__main__':
