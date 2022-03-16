@@ -58,7 +58,7 @@ class NumSeqFormatter:
     def _instantiate_contants(self):
         self.empty = np.array([MISSING_INDICATOR] * self.max_len).astype(float)
         self.bad_cpd = np.array([BAD_CPD_INDICATOR] * self.max_len).astype(float)
-        self.num_classes = [BAD_CPD_INDICATOR] * self.max_len
+        self.num_classes = [BAD_CPD_INDICATOR + 1] * self.max_len
 
     def _asserts(self):
         assert isinstance(self.max_len, int), self.max_len
