@@ -8,8 +8,8 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter weight_keep_bad_cpd ^
 --experiment base ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\weight ^
---lr 4.0 ^
--b 1024 ^
+--lr 2.0 ^
+-b 512 ^
 --input-size 3 63 302 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-joined ^
