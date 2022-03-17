@@ -678,5 +678,19 @@ def validate(model, loader, loss_fn, args, amp_autocast=suppress, log_suffix='',
     return metrics
 
 
+def fake_validate(model, loader, loss_fn, args, amp_autocast=suppress, log_suffix='', accuracy_fn=accuracy):
+    if args.sequence_model:
+        acc_metric_1_name, acc_metric_2_name = 'SeqAcc', 'TokenAcc'
+    else:
+        acc_metric_1_name, acc_metric_2_name = 'Acc@1', 'Acc@5'
+    metrics = OrderedDict([
+        ('loss', -1),
+        (acc_metric_1_name, -1),
+        (acc_metric_2_name, -1),
+        ])
+
+    return metrics
+
+
 if __name__ == '__main__':
     main()
