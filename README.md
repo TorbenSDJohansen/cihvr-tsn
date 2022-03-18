@@ -14,7 +14,7 @@ Then prepare an environment (here using conda and the name `cihvr`):
 ```
 conda create -n cihvr numpy pandas pillow scikit-learn opencv matplotlib pyyaml
 conda activate cihvr
-conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
+conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
 pip install imutils timm
 ```
 
