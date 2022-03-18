@@ -44,7 +44,7 @@ python evaluate.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b_len_dabf\base ^
 -b 512 ^
 -j 8 ^
---input-size 3 120 293 ^
+--input-size 3 93 227 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-joined ^
 --dataset-cells %DATASET-CELLS-TAB-B-LEN-DABF% ^
@@ -63,7 +63,7 @@ python evaluate.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b_len_dabf\base-full-table ^
 -b 512 ^
 -j 8 ^
---input-size 3 120 293 ^
+--input-size 3 93 227 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-joined ^
 --labels-subdir keep-tab-b-test ^
