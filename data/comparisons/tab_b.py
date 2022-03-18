@@ -15,6 +15,9 @@ p = pd.read_csv(r'Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\base\preds.csv')
 p = pd.read_csv(r'Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\base-full-table\preds.csv')
 p['cell'] = p['filename_full'].str.split('\\').apply(lambda x: x[-1].split('/')[0])
 
+p = pd.read_csv(r'Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b_len_dabf\base\preds.csv')
+p = pd.read_csv(r'Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b_len_dabf\base-full-table\preds.csv')
+p['cell'] = p['filename_full'].str.split('\\').apply(lambda x: x[-1].split('/')[0])
 
 p['col'] = p['cell'].str.split('-').apply(lambda x: x[2])
 p['c'] = p['pred'] == p['label']
