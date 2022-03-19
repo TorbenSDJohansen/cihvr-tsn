@@ -40,7 +40,7 @@ from timm.utils import (
     AverageMeter, accuracy,
     ModelEmaV2,
     random_seed,
-    update_summary, get_outdir,
+    get_outdir,
     )
 from timm.loss import (
     LabelSmoothingCrossEntropy, SoftTargetCrossEntropy, JsdCrossEntropy,
@@ -54,7 +54,7 @@ from timmsn.loss import (
     LabelSmoothingSequenceCrossEntropy,
     SoftTargetSequenceCrossEntropy,
     )
-from timmsn.utils import sequence_accuracy, initial_log
+from timmsn.utils import sequence_accuracy, initial_log, update_summary
 from timmsn.models import create_model
 from timmsn.data import create_loader, Mixup, FastCollateMixup
 from timmsn.data.parsers import setup_sqnet_parser, setup_bdatasets_parser
@@ -396,7 +396,7 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
         validate_accuracy_fn = accuracy
 
     # setup checkpoint saver and eval metric tracking
-    eval_metric = args.eval_metric
+    eval_metric = 'eval_' + args.eval_metric
     best_metric = None
     best_epoch = None
     saver = None
@@ -441,15 +441,15 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
 
     try:
         for epoch in range(start_epoch, num_epochs):
+            start_epoch_time = time.time()
+
             if args.distributed and hasattr(loader_train.sampler, 'set_epoch'):
                 loader_train.sampler.set_epoch(epoch)
 
-            start_epoch_time = time.time()
             train_metrics = train_one_epoch(
                 epoch, model, loader_train, optimizer, train_loss_fn, args,
                 lr_scheduler=lr_scheduler, saver=saver, output_dir=output_dir,
                 amp_autocast=amp_autocast, loss_scaler=loss_scaler, model_ema=model_ema, mixup_fn=mixup_fn)
-            train_metrics['epoch_time'] = time.time() - start_epoch_time
 
             if args.distributed and args.dist_bn in ('broadcast', 'reduce'):
                 if args.local_rank == 0:
@@ -471,14 +471,21 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
                 # step LR for next epoch
                 lr_scheduler.step(epoch + 1, eval_metrics[eval_metric])
 
+            epoch_time = time.time() - start_epoch_time
+
+            metrics = OrderedDict()
+            metrics.update(train_metrics)
+            metrics.update(eval_metrics)
+            metrics.update({'epoch_time': epoch_time})
+
             if output_dir is not None:
                 update_summary(
-                    epoch, train_metrics, eval_metrics, os.path.join(output_dir, 'summary.csv'),
+                    epoch, metrics, os.path.join(output_dir, 'summary.csv'),
                     write_header=best_metric is None, log_wandb=args.log_wandb and has_wandb)
 
             if saver is not None:
                 # save proper checkpoint with eval metric
-                save_metric = eval_metrics[eval_metric]
+                save_metric = -1 if args.skip_validate else eval_metrics[eval_metric]
                 best_metric, best_epoch = saver.save_checkpoint(epoch, metric=save_metric)
 
     except KeyboardInterrupt:
@@ -593,21 +600,32 @@ def train_one_epoch( # pylint: disable=R0913, R0914, R0912, R0915, C0116
         optimizer.sync_lookahead()
 
     return OrderedDict([
-        ('loss', losses_m.avg),
-        # ('total_batch_time', batch_time_m.sum), # Not particularly interesting, captured in epoch time
+        ('train_loss', losses_m.avg),
+        ('train_time', batch_time_m.sum),
+        ('train_data_time', data_time_m.sum),
+        ('train_model_time', batch_time_m.sum - data_time_m.sum),
         ])
 
 
 def validate(model, loader, loss_fn, args, amp_autocast=suppress, log_suffix='', accuracy_fn=accuracy): # pylint: disable=R0913, R0914, C0116
-    batch_time_m = AverageMeter()
-    losses_m = AverageMeter()
-    acc_metric_1_m = AverageMeter()
-    acc_metric_2_m = AverageMeter()
-
     if args.sequence_model:
         acc_metric_1_name, acc_metric_2_name = 'SeqAcc', 'TokenAcc'
     else:
         acc_metric_1_name, acc_metric_2_name = 'Acc@1', 'Acc@5'
+
+    if args.skip_validate:
+        metrics = OrderedDict([
+            ('eval_loss', None),
+            ('eval_' + acc_metric_1_name, None),
+            ('eval_' + acc_metric_2_name, None),
+            ])
+
+        return metrics
+
+    batch_time_m = AverageMeter()
+    losses_m = AverageMeter()
+    acc_metric_1_m = AverageMeter()
+    acc_metric_2_m = AverageMeter()
 
     model.eval()
 
@@ -670,23 +688,9 @@ def validate(model, loader, loss_fn, args, amp_autocast=suppress, log_suffix='',
                         acc_metric_1_m=acc_metric_1_m, acc_metric_2_m=acc_metric_2_m))
 
     metrics = OrderedDict([
-        ('loss', losses_m.avg),
-        (acc_metric_1_name, acc_metric_1_m.avg),
-        (acc_metric_2_name, acc_metric_2_m.avg),
-        ])
-
-    return metrics
-
-
-def fake_validate(model, loader, loss_fn, args, amp_autocast=suppress, log_suffix='', accuracy_fn=accuracy):
-    if args.sequence_model:
-        acc_metric_1_name, acc_metric_2_name = 'SeqAcc', 'TokenAcc'
-    else:
-        acc_metric_1_name, acc_metric_2_name = 'Acc@1', 'Acc@5'
-    metrics = OrderedDict([
-        ('loss', -1),
-        (acc_metric_1_name, -1),
-        (acc_metric_2_name, -1),
+        ('eval_loss', losses_m.avg),
+        ('eval_' + acc_metric_1_name, acc_metric_1_m.avg),
+        ('eval_' + acc_metric_2_name, acc_metric_2_m.avg),
         ])
 
     return metrics

@@ -321,10 +321,6 @@ def construct_parser(): # pylint: disable=R0915
                         help='Use Tensorflow preprocessing pipeline (require CPU TF installed')
     parser.add_argument('--class-map', default='', type=str, metavar='FILENAME',
                         help='path to class to idx mapping file (default: "")')
-    # parser.add_argument('--valid-labels', default='', type=str, metavar='FILENAME', # TODO delete?
-    #                     help='Valid label indices txt file for validation of partial label space')
-    # parser.add_argument('--real-labels', default='', type=str, metavar='FILENAME', # TODO delete?
-    #                     help='Real labels JSON file for imagenet evaluation')
 
     # Extensions
     parser.add_argument('--sequence-model', action='store_true', default=True, # TODO Instead of arg, consider make case always
@@ -339,10 +335,6 @@ def construct_parser(): # pylint: disable=R0915
                         help='Which plots to make when evaluating (for montage, also predict).')
     parser.add_argument('--eval-plots-omit-most-occ', type=int, default=0,
                         help='Perform eval cer/acc and cov/acc plots with omitting most k common classes (of labels).')
-    # TODO --from-experiment: Load settings from experiment, and let checkpoint
-    # be the last.pth.tar. This is mostly similar to --config. Useful to test,
-    # predict. Maybe also for training, where in this cast last.pth.tar will be
-    # used as --resume. (note args.yaml then used for args)
     parser.add_argument('--evalset', default='test', type=str, # TODO remove and use --val-split instead? Needs to be ok w/ "train-split-0.05"-style
                         help='How to construct evaluation data when training, e.g., "test" or "train-split-0.05" for 5% of training data.')  # TODO change "train-split-0.05" style to "--val-split test[:50%]" style, see https://github.com/rwightman/pytorch-image-models/discussions/973
     parser.add_argument('--data-split', default=None, type=str, choices=['train', 'test', 'predict'],
@@ -357,6 +349,10 @@ def construct_parser(): # pylint: disable=R0915
                         )
     parser.add_argument('--sqnet-version', type=str, default='v2', choices=['v1', 'v2'], # TODO raise depreated warning if v1
                         help='SequenceNet version to base sequence model on.')
+
+    # EXPERIMENTAL -
+    parser.add_argument('--skip-validate', action='store_true', default=False,
+                        help='Skip validation during training.')
 
     return config_parser, parser
 
