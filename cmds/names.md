@@ -149,6 +149,22 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 
 First (TL; search for LR; disable weight decay)
 ```
+for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter first_name_keep_bad_cpd ^
+--experiment tl-lr-%i ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
+--lr %i ^
+--weight-decay 0 ^
+-b 128 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\model_best.pth.tar ^
+--log-wandb
+
 ```
 
 ## Evaluate
