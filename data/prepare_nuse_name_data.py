@@ -14,8 +14,74 @@ import pandas as pd
 
 
 FN_MAIN = 'Y:/RegionH/SPJ/Database/export_181106.txt'
+FN_NN_LIST = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-names-list.xlsx'
 LETTERS = list(string.ascii_lowercase) + ['æ', 'ø', 'å', ' ']
 LETTERS_SET = set(LETTERS)
+
+
+def _search(fname: str, lname: str, names: pd.DataFrame):
+    mask_fn = names['Fornavn'] == fname
+    mask_ln = names['Efternavn'] == lname
+    sub = names[mask_fn & mask_ln]
+    
+    print(sub)
+
+
+def _create_lexicon():
+    lex = pd.read_excel(FN_NN_LIST, sheet_name=None)
+    names = []
+
+    # TODO lowercast
+    # TODO check no NaNs
+    # TODO check subset LETTERS_SET (no space, etc.)
+    # TODO maybe let gaard and gård be one, not sure consistent...
+        # But maybe not healthy for transcription and only use post..?
+
+    for sheet, vals in lex.items():
+        print(f'\n------------\n\nSheet: {sheet}.\n')
+
+        # Check last duplicates
+        if vals['Efternavn'].value_counts().max() > 1:
+            pass # there are several; print('duplicates in last name')
+
+        vals['fn-i-ln'] = vals['Fornavn'].apply(lambda x: x[0]) + vals['Efternavn']
+
+        if vals['fn-i-ln'].value_counts().max() > 1:
+            dup = vals[vals['fn-i-ln'].duplicated(False)]
+            print(f'Duplicates in initial + last name: \n\n{dup}')
+
+        sub = vals[['Fornavn', 'Mellemnavn', 'Efternavn']].copy()
+        sub['sheet'] = sheet
+        names.append(sub)
+
+    names = pd.concat(names).reset_index(drop=True)
+
+    # TODO check across all sheets no duplicates
+    # However, note that between sheet X and Y, both can contain Z (expected to)
+    
+    # Ideas:
+        # Check all last names, if rare/obscure check proper spelling
+        # Same for first names
+        # SOMEHOW (not sure) check when collapse fn to fn-i, no collisions
+            # -> notably collisions with OTHER sheet
+    
+    names['fn-i'] = names['Fornavn'].apply(lambda x: x[0])
+    names['fn-i-ln'] = names['fn-i'] + ';' + names['Efternavn']
+    names['fn-ln'] = names['Fornavn'] + ';' + names['Efternavn']
+    
+    
+    
+    names.groupby('fn-i-ln')['sheet'].unique()
+    
+    # Somehow, for each last name, check all first names and determine
+    # collisions this way..?
+    names.groupby('Efternavn')['Fornavn'].unique()
+    names.groupby('Efternavn')['fn-i'].unique()
+    
+    
+
+    # return DataFrame[fn, ln, kreds] -- more?
+
 
 def _recast_name(name: str):
     if not isinstance(name, str):
