@@ -75,9 +75,13 @@ def _prepare_main() -> pd.DataFrame:
 def _prepare_cpr() -> pd.DataFrame:
     cpr = pd.read_stata(FN_CPR)
 
-    # TODO derive birth date col(s; maybe split into 3) and add for upload
+    cpr['dob'] = cpr['cpr'].apply(lambda x: x[:-4])
+    cpr['bdd'] = cpr['dob'].apply(lambda x: x[:2])
+    cpr['bdm'] = cpr['dob'].apply(lambda x: x[2:4])
+    cpr['bdy'] = cpr['dob'].apply(lambda x: x[4:])
+
     cpr = cpr.rename(columns={'id_s': 'Id'})
-    cpr = cpr.drop(columns=['id_c'])
+    cpr = cpr.drop(columns=['id_c', 'dob'])
 
     return cpr
 
@@ -100,7 +104,7 @@ def _prepare_cluster() -> pd.DataFrame:
 
     cluster = drop_not_imported_entries(cluster)
     cluster['page'] = create_page_number_col(cluster).values
-    cluster = cluster.drop(columns='path')
+    cluster = cluster.drop(columns={'path', 'embedded_x', 'embedded_y'})
 
     return cluster
 
@@ -127,7 +131,7 @@ def _prepare_intensity() -> pd.DataFrame:
     intensity = drop_not_imported_entries(intensity)
     intensity['page'] = create_page_number_col(intensity).values
     intensity['row'] = create_row_number(intensity).values
-    intensity = intensity.drop(columns=['path', 'index'])
+    intensity = intensity.drop(columns=['path', 'index', 'empty1', 'empty2'])
 
     return intensity
 
@@ -154,6 +158,10 @@ def _prepare_weight() -> pd.DataFrame:
 
 
 def _prepare_date() -> pd.DataFrame:
+    # TODO instead of casting to NaN when not proper date, keep all values.
+    # For example, simply report bdd and bdm here, perhaps add to current,
+    # perhaps change current...
+
     date = pd.read_csv(FN_DATE_PRED, na_values=[''], keep_default_na=False)
     main = _prepare_main()
     dates_sequence = [
@@ -305,7 +313,7 @@ def _prepare_nurse_firstname() -> pd.DataFrame:
     return nurse_firstname
 
 
-def _names_to_numeric(names: np.ndarray, only_initial: bool):
+def _names_to_numeric(names: np.ndarray, only_initial: bool) -> list:
     '''
     Maps names to numeric values using hashing. Asserts no "collisions", i.e.
     same number of distincs cases post cast.
@@ -324,12 +332,12 @@ def _names_to_numeric(names: np.ndarray, only_initial: bool):
     return as_numeric
 
 
-def _name_to_numeric(name: str):
+def _name_to_numeric(name: str) -> str:
     '''
     Hashes a name to an integer and keeps first 10 digits. For safety, appends
     a "key". Recall this is not in any way an encryption, but just a
     de-identifying exercise, and so this does not need to be safe in the sense
-    of encryption.
+    of encryption. It is also one-way (i.e. a hash, not encryption).
 
     NaNs are kept as NaNs. "0=Mangler" is kept as "0=Mangler".
 
@@ -557,7 +565,7 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
         how='left',
         )
 
-    # Intensity = degree filled in data
+    # Intensity = degree filled in data, treatment intensity
     main = main.merge(
         datasets.loc['intensity', 'loader'](),
         on=datasets.loc['intensity', 'merge-var'],
