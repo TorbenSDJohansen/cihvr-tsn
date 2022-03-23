@@ -169,7 +169,69 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 
 ## Evaluate
 
+Last (base)
+```
+python evaluate.py ^
+--formatter last_name_keep_bad_cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\base ^
+-b 2048 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\base\last.pth.tar
 
+```
+
+Last (TL)
+```
+python evaluate.py ^
+--formatter last_name_keep_bad_cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\tl-lr-0.25 ^
+-b 2048 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\tl-lr-0.25\last.pth.tar
+
+```
+
+First (base)
+```
+python evaluate.py ^
+--formatter first_name_keep_bad_cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\base ^
+-b 2048 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\base\last.pth.tar
+
+```
+
+First (TL)
+```
+python evaluate.py ^
+--formatter first_name_keep_bad_cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\tl-lr-0.0625 ^
+-b 2048 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\tl-lr-0.0625\last.pth.tar
+
+```
 
 ## Predict
 
