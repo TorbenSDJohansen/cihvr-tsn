@@ -33,6 +33,8 @@ def _sanitize(raw_input: str) -> str:
     if raw_input in ALLOWED_BAD_CPD:
         return BAD_CPD_VALUE
 
+    raw_input = raw_input.replace('-', ':') # Needed for TL from DARE
+
     return raw_input.split(':')
 
 
@@ -54,10 +56,12 @@ class DateFormatter:
             self,
             handle_bad_cpd: str = 'keep',
             handle_empty: str = 'keep',
+            allow_no_year_in_label: bool = False,
         ):
         self.max_len = 3
         self.handle_bad_cpd = handle_bad_cpd
         self.handle_empty = handle_empty
+        self.allow_no_year_in_label = allow_no_year_in_label
 
         self._asserts()
         self._instantiate_contants()
@@ -80,6 +84,9 @@ class DateFormatter:
                 return self.bad_cpd
             if self.handle_bad_cpd == 'drop':
                 return None
+
+        if self.allow_no_year_in_label and len(mod_input) == 2:
+            mod_input = [*mod_input, '?'] # add fake year, later dropped
 
         if not len(mod_input) == 3: # if not day, month, and year avail. drop
             return None
@@ -276,6 +283,11 @@ def dates_keep_bad_cpd() -> DateFormatter:
 @register_formatter
 def dates_drop_bad_cpd() -> DateFormatter:
     return DateFormatter(handle_bad_cpd='drop')
+
+
+@register_formatter
+def dates_keep_bad_cpd_allow_no_year() -> DateFormatter:
+    return DateFormatter(handle_bad_cpd='keep', allow_no_year_in_label=True)
 
 
 @register_formatter
