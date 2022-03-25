@@ -69,6 +69,25 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 
 ```
 
+TL (new formatter) **TODO**: at some point search LR, heuristic from names.md for now, there 0.25 best and batch size 4x here so let lr = 1.0
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter dates_keep_bad_cpd ^
+--experiment tl-1.0 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date ^
+--lr 1.0 ^
+-b 512 ^
+--input-size 3 63 212 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells date-1-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo date-12-mo ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\DARE\base\last.pth.tar ^
+--log-wandb
+
+```
+
 ## Evaluate
 Base (old formatter, only to compare and verify new approach works)
 ```
