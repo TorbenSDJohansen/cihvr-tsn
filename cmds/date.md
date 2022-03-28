@@ -28,6 +28,58 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 ```
 
 ### (Optional) Evaluate
+On all sets
+```
+python evaluate.py ^
+--formatter dates_keep_bad_cpd_allow_no_year ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\DARE\base ^
+-b 2048 ^
+-j 8 ^
+--input-size 3 63 212 ^
+--data_dir Z:\data_cropouts\Labels\DARE ^
+--dataset cihvr-mod funeral-records swedish-records-death-dates ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\DARE\base\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+
+```
+
+Only on CIHVR
+```
+python evaluate.py ^
+--formatter dates_keep_bad_cpd_allow_no_year ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\DARE\base-only-cihvr-mod ^
+-b 2048 ^
+-j 8 ^
+--input-size 3 63 212 ^
+--data_dir Z:\data_cropouts\Labels\DARE ^
+--dataset cihvr-mod ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\DARE\base\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+
+```
+
+Verify same when proper data_dir
+```
+python evaluate.py ^
+--formatter dates_keep_bad_cpd_allow_no_year ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\DARE\base-only-true-cihvr ^
+-b 2048 ^
+-j 8 ^
+--input-size 3 63 212 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells date-1-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo date-12-mo ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\DARE\base\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+
+```
 
 ## Training
 
