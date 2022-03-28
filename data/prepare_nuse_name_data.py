@@ -154,59 +154,6 @@ def _merge_filename_on(names: pd.DataFrame):
     return names_merged
 
 
-# def _get_likely_name(name_raw: str, last: bool):
-#     ''' Extracts last name if last is True, otherwise extracts first name.
-#     ALso formats the name, stripping, lower casting, etc.
-#     '''
-#     if name_raw.strip() == '0=Mangler':
-#         return '0=Mangler'
-
-#     name = name_raw.replace('.', ' ')
-#     name = name.replace('-', '')
-#     name = name.replace('ü', 'u')
-#     name = name.strip()
-#     name = name.lower()
-#     names_split = name.split()
-
-#     if '?' in name:
-#         print(f'Unreadable name: {name_raw}. Returning None.')
-#         return None
-
-#     if '(vikar)' in name:
-#         print(f'Vikar: {name_raw}. Returning None.')
-#         return None
-
-#     if not set(name).issubset(LETTERS_SET):
-#         raise Exception(name_raw)
-
-#     k = len(names_split)
-
-#     if k == 1:
-#         print(f'Only one name: {name_raw}. Still accepting, using as first AND last.')
-#         print(name_raw)
-
-#     try:
-#         if last:
-#             candidate = names_split[-1]
-#         else:
-#             candidate = names_split[0]
-#     except IndexError:
-#         print(name_raw)
-
-#     if len(candidate) <= 2:
-#         print(f'Short (2 or less) length name: {name_raw}. Still accepting.')
-
-#     return candidate
-
-
-# def _get_likely_lastname(name_raw: str):
-#     return _get_likely_name(name_raw, last=True)
-
-
-# def _get_likely_firstname(name_raw: str):
-#     return _get_likely_name(name_raw, last=False)
-
-
 def _format_name(name_raw: str):
     if name_raw.strip() == '0=Mangler':
         return '0=Mangler'
