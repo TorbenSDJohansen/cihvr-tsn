@@ -54,10 +54,10 @@ def _create_lexicon():
     # TODO maybe let gaard and gård be one, not sure consistent...
         # But maybe not healthy for transcription and only use post..?
 
-    lex = _load()
+    lex_dfs = _load()
     names = []
 
-    for sheet, vals in lex.items():
+    for sheet, vals in lex_dfs.items():
         if sheet == '0172-0173':
             continue # Can only use as additional names, contains duplicates
 
@@ -100,9 +100,9 @@ def _create_lexicon():
         )
     names = names.merge(fn_count, on='Fornavn', how='left')
 
-    # Potentially other useable last names in lex['0172-0173']['Efternavn']),
+    # Potentially other useable last names in lex_dfs['0172-0173']['Efternavn']),
     # but turns out not to be the case
-    assert set(lex['0172-0173']['Efternavn']) - set(names['Efternavn']) == set()
+    assert set(lex_dfs['0172-0173']['Efternavn']) - set(names['Efternavn']) == set()
 
     lex_last = set(names['Efternavn'])
     lex_first = set([x for x in names['Fornavn'] if len(x) > 1])
@@ -113,34 +113,6 @@ def _create_lexicon():
         'fn': lex_first,
         'fn-i': lex_first_i,
         }
-
-    # TMP THINGS BELOW
-
-    # First names for each last name
-    # names.groupby('Efternavn')['Fornavn'].unique()
-
-
-
-
-
-    
-
-    # names['fn-i'] = names['Fornavn'].apply(lambda x: x[0])
-    # names['fn-i-ln'] = names['fn-i'] + ' ' + names['Efternavn']
-    # names['fn-ln'] = names['Fornavn'] + ' ' + names['Efternavn']
-
-
-
-    # names.groupby('fn-i-ln')['sheet'].unique()
-
-    # # Somehow, for each last name, check all first names and determine
-    # # collisions this way..?
-    # names.groupby('Efternavn')['Fornavn'].unique()
-    # names.groupby('Efternavn')['fn-i'].unique()
-
-
-
-    # return DataFrame[fn, ln, kreds] -- more?
 
 
 def _recast_name(name: str):
@@ -266,6 +238,31 @@ def _format_name(name_raw: str):
     return ' '.join((names_split))
 
 
+def _get_unique_names(names: pd.DataFrame, col: str, last: bool):
+    sub = names[col]
+    sub = sub[~sub.isnull()]
+    sub = sub[sub != '0=Mangler']
+    split = sub.str.split(' ')
+
+    if last:
+        unique_names = split.apply(lambda x: x[-1]).unique()
+    else:
+        split = split[split.apply(lambda x: len(x) > 1)] # drop when only one name
+        unique_names = split.apply(lambda x: x[0]).unique()
+
+    return unique_names
+
+
+def _get_all_unique_names(names, last: bool):
+    unique_names = set()
+
+    for i in (1, 2, 3):
+        _unique = set(_get_unique_names(names, f'nurse-name-{i}', last))
+        unique_names = unique_names.union(_unique)
+
+    return unique_names
+
+
 def main():
     """
     Creates a cleaned dataset of nurse first and last names.
@@ -286,7 +283,7 @@ def main():
     names = names[['jnr', 'sundh_plj']]
     names['name'] = list(map(_recast_name, names['sundh_plj']))
 
-    names = names[names['name'] != 'IsNaN;IsNaN;IsNaN']
+    names = names[names['name'] != 'IsNaN;IsNaN;IsNaN'] # TODO why not OK to keep and then use all as empty?
 
     # Some duplicate journal numbers! From manual inspection, appears entries
     # accidently entered multiple times. Also evident when performing
@@ -316,6 +313,10 @@ def main():
     # names_merged['v'] = names_merged.groupby('jnr')['jnr'].transform('count')
 
     names_merged = names_merged.reset_index(drop=True)
+
+    lex = _create_lexicon()
+    unique_last_names = _get_all_unique_names(names_merged, last=True)
+    unique_first_names = _get_all_unique_names(names_merged, last=False)
 
     fname = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv'
 
