@@ -273,7 +273,6 @@ class OldDateFormatter:
 
         return clean
 
-# TODO want to train on DARE with below formatter -> possible to CHANGE CIHVR to new, then no issues in leakage between train and test!!
 
 @register_formatter
 def dates_keep_bad_cpd() -> DateFormatter:
