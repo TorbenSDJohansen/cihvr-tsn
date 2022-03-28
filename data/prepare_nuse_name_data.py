@@ -19,14 +19,6 @@ LETTERS = list(string.ascii_lowercase) + ['æ', 'ø', 'å', ' ']
 LETTERS_SET = set(LETTERS)
 
 
-# def _search(fname: str, lname: str, names: pd.DataFrame):
-#     mask_fn = names['Fornavn'] == fname
-#     mask_ln = names['Efternavn'] == lname
-#     sub = names[mask_fn & mask_ln]
-
-#     print(sub)
-
-
 def _load():
     lex = pd.read_excel(FN_NN_LIST, sheet_name=None)
     allowed_chars = LETTERS_SET - {' '}
@@ -35,15 +27,19 @@ def _load():
         # Proper cols present
         # No missing first or last name
         # All chars in allowed_chars, which also implies all are lower cast
-    for vals in lex.values():
+    for sheet, vals in lex.items():
         assert {'Fornavn', 'Mellemnavn', 'Efternavn', 'Year'}.issubset(vals.columns)
-        assert 'Gruppe' in vals.columns or 'Kreds' in vals.columns
-        assert len(vals.columns) == 5
+        assert 'Gruppe' in vals.columns or 'Kreds' in vals.columns or 'Period' in vals.columns or len(vals.columns) == 4
+        assert len(vals.columns) <= 5
 
         assert vals['Fornavn'].isnull().sum() + vals['Efternavn'].isnull().sum() == 0
 
         for col in ['Fornavn', 'Mellemnavn', 'Efternavn']:
             sub = vals.loc[~vals[col].isnull(), col]
+
+            if sheet == '0172-0173' and col == 'Fornavn':
+                sub = sub[sub != '?']
+
             assert sub.apply(lambda x: set(x).issubset(allowed_chars)).all()
 
     return lex
@@ -62,6 +58,9 @@ def _create_lexicon():
     names = []
 
     for sheet, vals in lex.items():
+        if sheet == '0172-0173':
+            continue # Can only use as additional names, contains duplicates
+
         # Check last name duplicates
         if vals['Efternavn'].value_counts().max() > 1:
             pass # there are several; print('duplicates in last name')
@@ -70,11 +69,11 @@ def _create_lexicon():
         vals['fn-i-ln'] = vals['Fornavn'].apply(lambda x: x[0]) + vals['Efternavn']
 
         # Assert no duplicates in first + last name
-        assert vals['fn-ln'].value_counts().max() == 1
+        assert vals['fn-ln'].value_counts().max() == 1, sheet
 
         if vals['fn-i-ln'].value_counts().max() > 1:
             dup = vals[vals['fn-i-ln'].duplicated(False)]
-            print(f'Duplicates for {sheet} in initial + last name: \n\n{dup}')
+            print(f'\nDuplicates for {sheet} in initial + last name: \n\n{dup}')
 
         sub = vals[['Fornavn', 'Mellemnavn', 'Efternavn']].copy()
         sub['sheet'] = sheet
@@ -101,25 +100,43 @@ def _create_lexicon():
         )
     names = names.merge(fn_count, on='Fornavn', how='left')
 
-    # First names for each last name
-    names.groupby('Efternavn')['Fornavn'].value_counts()
+    # Potentially other useable last names in lex['0172-0173']['Efternavn']),
+    # but turns out not to be the case
+    assert set(lex['0172-0173']['Efternavn']) - set(names['Efternavn']) == set()
 
+    lex_last = set(names['Efternavn'])
+    lex_first = set([x for x in names['Fornavn'] if len(x) > 1])
+    lex_first_i = set(names['Fornavn'].apply(lambda x: x[0])) # FIXME include all/more letters?
 
+    return {
+        'ln': lex_last,
+        'fn': lex_first,
+        'fn-i': lex_first_i,
+        }
 
     # TMP THINGS BELOW
 
-    names['fn-i'] = names['Fornavn'].apply(lambda x: x[0])
-    names['fn-i-ln'] = names['fn-i'] + ' ' + names['Efternavn']
-    names['fn-ln'] = names['Fornavn'] + ' ' + names['Efternavn']
+    # First names for each last name
+    # names.groupby('Efternavn')['Fornavn'].unique()
 
 
 
-    names.groupby('fn-i-ln')['sheet'].unique()
 
-    # Somehow, for each last name, check all first names and determine
-    # collisions this way..?
-    names.groupby('Efternavn')['Fornavn'].unique()
-    names.groupby('Efternavn')['fn-i'].unique()
+
+    
+
+    # names['fn-i'] = names['Fornavn'].apply(lambda x: x[0])
+    # names['fn-i-ln'] = names['fn-i'] + ' ' + names['Efternavn']
+    # names['fn-ln'] = names['Fornavn'] + ' ' + names['Efternavn']
+
+
+
+    # names.groupby('fn-i-ln')['sheet'].unique()
+
+    # # Somehow, for each last name, check all first names and determine
+    # # collisions this way..?
+    # names.groupby('Efternavn')['Fornavn'].unique()
+    # names.groupby('Efternavn')['fn-i'].unique()
 
 
 
@@ -165,57 +182,57 @@ def _merge_filename_on(names: pd.DataFrame):
     return names_merged
 
 
-def _get_likely_name(name_raw: str, last: bool):
-    ''' Extracts last name if last is True, otherwise extracts first name.
-    ALso formats the name, stripping, lower casting, etc.
-    '''
-    if name_raw.strip() == '0=Mangler':
-        return '0=Mangler'
+# def _get_likely_name(name_raw: str, last: bool):
+#     ''' Extracts last name if last is True, otherwise extracts first name.
+#     ALso formats the name, stripping, lower casting, etc.
+#     '''
+#     if name_raw.strip() == '0=Mangler':
+#         return '0=Mangler'
 
-    name = name_raw.replace('.', ' ')
-    name = name.replace('-', '')
-    name = name.replace('ü', 'u')
-    name = name.strip()
-    name = name.lower()
-    names_split = name.split()
+#     name = name_raw.replace('.', ' ')
+#     name = name.replace('-', '')
+#     name = name.replace('ü', 'u')
+#     name = name.strip()
+#     name = name.lower()
+#     names_split = name.split()
 
-    if '?' in name:
-        print(f'Unreadable name: {name_raw}. Returning None.')
-        return None
+#     if '?' in name:
+#         print(f'Unreadable name: {name_raw}. Returning None.')
+#         return None
 
-    if '(vikar)' in name:
-        print(f'Vikar: {name_raw}. Returning None.')
-        return None
+#     if '(vikar)' in name:
+#         print(f'Vikar: {name_raw}. Returning None.')
+#         return None
 
-    if not set(name).issubset(LETTERS_SET):
-        raise Exception(name_raw)
+#     if not set(name).issubset(LETTERS_SET):
+#         raise Exception(name_raw)
 
-    k = len(names_split)
+#     k = len(names_split)
 
-    if k == 1:
-        print(f'Only one name: {name_raw}. Still accepting, using as first AND last.')
-        print(name_raw)
+#     if k == 1:
+#         print(f'Only one name: {name_raw}. Still accepting, using as first AND last.')
+#         print(name_raw)
 
-    try:
-        if last:
-            candidate = names_split[-1]
-        else:
-            candidate = names_split[0]
-    except IndexError:
-        print(name_raw)
+#     try:
+#         if last:
+#             candidate = names_split[-1]
+#         else:
+#             candidate = names_split[0]
+#     except IndexError:
+#         print(name_raw)
 
-    if len(candidate) <= 2:
-        print(f'Short (2 or less) length name: {name_raw}. Still accepting.')
+#     if len(candidate) <= 2:
+#         print(f'Short (2 or less) length name: {name_raw}. Still accepting.')
 
-    return candidate
-
-
-def _get_likely_lastname(name_raw: str):
-    return _get_likely_name(name_raw, last=True)
+#     return candidate
 
 
-def _get_likely_firstname(name_raw: str):
-    return _get_likely_name(name_raw, last=False)
+# def _get_likely_lastname(name_raw: str):
+#     return _get_likely_name(name_raw, last=True)
+
+
+# def _get_likely_firstname(name_raw: str):
+#     return _get_likely_name(name_raw, last=False)
 
 
 def _format_name(name_raw: str):
