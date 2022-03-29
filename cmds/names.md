@@ -269,7 +269,7 @@ python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\pre
 
 First (TL, only nurse-name-1, with post-match)
 ```
-python evaluate.py ^
+python predict.py ^
 --formatter first_name_keep_bad_cpd ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625 ^
 -b 2048 ^
