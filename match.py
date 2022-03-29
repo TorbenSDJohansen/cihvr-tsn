@@ -129,8 +129,8 @@ def _parse():
         help='The file of predictions to match against a dictionary.',
         )
     parser.add_argument(
-        '--dict', type=str, default='',
-        help='Dictionary with valid outcomes to match up to.',
+        '--lex', type=str, default='',
+        help='Lexicon with valid outcomes to match up to.',
         )
 
     # OPTIONAL
@@ -151,31 +151,31 @@ def _parse():
 def _format_args(args) -> (pd.DataFrame, dict, float, set):
     print(f'Parsed args: {args}.')
     assert os.path.isfile(args.file)
-    assert os.path.isfile(args.dict)
+    assert os.path.isfile(args.lex)
     assert 0 <= args.cutoff <= 1
 
     assert args.file[-4:].lower() == '.csv'
-    assert args.dict[-4:].lower() == '.pkl'
+    assert args.lex[-4:].lower() == '.pkl'
 
     preds = pd.read_csv(args.file, na_values=[''], keep_default_na=False)
-    dictionary = pickle.load(open(args.dict, 'rb'))
+    lex = pickle.load(open(args.lex, 'rb'))
 
-    assert isinstance(dictionary, set)
+    assert isinstance(lex, set)
     assert 'pred' in preds.columns
 
-    return preds, dictionary, args.cutoff, set(args.ignore)
+    return preds, lex, args.cutoff, set(args.ignore)
 
 
 def main():
     '''
-    Perform matching of predictions against a dictionary. For instance, name
-    predictions may be matched against a dictionary of valid names.
+    Perform matching of predictions against a lexicon. For instance, name
+    predictions may be matched against a lexicon of valid names.
 
     '''
     args = _parse()
-    preds, dictionary, cutoff, ignore = _format_args(args)
+    preds, lex, cutoff, ignore = _format_args(args)
 
-    matcher = MatchToStr(dictionary, cutoff, ignore)
+    matcher = MatchToStr(lex, cutoff, ignore)
     matched_strs, _, _, _ = matcher.match(preds['pred'].values)
 
     preds['pred_m'] = matched_strs
