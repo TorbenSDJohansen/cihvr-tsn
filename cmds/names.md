@@ -239,3 +239,19 @@ python evaluate.py ^
 
 ## Predict
 
+Last (TL, only nurse-name-1)
+```
+python predict.py ^
+--formatter last_name_keep_bad_cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25 ^
+-b 2048 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\tl-lr-0.25\last.pth.tar ^
+--plots montage
+
+```
