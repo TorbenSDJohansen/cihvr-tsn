@@ -226,9 +226,9 @@ def _save_lexicons(lex: dict, last_names: set, first_names: set):
 
     lex_ln_loose = lex['ln'].union(last_names)
 
-    # TODO prob include all letters, lots not includes, see `LETTERS_SET - lex_ln_loose`
-    lex_fn_strict = lex['fn'].union(lex['fn-i'])
-    lex_fn_loose = lex_fn_strict.union(last_names)
+    # All all single letters, initials often used.
+    lex_fn_strict = lex['fn'].union(LETTERS_SET - {' '})
+    lex_fn_loose = lex_fn_strict.union(first_names)
 
     _save_lex(lex['ln'], path, 'ln-strict.pkl')
     _save_lex(lex_ln_loose, path, 'ln-loose.pkl')
@@ -258,7 +258,7 @@ def main():
     names = names[['jnr', 'sundh_plj']]
     names['name'] = list(map(_recast_name, names['sundh_plj']))
 
-    # 3xNaN below are NOT 3x empty, do not know what is there -> drop
+    # 3xNaN below are NOT 3x empty, we do not know what is there -> drop
     names = names[names['name'] != 'IsNaN;IsNaN;IsNaN']
 
     # Some duplicate journal numbers! From manual inspection, appears entries
