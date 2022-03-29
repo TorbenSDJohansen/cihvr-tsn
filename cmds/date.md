@@ -121,13 +121,13 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 
 ```
 
-TL (new formatter) **TODO**: at some point search LR, heuristic from names.md for now, there 0.25 best and batch size 4x here so let lr = 1.0
+TL (new formatter)
 ```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter dates_keep_bad_cpd ^
---experiment tl-1.0 ^
+--experiment tl-%i ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date ^
---lr 1.0 ^
+--lr %i ^
 -b 512 ^
 --input-size 3 63 212 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
