@@ -9,6 +9,7 @@ Created on Fri Apr 30 14:21:27 2021
 import math
 import string
 import os
+import pickle
 
 import pandas as pd
 
@@ -204,6 +205,39 @@ def _get_all_unique_names(names, last: bool):
     return unique_names
 
 
+def _save_lex(lex: set, path: str, fname: str):
+    fname_full = os.path.join(path, fname)
+
+    if not os.path.isfile(fname_full):
+        with open(fname_full, 'wb') as file:
+            pickle.dump(lex, file)
+    else:
+        print(f'WARNING: File "{fname_full}" already exists! Not writing.')
+
+
+def _save_lexicons(lex: dict, last_names: set, first_names: set):
+    assert set(lex.keys()) == {'ln', 'fn', 'fn-i'}
+    path = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex'
+
+    # Different levels of strictness:
+        # 1) Most strict: Only use lex
+        # 2) Least strict: Include also ALL names in last_names
+        # 3) Some combinations, probably dropping rare names from other...
+
+    lex_ln_loose = lex['ln'].union(last_names)
+
+    # TODO prob include all letters, lots not includes, see `LETTERS_SET - lex_ln_loose`
+    lex_fn_strict = lex['fn'].union(lex['fn-i'])
+    lex_fn_loose = lex_fn_strict.union(last_names)
+
+    _save_lex(lex['ln'], path, 'ln-strict.pkl')
+    _save_lex(lex_ln_loose, path, 'ln-loose.pkl')
+
+    _save_lex(lex_fn_strict, path, 'fn-strict.pkl')
+    _save_lex(lex_fn_loose, path, 'fn-loose.pkl')
+
+
+
 def main():
     """
     Creates a cleaned dataset of nurse first and last names.
@@ -258,6 +292,8 @@ def main():
     lex = _create_lexicon()
     unique_last_names = _get_all_unique_names(names_merged, last=True)
     unique_first_names = _get_all_unique_names(names_merged, last=False)
+
+    _save_lexicons(lex, last_names=unique_last_names, first_names=unique_first_names)
 
     # TODO if a name is rare in labels and a close match to either something in
     # `lex` or another, non-rare, label, it is likely incorrect. Maybe use this
