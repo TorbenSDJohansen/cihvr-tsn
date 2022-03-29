@@ -187,7 +187,7 @@ python evaluate.py ^
 
 ```
 
-Last (TL)
+Last (TL, with post-match)
 ```
 python evaluate.py ^
 --formatter last_name_keep_bad_cpd ^
@@ -202,6 +202,9 @@ python evaluate.py ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\tl-lr-0.25\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
+
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\tl-lr-0.25\preds.csv ^
+--lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
 
 ```
 
@@ -239,7 +242,7 @@ python evaluate.py ^
 
 ## Predict
 
-Last (TL, only nurse-name-1)
+Last (TL, only nurse-name-1, with post-match)
 ```
 python predict.py ^
 --formatter last_name_keep_bad_cpd ^
@@ -254,4 +257,6 @@ python predict.py ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\tl-lr-0.25\last.pth.tar ^
 --plots montage
 
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\preds.csv ^
+--lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
 ```
