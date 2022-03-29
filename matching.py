@@ -178,11 +178,10 @@ def main():
     matcher = MatchToStr(dictionary, cutoff, ignore)
     matched_strs, _, _, _ = matcher.match(preds['pred'].values)
 
-    preds['pred'] = matched_strs
+    preds['pred_m'] = matched_strs
 
     print('Writing file!')
-    path, fname = os.path.dirname(args.file), os.path.basename(args.file)
-    fn_matched = ''.join((path, '/matched-', fname))
+    fn_matched = args.file.replace('.csv', '_matched.csv')
 
     if os.path.isfile(fn_matched):
         print(f'WARNING: File already exists: "{fn_matched}". Not writing!')
