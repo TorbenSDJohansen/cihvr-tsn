@@ -181,7 +181,9 @@ python evaluate.py ^
 --dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
 --labels-subdir keep ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\base\last.pth.tar
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\base\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
 
 ```
 
@@ -197,7 +199,9 @@ python evaluate.py ^
 --dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
 --labels-subdir keep ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\tl-lr-0.25\last.pth.tar
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\tl-lr-0.25\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
 
 ```
 
