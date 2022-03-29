@@ -220,7 +220,9 @@ python evaluate.py ^
 --dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
 --labels-subdir keep ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\base\last.pth.tar
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\base\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
 
 ```
 
@@ -236,8 +238,15 @@ python evaluate.py ^
 --dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
 --labels-subdir keep ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\tl-lr-0.0625\last.pth.tar
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\tl-lr-0.0625\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
 
+
+echo WARNING: Remember to update to new lex
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\tl-lr-0.0625\preds.csv ^
+--lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn-loose.pkl
+echo WARNING: Remember to update to new lex
 ```
 
 ## Predict
@@ -259,4 +268,12 @@ python predict.py ^
 
 python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\preds.csv ^
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
+```
+
+First (TL, only nurse-name-1, with post-match)
+```
+python predict.py ^
+XYZ
+
+python match.py XYZ
 ```
