@@ -150,18 +150,6 @@ def _parse():
     return args
 
 
-def _test_parse():
-    parser = argparse.ArgumentParser(description='Format pred. file to CIHVR format.')
-    args = parser.parse_args()
-
-    args.file = r'Z:\faellesmappe\tsdj\cihvr-new\firstname\preds-2021-05-20-07-07-37.csv'
-    args.dict = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nn-fn-dict.pkl'
-    args.ignore = ['0=Mangler', 'bad cpd']
-    args.cutoff = 0.0
-
-    return args
-
-
 def _format_args(args):
     print(f'Parsed args: {args}.')
     assert os.path.isfile(args.file)
@@ -191,17 +179,15 @@ def main():
 
     '''
     args = _parse()
-    # args = _test_parse()
     preds, dictionary, cutoff, ignore = _format_args(args)
 
     matcher = MatchToStr(dictionary, cutoff, ignore)
     matched_strs, _, _, _ = matcher.match(preds['pred'].values)
 
-    preds['pred'] = matched_strs
+    preds['pred_m'] = matched_strs
 
     print('Writing file!')
-    path, fname = os.path.dirname(args.file), os.path.basename(args.file)
-    fn_matched = ''.join((path, '/matched-', fname))
+    fn_matched = args.file.replace('.csv', '_matched.csv')
 
     if os.path.isfile(fn_matched):
         print(f'WARNING: File already exists: "{fn_matched}". Not writing!')
