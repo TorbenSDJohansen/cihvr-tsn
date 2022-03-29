@@ -51,9 +51,6 @@ def _create_lexicon():
         # 2) All unique first names
         # 3) All unique combinations
 
-    # TODO maybe let gaard and gård be one, not sure consistent...
-        # But maybe not healthy for transcription and only use post..?
-
     lex_dfs = _load()
     names = []
 
@@ -81,9 +78,6 @@ def _create_lexicon():
 
     names = pd.concat(names).reset_index(drop=True)
 
-    # TODO check across all sheets no duplicates
-    # However, note that between sheet X and Y, both can contain Z (expected to)
-
     # Ideas:
         # SOMEHOW (not sure) check when collapse fn to fn-i, no collisions
             # -> notably collisions with OTHER sheet
@@ -106,7 +100,7 @@ def _create_lexicon():
 
     lex_last = set(names['Efternavn'])
     lex_first = set([x for x in names['Fornavn'] if len(x) > 1])
-    lex_first_i = set(names['Fornavn'].apply(lambda x: x[0])) # FIXME include all/more letters?
+    lex_first_i = set(names['Fornavn'].apply(lambda x: x[0])) # Perhaps include all/more letters?
 
     return {
         'ln': lex_last,
@@ -265,10 +259,16 @@ def main():
     unique_last_names = _get_all_unique_names(names_merged, last=True)
     unique_first_names = _get_all_unique_names(names_merged, last=False)
 
+    # TODO if a name is rare in labels and a close match to either something in
+    # `lex` or another, non-rare, label, it is likely incorrect. Maybe use this
+    # information to, e.g., match to nearest valid
+
     fname = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv'
 
     if not os.path.isfile(fname):
         names_merged.to_csv(fname, index=False)
+    else:
+        print(f'WARNING: File "{fname}" already exist - not writing new file!')
 
     # Check save/load value preservation...
     reloaded = pd.read_csv(fname)
