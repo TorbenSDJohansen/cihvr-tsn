@@ -258,7 +258,8 @@ def main():
     names = names[['jnr', 'sundh_plj']]
     names['name'] = list(map(_recast_name, names['sundh_plj']))
 
-    names = names[names['name'] != 'IsNaN;IsNaN;IsNaN'] # TODO why not OK to keep and then use all as empty?
+    # 3xNaN below are NOT 3x empty, do not know what is there -> drop
+    names = names[names['name'] != 'IsNaN;IsNaN;IsNaN']
 
     # Some duplicate journal numbers! From manual inspection, appears entries
     # accidently entered multiple times. Also evident when performing
