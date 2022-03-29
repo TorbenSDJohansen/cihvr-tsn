@@ -128,6 +128,7 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --experiment tl-%i ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date ^
 --lr %i ^
+--weight-decay 0 ^
 -b 512 ^
 --input-size 3 63 212 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
