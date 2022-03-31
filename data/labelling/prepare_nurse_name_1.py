@@ -197,7 +197,7 @@ def main(current_round: int):
     Finally map to label format.
     '''
 
-    if current_round == 1:
+    if current_round == 0: # tets round to MW
         # ROUND 1
         fn_pred_ln=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\preds_matched.csv'
         fn_pred_fn=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625\preds_matched.csv'
@@ -214,8 +214,7 @@ def main(current_round: int):
         nb_random_based = 0
         nb_christiansen = 0
         use_matching = True
-    elif current_round == 2:
-        # Perhaps begin to use matching?
+    elif current_round == 1:
         raise NotImplementedError
     else:
         raise Exception
@@ -238,4 +237,4 @@ def main(current_round: int):
     # less useful for downstream analyses
 
 if __name__ == '__main__':
-    main(current_round=1)
+    main(current_round=0)
