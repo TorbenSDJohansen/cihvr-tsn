@@ -207,7 +207,7 @@ def main(current_round: int):
         labelled = pd.read_csv(r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv')
         additional_labelled = None
 
-        outdir = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\manual-nurse-name-1\round-1'
+        outdir = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\manual-nurse-name-1\round-0'
 
         nb_each_unique = 1 # Useful, when matching
         nb_prob_based = 0 #
