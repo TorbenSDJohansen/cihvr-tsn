@@ -35,6 +35,26 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 
 ```
 
+Last name model (EffNetV2-M - lower batch size and lr):
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter last_name_keep_bad_cpd ^
+--experiment last-m ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
+--lr 0.375 ^
+-b 96 ^
+-j 8 ^
+--input-size 3 80 522 ^
+--epochs 90 ^
+--warmup-epochs 5 ^
+--data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
+--dataset HANA ^
+--config ./cfgs/efficientnetv2_m.yaml ^
+--log-wandb ^
+--initial-log
+
+```
+
 First name model:
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
