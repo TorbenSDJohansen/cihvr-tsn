@@ -49,9 +49,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --warmup-epochs 5 ^
 --data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
 --dataset HANA ^
---config ./cfgs/efficientnetv2_m.yaml ^
---log-wandb ^
---initial-log
+--config ./cfgs/efficientnetv2_m.yaml
 
 ```
 
