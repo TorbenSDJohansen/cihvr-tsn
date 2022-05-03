@@ -175,7 +175,6 @@ def _format_name(name_raw: str):
 
     if k == 1:
         print(f'Only one name: {name_raw}. Still accepting.')
-        print(name_raw)
 
     return ' '.join((names_split))
 
