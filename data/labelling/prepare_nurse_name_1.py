@@ -29,6 +29,7 @@ needs to be applies separately for each, and then take union.
 
 import os
 import shutil
+import math
 
 import json
 
@@ -92,7 +93,7 @@ def _select_rows(
     return selected
 
 
-def _create_ens_workspace(
+def _create_ens_workspaces(
         pred_ln: pd.DataFrame,
         pred_fn: pd.DataFrame,
         labelled: pd.DataFrame,
@@ -103,6 +104,7 @@ def _create_ens_workspace(
         nb_random_based: int,
         nb_christiansen: int,
         use_matching: bool,
+        nb_packages: int,
         ):
     pred_ln.columns = [x + '_ln' if x != 'filename_full' else x for x in pred_ln.columns]
     pred_fn.columns = [x + '_fn' if x != 'filename_full' else x for x in pred_fn.columns]
@@ -110,7 +112,6 @@ def _create_ens_workspace(
     pred = pred_ln.merge(pred_fn, on='filename_full', how='inner')
     assert len(pred) == len(pred_ln) == len(pred_fn)
 
-    # Remove those already labelled
     if additional_labelled is not None:
         raise NotImplementedError
 
@@ -119,7 +120,6 @@ def _create_ens_workspace(
         )
     pred = pred[~pred['journal_name'].isin(labelled['Filename'])]
 
-    # Matched or not? For now use unmatched, probably healthy for the `nb_each_unique` part
     idxs_ln = _select_rows(
         pred,
         suffix='_m_ln' if use_matching else '_ln',
@@ -140,7 +140,7 @@ def _create_ens_workspace(
     # Select union (likely to be large overlap)
     sub = pred[pred.index.isin(set(idxs_ln + idxs_fn))].copy()
 
-    # CONSIDER: best to do as below with bad cpd and empty (cast to ?) or remove such cases completely?
+    # CONSIDER: Best to do as below with bad cpd and empty (cast to ?) or remove such cases completely?
     if use_matching:
         sub['pred_m_fn'] = sub['pred_m_fn'].replace({'bad cpd': '?', '0=Mangler': '?'})
         sub['pred_m_ln'] = sub['pred_m_ln'].replace({'bad cpd': '?', '0=Mangler': '?'})
@@ -160,26 +160,35 @@ def _create_ens_workspace(
         'cursor': 1,
         'useInference': True,
         }
-    elements = []
 
-    for filename_full, pred_full in sub.values:
-        _, filename = os.path.split(filename_full)
-        filename_full_out = os.path.join(outdir, 'images', filename)
+    offset = math.ceil(len(sub) / nb_packages)
 
-        if not os.path.isfile(filename_full_out):
-            shutil.copy(filename_full, filename_full_out)
+    for i in range(nb_packages):
+        outdir_package = os.path.join(outdir, f'package-{i + 1}')
+        elements = []
 
-        elements.append({
-            'name': filename,
-            'folder': os.path.join(outdir, 'images'),
-            'path': filename_full_out,
-            'properties': {'name': pred_full}
-            })
+        if not os.path.isdir(outdir_package):
+            os.makedirs(outdir_package)
+            os.makedirs(os.path.join(outdir_package, 'images'))
 
-    wsp['elements'] = elements
+        for filename_full, pred_full in sub.values[i * offset: (i + 1) * offset]:
+            _, filename = os.path.split(filename_full)
+            filename_full_out = os.path.join(outdir_package, 'images', filename)
 
-    with open(os.path.join(outdir, 'wsp.json'), 'w') as wsp_file:
-        json.dump(wsp, wsp_file)
+            if not os.path.isfile(filename_full_out):
+                shutil.copy(filename_full, filename_full_out)
+
+            elements.append({
+                'name': filename,
+                'folder': os.path.join(outdir_package, 'images'),
+                'path': filename_full_out,
+                'properties': {'name': pred_full},
+                })
+
+        wsp['elements'] = elements # re-use and overwrite this part
+
+        with open(os.path.join(outdir_package, 'wsp.json'), 'w') as wsp_file:
+            json.dump(wsp, wsp_file)
 
 
 def _workspace_to_labels():
@@ -197,8 +206,8 @@ def main(current_round: int):
     Finally map to label format.
     '''
 
-    if current_round == 0: # tets round to MW
-        # ROUND 1
+    if current_round == 0: # test round to MW
+        # ROUND 0
         fn_pred_ln=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\preds_matched.csv'
         fn_pred_fn=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625\preds_matched.csv'
 
@@ -214,12 +223,30 @@ def main(current_round: int):
         nb_random_based = 0
         nb_christiansen = 0
         use_matching = True
+        nb_packages = 1
     elif current_round == 1:
-        raise NotImplementedError
+        fn_pred_ln=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\preds_matched.csv'
+        fn_pred_fn=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625\preds_matched.csv'
+
+        pred_ln = pd.read_csv(fn_pred_ln)
+        pred_fn = pd.read_csv(fn_pred_fn)
+        labelled_1 = pd.read_csv(r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv')
+        labelled_2 = pd.read_csv(r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names_additional_new_lise_data.csv')
+        labelled = pd.concat([labelled_1, labelled_2])
+        additional_labelled = None
+
+        outdir = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\manual-nurse-name-1\round-1'
+
+        nb_each_unique = 5 # Useful, when matching
+        nb_prob_based = 1000
+        nb_random_based = 4000
+        nb_christiansen = 0
+        use_matching = True
+        nb_packages = 30
     else:
         raise Exception
 
-    _create_ens_workspace(
+    _create_ens_workspaces(
         pred_ln=pred_ln,
         pred_fn=pred_fn,
         labelled=labelled,
@@ -230,6 +257,7 @@ def main(current_round: int):
         nb_random_based=nb_random_based,
         nb_christiansen=nb_christiansen,
         use_matching=use_matching,
+        nb_packages=nb_packages,
         )
 
     # FIXME/TODO at analysis-stage, drop all nurses that occur rarely. These
@@ -237,4 +265,4 @@ def main(current_round: int):
     # less useful for downstream analyses
 
 if __name__ == '__main__':
-    main(current_round=0)
+    main(current_round=1)
