@@ -220,6 +220,7 @@ def gen_labels(
     fn_df_main = 'Y:/RegionH/SPJ/Database/export_181106.txt'
     fn_map_lookup_df = 'Y:/RegionH/Scripts/users/tsdj/storage/maps/map_lookup_df.pkl'
     fn_df_nurse_names = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv' # TODO check if update, use prepare_nuse_name_data
+    # TODO the 47 additional nurse names from new Lise data
 
     # FUNCTION START
     assert handle_bad_cpd in ('keep', 'ignore', 'drop')
