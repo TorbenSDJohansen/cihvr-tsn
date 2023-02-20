@@ -160,7 +160,7 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
 --labels-subdir keep ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\model_best.pth.tar ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\last.pth.tar ^
 --log-wandb 
 
 ```
@@ -180,7 +180,7 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
 --labels-subdir keep ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\model_best.pth.tar ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\last.pth.tar ^
 --log-wandb
 
 ```
@@ -303,3 +303,54 @@ python predict.py ^
 python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625\preds.csv ^
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn-loose.pkl
 ```
+
+# Post round 1 revision
+To create workspaces for more labelling:
+```
+python data\labelling\prepare_nurse_name_1.py --round 1 --task create-workspaces
+```
+
+To create labels from returned workspaces:
+```
+python data\labelling\prepare_nurse_name_1.py --round 1 --task create-labels
+```
+
+To train new model with additional names (for last name):
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter last_name_keep_bad_cpd ^
+--experiment rev-1-tl-lr-0.25 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
+--lr 0.25 ^
+--weight-decay 0 ^
+-b 128 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\last.pth.tar ^
+--log-wandb
+```
+
+To train new model with additional names (for first name):
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter first_name_keep_bad_cpd ^
+--experiment rev-1-tl-lr-0.0625 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
+--lr 0.0625 ^
+--weight-decay 0 ^
+-b 128 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir keep ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\last.pth.tar ^
+--log-wandb
+```
+
+**TODO**: Evaluate these models also on the **old** test set, to more directly compare to old models.

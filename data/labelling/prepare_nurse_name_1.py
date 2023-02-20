@@ -15,26 +15,46 @@ of the following criteria:
     2) Not 0=Mangler or bad cpd
     3) k-for-each-unique prediction
 Then label, but be aware that many will need to be skipped due to not being
-possible to read for tsdj. Perhaps let those be 1, quick to type and names
-never contain numbers.
+possible to read for tsdj. Perhaps let those be x, quick to type and never the
+correct name.
 
 IMPORTANT TO CONSIDER: Worth to incorporate first name directly now. If ever
 needed, much better to do now than first perform round only for last names.
 
 Note that when using both first and last name, the criteria proposed probably
-needs to be applies separately for each, and then take union.
+needs to be applied separately for each, and then take union.
 
 """
 
 
+import argparse
 import os
 import shutil
 import math
+import string
+import warnings
 
 import json
 
+from sklearn.model_selection import train_test_split
+
 import numpy as np
 import pandas as pd
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--round', type=int)
+    parser.add_argument('--task', type=str, choices=['create-workspaces', 'create-labels'], default='create-workspaces')
+
+    args = parser.parse_args()
+
+    if args.round < 0:
+        raise ValueError(f'--round cannot be negative, got {args.round}')
+
+
+    return args
 
 
 def _select_up_to_k_random(series: pd.Series, nb_each: int):
@@ -191,11 +211,119 @@ def _create_ens_workspaces(
             json.dump(wsp, wsp_file)
 
 
-def _workspace_to_labels():
-    raise NotImplementedError
+def load_workspace(file: str) -> pd.DataFrame:
+    with open(file, 'r', encoding='utf-8') as stream:
+        workspace = json.load(stream)
+
+    cursor = workspace['cursor'] + 1 # image reached in workspace
+    workspace = workspace['elements']
+
+    if cursor != len(workspace):
+        raise ValueError(f'workspace {file} not appeaer to gone all trough, cursor = {cursor} != {len(workspace)} = len(workspace)')
+
+    workspace = workspace[:cursor] # only keep images reached
+
+    labels = pd.DataFrame({
+        'image_id':[x['name'] for x in workspace], # '0024.jpg'
+        # 'file': [x['path'] for x in workspace], # 'path/to/0024.jpg'
+        'label': [x['properties']['name'] for x in workspace], # 'torben johansen'
+        })
+
+    return labels
 
 
-def main(current_round: int):
+def load_labels(file: str) -> pd.DataFrame:
+    if file.endswith('.npy'):
+        labels = np.load(file, allow_pickle=True)
+        labels = pd.DataFrame(labels, columns=['image_id', 'label'])
+    else:
+        labels = pd.read_csv(file)
+
+    return labels
+
+
+def save_labels(file: str, labels: pd.DataFrame):
+    labels = labels.values
+    np.save(file, labels, allow_pickle=True)
+
+
+def recast_chars(name: str):
+    name = name.replace('.', ' ')
+    name = name.replace('-', '')
+    name = name.replace('ü', 'u')
+    name = name.strip()
+    name = name.lower()
+
+    return name
+
+
+def check_name_valid(name: str):
+    allowed_chars = set(list(string.ascii_lowercase) + ['æ', 'ø', 'å', ' '])
+
+    for char in name:
+        if char not in allowed_chars:
+            return False
+
+    return True
+
+
+def _workspace_to_labels(
+        wsp_dir: str,
+        labels_file_train: str,
+        labels_file_test: str,
+        ):
+    if not os.path.isdir(wsp_dir):
+        raise NotADirectoryError(f'workspace directory {wsp_dir} does not exist')
+
+    wsp_files = [os.path.join(wsp_dir, x) for x in os.listdir(wsp_dir)]
+    wsp_files = [x for x in wsp_files if x.endswith('.json')]
+
+    if len(wsp_files) == 0:
+        raise FileNotFoundError(f'no workspaces found in {wsp_dir}')
+
+    print(f'creating labels from {len(wsp_files)} workspaces')
+
+    labels = []
+
+    for file in wsp_files:
+        labels.append(load_workspace(file))
+
+    labels = pd.concat(labels)
+    labels['label'] = labels['label'].apply(recast_chars)
+
+    new_labels = labels[labels['label'] != 'x'].copy() # drop those failed to label
+
+    is_invalid = ~new_labels['label'].apply(check_name_valid)
+
+    if is_invalid.sum() > 0:
+        warnings.warn(f'dropping {is_invalid.sum()} invalid names:\n {new_labels[is_invalid]}')
+
+    new_labels = new_labels[~is_invalid]
+    new_labels['label'] = new_labels['label'].replace({'': '0=Mangler'})
+
+    # TODO consider whether to add to train and test or JUST to train
+
+    old_labels_train = load_labels(labels_file_train)
+    old_labels_test = load_labels(labels_file_test)
+
+    # Check no new labels already in current labels
+    assert set(old_labels_train['image_id']).union(old_labels_test['image_id']).intersection(labels['image_id']) == set()
+
+    share_train = len(old_labels_train) / (len(old_labels_test) + len(old_labels_train))
+    new_labels_train, new_labels_test = train_test_split(
+        new_labels,
+        train_size=share_train,
+        random_state=42,
+        )
+
+    new_labels_train = pd.concat([old_labels_train, new_labels_train])
+    new_labels_test = pd.concat([old_labels_test, new_labels_test])
+
+    save_labels(labels_file_train, new_labels_train)
+    save_labels(labels_file_test, new_labels_test)
+
+
+def create_workspaces(current_round: int):
     r'''
     Take as input predictions of first and last name. Could be matched, could
     also be raw.
@@ -206,8 +334,7 @@ def main(current_round: int):
     Finally map to label format.
     '''
 
-    if current_round == 0: # test round to MW
-        # ROUND 0
+    if current_round == 0: # Test round to MW
         fn_pred_ln=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\preds_matched.csv'
         fn_pred_fn=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625\preds_matched.csv'
 
@@ -224,7 +351,7 @@ def main(current_round: int):
         nb_christiansen = 0
         use_matching = True
         nb_packages = 1
-    elif current_round == 1:
+    elif current_round == 1: # To Malthe Hauschildt Veje <malthehv@econ.ku.dk>
         fn_pred_ln=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\preds_matched.csv'
         fn_pred_fn=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625\preds_matched.csv'
 
@@ -237,6 +364,28 @@ def main(current_round: int):
 
         outdir = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\manual-nurse-name-1\round-1'
 
+        nb_each_unique = 5 # Useful, when matching
+        nb_prob_based = 1000
+        nb_random_based = 4000
+        nb_christiansen = 0
+        use_matching = True
+        nb_packages = 30
+    elif current_round == 2:
+        raise NotImplementedError
+
+        fn_pred_ln=None
+        fn_pred_fn=None
+
+        pred_ln = pd.read_csv(fn_pred_ln)
+        pred_fn = pd.read_csv(fn_pred_fn)
+        labelled_1 = pd.read_csv(r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv')
+        labelled_2 = pd.read_csv(r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names_additional_new_lise_data.csv')
+        labelled = pd.concat([labelled_1, labelled_2])
+        additional_labelled = None # FIXME add
+
+        outdir = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\manual-nurse-name-1\round-2'
+
+        # TODO change vals perhaps
         nb_each_unique = 5 # Useful, when matching
         nb_prob_based = 1000
         nb_random_based = 4000
@@ -262,7 +411,42 @@ def main(current_round: int):
 
     # FIXME/TODO at analysis-stage, drop all nurses that occur rarely. These
     # are more likely to be incorrect predictions and they are also more or
-    # less useful for downstream analyses
+    # less useless for downstream analyses
+
+
+def create_labels(current_round: int):
+    if current_round == 0:
+        raise ValueError('no 0th round for task create-labels')
+
+    if current_round == 1: # returned from Malthe Hauschildt Veje <malthehv@econ.ku.dk>
+        wsp_dir = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\manual-nurse-name-1\round-1-returned'
+
+        _labels_dir = r'Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined\labels\keep'
+        labels_file_train = os.path.join(_labels_dir, r'train\nurse-name-1.npy')
+        labels_file_test = os.path.join(_labels_dir, r'test\nurse-name-1.npy')
+    else:
+        raise Exception
+
+    if not os.path.isfile(labels_file_train):
+        raise FileNotFoundError(f'no file {labels_file_train}')
+    if not os.path.isfile(labels_file_test):
+        raise FileNotFoundError(f'no file {labels_file_test}')
+
+    _workspace_to_labels(
+        wsp_dir=wsp_dir,
+        labels_file_train=labels_file_train,
+        labels_file_test=labels_file_test,
+        )
+
+
+def main():
+    args = parse_args()
+
+    if args.task == 'create-workspaces':
+        create_workspaces(args.round)
+    elif args.task == 'create-labels':
+        create_labels(args.round)
+
 
 if __name__ == '__main__':
-    main(current_round=1)
+    main()
