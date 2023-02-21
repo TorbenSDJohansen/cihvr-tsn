@@ -12,7 +12,7 @@ set DATASET-CELLS-TAB-B-LEN-DABF=dura-any-breastfeed length-0-mo length-12-mo ta
 1. Length:          3 93 198    r = 0.4696969696969697
 1. Dur. any BF:     3 93 293    r = 0.3174061433447099
 
-So r = 0.41 probably not bad. Further, to not scale anything down too much, let h= 93 -> w = 227
+So r = 0.41 probably not bad. Further, to not scale anything down too much, let h = 93 -> w = 227
 
 ## Training
 
