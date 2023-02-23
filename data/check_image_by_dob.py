@@ -151,8 +151,8 @@ def main():
 
     plt.xlabel('Height (pixels)')
     plt.ylabel('Number of journals')
-    plt.savefig(r'Y:\RegionH\Scripts\users\tsdj\storage\results\image-height-by-year-born13.png')
     plt.legend()
+    plt.savefig(r'Y:\RegionH\Scripts\users\tsdj\storage\results\image-height-by-year-born13.png')
     plt.show()
 
 
