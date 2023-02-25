@@ -36,8 +36,6 @@ from table_b_pages import get_table_b_pages
 map_images_ds = get_table_b_pages()
 
 
-
-
 import pandas as pd
 import cv2 as cv
 import numpy as np
@@ -104,8 +102,8 @@ for key in tqdm.tqdm(filenames[start:end]):
             target_imagec = autocrop_noresize(target_image.copy(),height=h,width=w)            
             keypoints    = detector.find_keypoints(target_imagec, N_KEYPOINTS,) 
             
-#            canvas_keypoints = keypoints.draw_on_image(target_imagec,size=10)
- #           cv.imwrite('W:/BDADSharedData/Spanish Flu/Denmark/census1916/storagecph/cloud/'+key,canvas_keypoints) 
+            canvas_keypoints = keypoints.draw_on_image(target_imagec,size=10)
+            cv.imwrite('Y:/RegionH/Scripts/data/pointclouds_tableb/cloud/'+key,canvas_keypoints) 
             
             keypointlist.append([key,keypoints])                
             if n % 1000 == 0:  
