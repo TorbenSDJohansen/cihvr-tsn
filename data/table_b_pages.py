@@ -9,8 +9,8 @@ import pickle
 
 from typing import Dict
 
-from .prepare_data_dst import _prepare_status, _prepare_main
-from .manually_found_table_b_pages import ADDITIONAL_TABLE_B_IMAGES
+from prepare_data_dst import _prepare_status, _prepare_main
+from manually_found_table_b_pages import ADDITIONAL_TABLE_B_IMAGES
 
 
 def get_table_b_pages() -> Dict[str, str]:

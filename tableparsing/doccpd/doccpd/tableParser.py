@@ -27,6 +27,7 @@ from PIL import Image
 from IPython.display import display
 
 import sys
+sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/cihvr-tsn/tableparsing/doccpd'))
 #sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/Sweden/SWE-DB/tableparsing/doccpd'))
 #sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/SpecialClassProject/tableparsing/doccpd/'))
 #sys.path.append(os.path.abspath('E:/faellesmappe/cmd/tfs/SpecialClassProject/tableparsing/doccpd/'))

@@ -23,9 +23,20 @@ import tqdm
 import sys
 import os
 
-sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/Sweden/SWE-DB/tableparsing/doccpd'))
+
+
+sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/cihvr-tsn/tableparsing/doccpd'))
+sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/cihvr-tsn/data'))
 #sys.path.append(os.path.abspath('E:/faellesmappe/cmd/tfs/DK-Census/tableparsing/doccpd'))
 #sys.path.append(os.path.abspath('C:/Users/sa-sfw/Documents/GitHub/DK-Census/tableparsing/doccpd/'))
+
+
+from table_b_pages import get_table_b_pages
+
+map_images_ds = get_table_b_pages()
+
+
+
 
 import pandas as pd
 import cv2 as cv
@@ -39,7 +50,7 @@ from doccpd.pointcloud import PointCloud
 from doccpd.cv2_utils import show
 from doccpd.autocrop import autocrop_noresize
 
-pointclouddir = 'W:/BDADSharedData/Spanish Flu/Sweden/storage_additionalAdrian/pointcloud/'
+pointclouddir = 'Y:/RegionH/Scripts/data/pointclouds_tableb/'
     
 crop_info = {
       'top': 0.0,
@@ -50,8 +61,10 @@ crop_info = {
 detector       = SqueezeUnetModel(crop_info)    
 
 
-filenames = glob.glob('W:/BDADSharedData/Spanish Flu/Sweden/AdditionalAdrian/*.jpg')
-
+#filenames = glob.glob('W:/BDADSharedData/Spanish Flu/Sweden/AdditionalAdrian/*.jpg')
+filenames = []
+for fname, basename in map_images_ds.items():
+    filenames.append(fname)
 N_KEYPOINTS = 20_000
 
 detector = make_2D_detector_TF(
@@ -77,9 +90,9 @@ startindex_afterserverbreakdown = filenames.index(keypointlist[-1][0])+1
 
 '''
 keypointlist = []
-start =0
-end = 5000
 
+start =0
+end = 50
 
 n = 0
 for key in tqdm.tqdm(filenames[start:end]):  
