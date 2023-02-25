@@ -1,0 +1,8 @@
+tests/output/**/*.jpg
+tests/.ipynb_checkpoints/*
+*.DS_Store
+__pycache__
+*.egg*
+playground.ipynb
+*.pth
+*.jpg
