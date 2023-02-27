@@ -95,9 +95,12 @@ class Verifiers: # pylint: disable=C0115
         if weight in ('bad cpd', 'empty'):
             return weight
 
+        if float(weight) == int(float(weight)):
+            weight = int(float(weight))
+
         _allowed_range = set(range(1000, 20_000)) # Maybe change?
 
-        if int(float(weight)) not in _allowed_range:
+        if int(weight) not in _allowed_range:
             print(f'Bad weight value: {weight}. Casting to None.')
             return None
 
@@ -108,9 +111,12 @@ class Verifiers: # pylint: disable=C0115
         if length == 'bad cpd':
             return length
 
+        if float(length) == int(float(length)):
+            length = int(float(length))
+
         _allowed_range = set(range(20, 100)) # Maybe change?
 
-        if int(float(length)) not in _allowed_range:
+        if int(length) not in _allowed_range:
             print(f'Bad length value: {length}. Casting to None.')
             return None
 
@@ -133,6 +139,7 @@ class Verifiers: # pylint: disable=C0115
         if tab_b_entry in ('bad cpd', '0=Mangler'):
             return tab_b_entry
 
+        tab_b_entry = {0.0: '0=Mangler', 1.0: '1=god', 2.0: 'middel', 3.0: 'dårlig'}.get(tab_b_entry, tab_b_entry)
         _allowed = {1, 2, 3}
 
         if int(tab_b_entry[0]) not in _allowed:
@@ -146,6 +153,7 @@ class Verifiers: # pylint: disable=C0115
         if tab_b_entry in ('bad cpd', '0=Mangler'):
             return tab_b_entry
 
+        tab_b_entry = {0.0: '0=Mangler', 1.0: '1=ja', 2.0: 'nej'}.get(tab_b_entry, tab_b_entry)
         _allowed = {1, 2}
 
         if int(tab_b_entry[0]) not in _allowed:
@@ -159,9 +167,12 @@ class Verifiers: # pylint: disable=C0115
         if tab_b_entry in ('bad cpd', '0=Mangler'):
             return tab_b_entry
 
+        if float(tab_b_entry) == int(float(tab_b_entry)):
+            tab_b_entry = int(float(tab_b_entry))
+
         _allowed = set(range(24))
 
-        if int(float(tab_b_entry)) not in _allowed:
+        if int(tab_b_entry) not in _allowed:
             print(f'Bad table B (int) value: {tab_b_entry}. Casting to None.')
             return None
 
@@ -172,9 +183,12 @@ class Verifiers: # pylint: disable=C0115
         if duration == 'bad cpd':
             return duration
 
+        if float(duration) == int(float(duration)):
+            duration = int(float(duration))
+
         _allowed = set(range(14)) # from "tasteinstruktion"
 
-        if int(float(duration)) not in _allowed:
+        if int(duration) not in _allowed:
             print(f'Bad duration value: {duration}. Casting to None.')
             return None
 
