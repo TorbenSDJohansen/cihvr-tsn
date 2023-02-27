@@ -32,9 +32,12 @@ def _sanitize(raw_input: str or int or float) -> str:
         assert int(raw_input) == raw_input, raw_input
 
     if isinstance(raw_input, str) and '=' in raw_input:
-        mod_input = str(int(raw_input.split('=')[0]))
+        mod_input = raw_input.split('=')[0]
     else:
-        mod_input = str(int(raw_input))
+        mod_input = raw_input
+
+    assert int(float(mod_input)) == float(mod_input)
+    mod_input = str(int(float(mod_input)))
 
     return mod_input
 
