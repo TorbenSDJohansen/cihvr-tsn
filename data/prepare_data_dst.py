@@ -714,6 +714,7 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
 
     # pred_cols = [x for x in sub.columns if x[-5:] == '_pred']
     # balance_df = sub.groupby('has_longtable')[pred_cols].apply(lambda x: x.notnull().mean()).T
+    # balance_df['diff'] = balance_df[True] - balance_df[False]
 
     # Check with old data
     # main_old = pd.read_csv(

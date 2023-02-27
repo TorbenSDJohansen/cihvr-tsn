@@ -14,8 +14,8 @@ from typing import Set, Dict
 import numpy as np
 import pandas as pd
 
-from prepare_nuse_name_data import _format_name
-from gen_map_lookup_df import gen_map_name
+from .prepare_nuse_name_data import _format_name
+from .gen_map_lookup_df import gen_map_name
 
 
 FN_MAIN = 'Y:/RegionH/SPJ/Database/export_181106.txt' # to merge on
@@ -201,7 +201,7 @@ def prepare_tab_b(
     # 198     3.0
     # 2027    NaN
     # Name: harmonyv2, dtype: float64
-    # Here we want to replace te NA with 3.0
+    # Here we want to replace the NA with 3.0
 
     grouped = tab_b[tab_b['Filename'].isin(overlap)].groupby('Filename')
     filled = grouped.apply(lambda x: x.fillna(x.mean()))
