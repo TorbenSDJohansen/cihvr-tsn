@@ -301,8 +301,6 @@ def _workspace_to_labels(
     new_labels = new_labels[~is_invalid]
     new_labels['label'] = new_labels['label'].replace({'': '0=Mangler'})
 
-    # TODO consider whether to add to train and test or JUST to train
-
     old_labels_train = load_labels(labels_file_train)
     old_labels_test = load_labels(labels_file_test)
 
@@ -421,7 +419,7 @@ def create_labels(current_round: int):
     if current_round == 1: # returned from Malthe Hauschildt Veje <malthehv@econ.ku.dk>
         wsp_dir = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\manual-nurse-name-1\round-1-returned'
 
-        _labels_dir = r'Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined\labels\keep'
+        _labels_dir = r'Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined\labels-restrict-share-bad-cpd\keep'
         labels_file_train = os.path.join(_labels_dir, r'train\nurse-name-1.npy')
         labels_file_test = os.path.join(_labels_dir, r'test\nurse-name-1.npy')
     else:

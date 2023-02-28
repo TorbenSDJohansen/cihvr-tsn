@@ -218,11 +218,31 @@ def load_100x112_tab_b_sample_filenames():
     return files_test_100x112
 
 
+def drop_if_too_many_bad_cpd(
+        labels: np.array,
+        max_share_bad_cpd: float,
+        ) -> np.array:
+    # Remove bad cpd cases if `max_share_bad_cpd` is exceeded
+    bad_cpd_idxs = np.where(labels[:, 1] == 'bad cpd')[0]
+    other_idxs = np.where(labels[:, 1] != 'bad cpd')[0]
+
+    if len(bad_cpd_idxs) / len(labels) <= max_share_bad_cpd:
+        # not too many in first place
+        return labels
+
+    nb_to_keep = int(max_share_bad_cpd * len(other_idxs) / (1 - max_share_bad_cpd))
+    bad_cpd_idxs_to_keep = np.random.choice(bad_cpd_idxs, size=nb_to_keep, replace=False)
+    labels = labels[list(bad_cpd_idxs_to_keep) + list(other_idxs)]
+
+    return labels
+
+
 def gen_labels(
         labels_root: str,
         share_test: float,
         log_file: str,
         handle_bad_cpd: str = 'ignore',
+        max_share_bad_cpd: float = 1.0,
         ):
     """
     Generate label files based on transcribed data. The aim of this function is
@@ -240,6 +260,10 @@ def gen_labels(
         etc.
     handle_bad_cpd : str
         bad cpd handling. One of "keep", "ignore", "drop". Default is "ignore".
+    max_share_bad_cpd : float in [0, 1]
+        How many labels (as a share of labels for a field) to at most allow to
+        be "bad cpd" cases. If too many, drop "bad cpd" cases from labels until
+        `max_share_for_bad_cpd` is reached.
 
     Returns
     -------
@@ -257,6 +281,16 @@ def gen_labels(
     # TODO *NEED* to re-run everything once new segmentations, as the labels
     # now "bad cpd" might no longer be -- and in principle some currently fine
     # labels will need to be changed to failed segmentation
+
+    # TODO After add arg to control max share bad cpd, reun everything from
+    # scratch; this is turn means it is important to think about how to then
+    # add the nurse names from malthe without resulting in any duplicates
+
+    if not isinstance(max_share_bad_cpd, float):
+        raise TypeError(f'max_share_for_bad_cpd must be of type float, got {max_share_bad_cpd} of type {type(max_share_bad_cpd)}')
+
+    if not 0 <= max_share_bad_cpd <= 1:
+        raise ValueError(f'max_share_bad_cpd must be in [0, 1], got {max_share_bad_cpd}')
 
     assert handle_bad_cpd in ('keep', 'ignore', 'drop')
     # Unless ignore bad cpd, add them. If drop, we need them now before we can
@@ -426,6 +460,7 @@ def gen_labels(
 
         new_labels = labels[~labels['page'].isin(np.concatenate([labels_train[:, 0], labels_test[:, 0]]))]
         new_labels = np.array(new_labels)
+        new_labels = drop_if_too_many_bad_cpd(new_labels, max_share_bad_cpd)
 
         if len(new_labels) == 0: # no new labels, continue to next field
             print(f'No new labels to append to {key}')
@@ -466,20 +501,23 @@ if __name__ == '__main__':
     # Implement fourth method, which keeps label but also signals bad cpd; now
     # possible to predict the likely label as well as indicator for bad cpd
     gen_labels(
-        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets-joined/labels/keep/',
+        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets-joined/labels-restrict-share-bad-cpd/keep/',
         share_test=0.1,
         log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
         handle_bad_cpd='keep',
+        max_share_bad_cpd=0.1,
         )
-    gen_labels(
-        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets-joined/labels/ignore/',
-        share_test=0.1,
-        log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
-        handle_bad_cpd='ignore',
-        )
-    gen_labels(
-        labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets-joined/labels/drop/',
-        share_test=0.1,
-        log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
-        handle_bad_cpd='drop',
-        )
+    # gen_labels(
+    #     labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets-joined/labels-restrict-share-bad-cpd/ignore/',
+    #     share_test=0.1,
+    #     log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
+    #     handle_bad_cpd='ignore',
+    #     max_share_bad_cpd=0.1,
+    #     )
+    # gen_labels(
+    #     labels_root='Y:/RegionH/Scripts/users/tsdj/storage/image-datasets-joined/labels-restrict-share-bad-cpd/drop/',
+    #     share_test=0.1,
+    #     log_file='Y:/RegionH/Scripts/users/tsdj/storage/cpd-root/210304-tab-b-cmd-tsdj-merge/log-merged.pkl', # pylint: disable=C0301
+    #     handle_bad_cpd='drop',
+    #     max_share_bad_cpd=0.1,
+    #     )
