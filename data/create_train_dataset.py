@@ -36,6 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--labels-subdir', type=str, default='')
     parser.add_argument('--fields', type=str, nargs='+')
     parser.add_argument('--out-dir', type=str)
+    parser.add_argument('--name', type=str, help='name of merged fields')
     parser.add_argument('--nb-pools', type=int, default=0)
 
     args = parser.parse_args()
@@ -91,6 +92,20 @@ def load_labels(directory: str, fields: List[str]) -> pd.DataFrame:
     return labels
 
 
+def save_labels(labels: pd.DataFrame, out_dir: str, name: str):
+    train = labels[labels['split'] == 'train']
+    test = labels[labels['split'] == 'test']
+
+    np.save(
+        file=os.path.join(out_dir, 'labels', 'train', '.'.join((name, 'npy'))),
+        arr=train[['Filename', 'label']].values,
+        )
+    np.save(
+        file=os.path.join(out_dir, 'labels', 'test', '.'.join((name, 'npy'))),
+        arr=test[['Filename', 'label']].values,
+        )
+
+
 def _move_images(
         labels: pd.DataFrame,
         image_folder: str,
@@ -103,7 +118,7 @@ def _move_images(
 
     image_files = image_files & label_files
 
-    print(f'copying {len(image_files)} from {image_folder} to {out_dir}')
+    print(f'copying {len(image_files)} from {image_folder}')
 
     copier = MPCopier(in_dir=image_folder, out_dir=out_dir, field=field)
 
@@ -122,11 +137,14 @@ def move_images_by_copy(
         out_dir: str,
         nb_pools: int,
         ):
+    if not os.path.isdir(out_dir):
+        os.makedirs(out_dir, exist_ok=False)
+
     for field in fields:
         sub = labels[labels['field'] == field]
         image_folder = image_folders[field]
 
-        print(f'copying images for {field}')
+        print(f'copying images for {field} to {out_dir}')
 
         _move_images(sub, image_folder, out_dir, field, nb_pools)
 
@@ -143,12 +161,14 @@ def main():
     label_dir = os.path.join(args.dir, 'labels', args.labels_subdir)
     labels = load_labels(label_dir, args.fields)
 
+    save_labels(labels=labels, out_dir=args.out_dir, name=args.name)
+
     move_images_by_copy(
         labels=labels,
         image_folders=image_folders,
         fields=args.fields,
-        out_dir=args.out_dir,
-        nb_pools=args.nb_pools
+        out_dir=os.path.join(args.out_dir, 'minipics', args.name),
+        nb_pools=args.nb_pools,
         )
 
 
