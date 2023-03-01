@@ -89,6 +89,9 @@ def load_labels(directory: str, fields: List[str]) -> pd.DataFrame:
 
     labels = pd.concat(labels)
 
+    # Change Filename to include the field in front to match new image name
+    labels['Filename'] = labels['field'] + '-' + labels['Filename']
+
     return labels
 
 
@@ -156,7 +159,8 @@ def main():
     image_folders = {x: os.path.join(image_dir, x) for x in os.listdir(image_dir)}
 
     if not set(args.fields).issubset(image_folders.keys()):
-        raise NotADirectoryError('at least one of fields {args.fields} does not have a corresponding image folder in {image_dir}')
+        unmatched = set(args.fields) - set(image_folders.keys())
+        raise NotADirectoryError(f'at least one of fields {args.fields} does not have a corresponding image folder in {image_dir}: {unmatched}')
 
     label_dir = os.path.join(args.dir, 'labels', args.labels_subdir)
     labels = load_labels(label_dir, args.fields)
