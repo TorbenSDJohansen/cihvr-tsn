@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Apr 19 10:56:48 2021
-
 @author: sa-tsdj
+
 """
 
 
@@ -13,7 +12,7 @@ import datetime
 
 import pandas as pd
 
-from format_preds_cihvr import drop_duplicates, _load_maps
+from .format_preds_cihvr import drop_duplicates, _load_maps
 
 
 def _get_cell_groups():
@@ -147,12 +146,12 @@ def main():
         'there might be cases where both are wanted, such as for names, ' +
         'in case seperate for first and last names!\n'
         )
-    
+
     if len(sys.argv) > 1:
         args = _parse()
     else:
         args = _test_parse()
-    
+
     files, cihvr_duplicate_drop, threshold = _format_args(args)
 
     print('Loading data!')
@@ -164,8 +163,8 @@ def main():
 
     print('Creating new columns!')
 
-    pred_df['cell'] = pred_df['filename_full'].str.split('/').apply(lambda x: x[-2])
-    pred_df['filename'] = pred_df['filename_full'].str.split('/').apply(lambda x: x[-1])
+    pred_df['cell'] = pred_df['filename_full'].apply(lambda x: os.path.basename(os.path.dirname(x)))
+    pred_df['filename'] = pred_df['filename_full'].apply(os.path.basename)
     pred_df['journal'] = pred_df['filename'].apply(lambda x: map_images_journals_ss[x])
 
     pred_df['colname_cihvr_data'] = pred_df['cell']
@@ -234,9 +233,9 @@ def main():
     results_str = '\n'.join(results_str.split('\n')[2:-3])
 
     date = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
-    print(results_str, file=open(
-        f'Y:/RegionH/Scripts/users/tsdj/storage/results/transcr-accs-{date}.tex', 'w',
-        ))
+
+    with open(f'Y:/RegionH/Scripts/users/tsdj/storage/results/transcr-accs-{date}.tex', 'w') as file:
+        print(results_str, file=file)
 
 
 if __name__ == '__main__':
