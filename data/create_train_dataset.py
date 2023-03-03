@@ -91,7 +91,7 @@ def load_labels(directory: str, fields: List[str]) -> pd.DataFrame:
     labels = pd.concat(labels)
 
     # Change Filename to include the field in front to match new image name
-    labels['Filename'] = labels['field'] + '-' + labels['Filename']
+    labels['Filename-new'] = labels['field'] + '-' + labels['Filename']
 
     return labels
 
@@ -143,9 +143,9 @@ def move_images_by_copy(
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir, exist_ok=False)
 
-    # Do not move images already in out-dir
+    # Do not move images already in --out-dir
     moved_images = set(os.listdir(out_dir))
-    labels = labels[~labels['Filename'].isin(moved_images)]
+    labels = labels[~labels['Filename-new'].isin(moved_images)]
 
     # Track progress
     count = 0
@@ -157,9 +157,13 @@ def move_images_by_copy(
 
         print(f'Copying images for {field} to {out_dir}')
         print(f'Copied {count} of {total} images ({100 * count / total:.2f}%)')
+        count += len(sub)
+
+        if len(sub) == 0:
+            continue
 
         _move_images(sub, image_folder, out_dir, field, nb_pools)
-        count += len(sub)
+
 
 
 def main():
