@@ -39,6 +39,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--name', type=str, help='name of merged fields')
     parser.add_argument('--nb-pools', type=int, default=0)
     parser.add_argument('--skip-write-labels', action='store_true', default=False)
+    parser.add_argument('--splits', type=str, nargs='+', choices=['train', 'test'], default=['train', 'test'])
 
     args = parser.parse_args()
 
@@ -74,10 +75,10 @@ def _load_labels(directory: str, fields: List[str]) -> pd.DataFrame:
     return labels
 
 
-def load_labels(directory: str, fields: List[str]) -> pd.DataFrame:
+def load_labels(directory: str, fields: List[str], splits: List[str]) -> pd.DataFrame:
     labels = []
 
-    for subdir in ('train', 'test'):
+    for subdir in splits:
         full_dir = os.path.join(directory, subdir)
 
         if not os.path.isdir(full_dir):
@@ -100,14 +101,16 @@ def save_labels(labels: pd.DataFrame, out_dir: str, name: str):
     train = labels[labels['split'] == 'train']
     test = labels[labels['split'] == 'test']
 
-    np.save(
-        file=os.path.join(out_dir, 'labels', 'train', '.'.join((name, 'npy'))),
-        arr=train[['Filename-new', 'label']].values,
-        )
-    np.save(
-        file=os.path.join(out_dir, 'labels', 'test', '.'.join((name, 'npy'))),
-        arr=test[['Filename-new', 'label']].values,
-        )
+    if len(train) > 0:
+        np.save(
+            file=os.path.join(out_dir, 'labels', 'train', '.'.join((name, 'npy'))),
+            arr=train[['Filename-new', 'label']].values,
+            )
+    if len(test) > 0:
+        np.save(
+            file=os.path.join(out_dir, 'labels', 'test', '.'.join((name, 'npy'))),
+            arr=test[['Filename-new', 'label']].values,
+            )
 
 
 def _move_images(
@@ -165,7 +168,6 @@ def move_images_by_copy(
         count += len(sub)
 
 
-
 def main():
     args = parse_args()
 
@@ -177,7 +179,7 @@ def main():
         raise NotADirectoryError(f'at least one of fields {args.fields} does not have a corresponding image folder in {image_dir}: {unmatched}')
 
     label_dir = os.path.join(args.dir, 'labels', args.labels_subdir)
-    labels = load_labels(label_dir, args.fields)
+    labels = load_labels(label_dir, args.fields, args.splits)
 
     if not args.skip_write_labels:
         save_labels(labels=labels, out_dir=args.out_dir, name=args.name)

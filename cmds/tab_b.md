@@ -36,7 +36,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 ```
 
 ## Evaluate
-Base (This now includes (practically) all fields to some degree)
+Base; this now includes (practically) all fields to some degree
 ```
 python evaluate.py ^
 --formatter two_digit_keep_bad_cpd ^
@@ -52,7 +52,7 @@ python evaluate.py ^
 --eval-plots-omit-most-occ 3
 ```
 
-Base (on our own test set, with all 112 cells)
+Base (on our own test set, with ~100 examples of all 112 cells)
 ```
 python evaluate.py ^
 --formatter two_digit_keep_bad_cpd ^
