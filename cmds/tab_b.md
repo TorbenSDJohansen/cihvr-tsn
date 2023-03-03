@@ -18,7 +18,6 @@ python data\create_train_dataset.py ^
 ```
 
 ## Training
-
 Base
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
@@ -37,9 +36,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 ```
 
 ## Evaluate
-**NOTE**: This now includes (practically) all fields to some degree
-
-Base 
+Base (This now includes (practically) all fields to some degree)
 ```
 python evaluate.py ^
 --formatter two_digit_keep_bad_cpd ^
@@ -47,14 +44,12 @@ python evaluate.py ^
 -b 512 ^
 --input-size 3 64 125 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells %DATASET-CELLS-TAB-B% ^
---labels-subdir keep ^
+--dataset image-datasets-train ^
+--dataset-cells tab-b ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\base\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
-
 ```
 
 Base (on our own test set, with all 112 cells)
@@ -70,9 +65,10 @@ python evaluate.py ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\base\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
-
 ```
-
 
 ## Predict
 
+```
+
+```
