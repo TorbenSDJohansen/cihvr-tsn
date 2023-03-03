@@ -120,13 +120,9 @@ def _move_images(
     label_files = set(labels['Filename'])
 
     image_files = image_files & label_files
-    # TODO do os.listdir(out_dir), then do setminus like: image_files -= set(os.listdir(out_dir))
-    # NOTE: This is slow, can move os.listdir() to move_images_by_copy and re-use, that is better way
-    # NOTE: Could potentially remove from labels in move_images_by_copy by using the os.listdir, ~['Filename'].isin(...)
+    copier = MPCopier(in_dir=image_folder, out_dir=out_dir, field=field)
 
     print(f'copying {len(image_files)} from {image_folder}')
-
-    copier = MPCopier(in_dir=image_folder, out_dir=out_dir, field=field)
 
     if nb_pools > 0:
         with multiprocessing.Pool(nb_pools) as pool:
@@ -146,13 +142,23 @@ def move_images_by_copy(
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir, exist_ok=False)
 
-    for field in fields: # TODO count report count, track = 0, track += len(sub), divide by len(labels)
+    # Do not move images already in out-dir
+    moved_images = set(os.listdir(out_dir))
+    labels = labels[~labels['Filename'].isin(moved_images)]
+
+    # Track progress
+    count = 0
+    total = len(labels)
+
+    for field in fields:
         sub = labels[labels['field'] == field]
         image_folder = image_folders[field]
 
-        print(f'copying images for {field} to {out_dir}')
+        print(f'Copying images for {field} to {out_dir}')
+        print(f'Copied {count} of {total} images ({100 * count / total:.2f}%)')
 
         _move_images(sub, image_folder, out_dir, field, nb_pools)
+        count += len(sub)
 
 
 def main():
