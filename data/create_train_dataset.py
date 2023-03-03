@@ -159,7 +159,7 @@ def move_images_by_copy(
             continue
 
         print(f'Copying images for {field} to {out_dir}')
-        print(f'Copied {count} of {total} images ({100 * count / total:.2f}%)')
+        print(f'Copied approx. {count} of {total} images ({100 * count / total:.2f}%)')
 
         _move_images(sub, image_folder, out_dir, field, nb_pools)
         count += len(sub)
