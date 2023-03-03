@@ -38,6 +38,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--out-dir', type=str)
     parser.add_argument('--name', type=str, help='name of merged fields')
     parser.add_argument('--nb-pools', type=int, default=0)
+    parser.add_argument('--skip-write-labels', action='store_true', default=False)
 
     args = parser.parse_args()
 
@@ -48,7 +49,7 @@ def parse_args() -> argparse.Namespace:
         raise NotADirectoryError(f'--out-dir {args.out_dir} does not exist')
 
     if args.nb_pools < 0:
-        raise ValueError(f'cannot specify fewer than 0 pool, but got --nb-pools {args.nb_pools}')
+        raise ValueError(f'cannot specify fewer than 0 pools, but got --nb-pools {args.nb_pools}')
 
     return args
 
@@ -174,7 +175,8 @@ def main():
     label_dir = os.path.join(args.dir, 'labels', args.labels_subdir)
     labels = load_labels(label_dir, args.fields)
 
-    save_labels(labels=labels, out_dir=args.out_dir, name=args.name)
+    if not args.skip_write_labels:
+        save_labels(labels=labels, out_dir=args.out_dir, name=args.name)
 
     move_images_by_copy(
         labels=labels,
