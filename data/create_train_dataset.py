@@ -102,11 +102,11 @@ def save_labels(labels: pd.DataFrame, out_dir: str, name: str):
 
     np.save(
         file=os.path.join(out_dir, 'labels', 'train', '.'.join((name, 'npy'))),
-        arr=train[['Filename', 'label']].values,
+        arr=train[['Filename-new', 'label']].values,
         )
     np.save(
         file=os.path.join(out_dir, 'labels', 'test', '.'.join((name, 'npy'))),
-        arr=test[['Filename', 'label']].values,
+        arr=test[['Filename-new', 'label']].values,
         )
 
 
