@@ -120,6 +120,9 @@ def _move_images(
     label_files = set(labels['Filename'])
 
     image_files = image_files & label_files
+    # TODO do os.listdir(out_dir), then do setminus like: image_files -= set(os.listdir(out_dir))
+    # NOTE: This is slow, can move os.listdir() to move_images_by_copy and re-use, that is better way
+    # NOTE: Could potentially remove from labels in move_images_by_copy by using the os.listdir, ~['Filename'].isin(...)
 
     print(f'copying {len(image_files)} from {image_folder}')
 
@@ -143,7 +146,7 @@ def move_images_by_copy(
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir, exist_ok=False)
 
-    for field in fields:
+    for field in fields: # TODO count report count, track = 0, track += len(sub), divide by len(labels)
         sub = labels[labels['field'] == field]
         image_folder = image_folders[field]
 
