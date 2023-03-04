@@ -9,3 +9,20 @@ python data\create_train_dataset.py ^
 --name preterm-birth ^
 --nb-pools 16
 ```
+
+## Training
+Base
+```
+python train.py ^
+--formatter two_digit_keep_bad_cpd ^
+--experiment base ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm ^
+-b 512 ^
+--input-size 3 93 279 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells preterm-birth ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--log-wandb ^
+--initial-log
+```

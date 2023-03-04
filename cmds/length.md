@@ -9,3 +9,20 @@ python data\create_train_dataset.py ^
 --name length ^
 --nb-pools 16
 ```
+
+## Training
+Base
+```
+python train.py ^
+--formatter two_digit_keep_bad_cpd ^
+--experiment base ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\length ^
+-b 512 ^
+--input-size 3 93 198 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells length ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--log-wandb ^
+--initial-log
+```
