@@ -1,4 +1,14 @@
 # Dates
+Merge cells to two image folders for all dates (one for train and one for test):
+```
+python data\create_train_dataset.py ^
+--dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined ^
+--labels-subdir keep-restrict-share-bad-cpd ^
+--fields date-1-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo date-12-mo ^
+--out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
+--name date ^
+--nb-pools 8
+```
 
 ## Pre-training on DARE
 Dates from multiple sources; see DARE for details on data.

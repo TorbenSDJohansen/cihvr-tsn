@@ -17,6 +17,18 @@ python data\create_train_dataset.py ^
 --nb-pools 16
 ```
 
+Merge cells to two image folders for all Table B (for 100x112 test set):
+```
+python data\create_train_dataset.py ^
+--dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined ^
+--labels-subdir keep-tab-b-test ^
+--fields %DATASET-CELLS-TAB-B% ^
+--out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
+--name tab-b-test ^
+--splits test ^
+--nb-pools 8
+```
+
 ## Training
 Base
 ```
