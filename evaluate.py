@@ -7,6 +7,7 @@
 import os
 import logging
 
+from functools import partial
 from contextlib import suppress
 
 import numpy as np
@@ -195,7 +196,8 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
         )
 
     print('Cleaning predictions and labels.')
-    preds_clean = np.array(list(map(clean_pred, preds)))
+    clean_pred_accept_all = partial(clean_pred, assert_consistency=False)
+    preds_clean = np.array(list(map(clean_pred_accept_all, preds)))
     labels_clean = np.array(list(map(clean_pred, labels.astype(int))))
 
     pred_df = pd.DataFrame({

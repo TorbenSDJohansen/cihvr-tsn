@@ -31,7 +31,12 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 ## Evaluate
 Base
 ```
-
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\base ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\weight\base\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\weight\base\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
 ```
 
 ## Predict
