@@ -14,7 +14,7 @@ Then prepare an environment (here using conda and the name `cihvr`):
 ```
 conda create -n cihvr numpy pandas pillow scikit-learn opencv matplotlib pyyaml
 conda activate cihvr
-conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
 pip install imutils timm
 ```
 
@@ -25,6 +25,21 @@ pip install path/to/timm-sequence-net
 
 ## Replicate results
 See individual markdowns under `./cmds/`.
+
+To produce table with transcription accuracies:
+```
+python data/summ_preds.py ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\base\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\base\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\base-full-table\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\base\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\base\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\base\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\base\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\base\preds.csv ^
+--cihvr-duplicate-drop ^
+--out-dir ./
+```
 
 ## License
 
