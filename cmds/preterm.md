@@ -26,3 +26,14 @@ python train.py ^
 --log-wandb ^
 --initial-log
 ```
+
+## Evaluate
+Base
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\base ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm\base\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm\base\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```

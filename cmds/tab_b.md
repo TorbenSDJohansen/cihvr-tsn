@@ -51,14 +51,8 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 Base; this now includes (practically) all fields to some degree
 ```
 python evaluate.py ^
---formatter two_digit_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\base ^
--b 512 ^
---input-size 3 64 125 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-train ^
---dataset-cells tab-b ^
---config ./cfgs/efficientnetv2_s.yaml ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\base-train-fields ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\base\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\base\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
@@ -67,13 +61,9 @@ python evaluate.py ^
 Base (on our own test set, with ~100 examples of all 112 cells)
 ```
 python evaluate.py ^
---formatter two_digit_keep_bad_cpd ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\base-full-table ^
---input-size 3 64 125 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---labels-subdir keep-tab-b-test ^
---config ./cfgs/efficientnetv2_s.yaml ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\base\args.yaml ^
+--dataset-cells tab-b-test ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\base\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3

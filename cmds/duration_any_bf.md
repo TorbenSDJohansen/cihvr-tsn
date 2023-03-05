@@ -26,3 +26,14 @@ python train.py ^
 --log-wandb ^
 --initial-log
 ```
+
+## Evaluate
+Base (no montage plot as only 8 wrong preds and 10 are needed for montage)
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\base ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\base\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\base\last.pth.tar ^
+--plots cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
