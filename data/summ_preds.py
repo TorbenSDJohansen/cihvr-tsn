@@ -10,9 +10,11 @@ import os
 import argparse
 import datetime
 
+from typing import List
+
 import pandas as pd
 
-from .format_preds_cihvr import drop_duplicates, _load_maps
+from format_preds_cihvr import drop_duplicates, _load_maps
 
 
 def _get_cell_groups():
@@ -46,6 +48,9 @@ def _get_cell_groups():
         'Length': _get_group('length-{}-mo', (0, 12)),
         'Duration breastfeeding': ['dura-any-breastfeed'],
         'Nurse name': ['nurse-name-1', 'nurse-name-2', 'nurse-name-3'],
+        'Breastfeeding 7 days': ['breastfeed-7-do'],
+        'Preterm birth': ['preterm-birth'],
+        'Preterm birth (weeks)': ['preterm-birth-weeks'],
         }
 
     k = 0
@@ -61,7 +66,7 @@ def _get_cell_groups():
     return mapping
 
 
-def _parse():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Summarize pred. files results.')
 
     # REQUIRED
@@ -69,10 +74,11 @@ def _parse():
         'files', type=str, nargs='+',
         help='The files of predictions to summarize.',
         )
+    parser.add_argument('--out-dir', type=str)
 
     # OPTIONAL
     parser.add_argument(
-        '--cihvr_duplicate_drop', default=False, action='store_true',
+        '--cihvr-duplicate-drop', default=False, action='store_true',
         help=(
             'Whether to perform journal duplicate drop based on bad cpd ' +
             'count. Important for CIHVR, but not in general.'
@@ -84,6 +90,9 @@ def _parse():
         )
 
     args = parser.parse_args()
+
+    if not os.path.isdir(args.out_dir):
+        raise NotADirectoryError(f'--out-dir {args.out_dir} does not exist')
 
     return args
 
@@ -114,13 +123,38 @@ def _format_args(args):
     assert 0 <= args.threshold < 1
     for file in args.files:
         if not os.path.isfile(file):
-            raise Exception(f'Non-existing file {file} requested!')
+            raise FileNotFoundError(f'Non-existing file {file} requested!')
 
     return args.files, args.cihvr_duplicate_drop, args.threshold
 
 
 def _create_summary_table(dataframe):
     return dataframe.groupby('meta_cell')['correct'].agg(['mean', 'count']).reset_index()
+
+
+def derive_cell(filename_full: str, valid_cells: List[str]) -> str:
+    '''
+    First check if (base) filename starts with any valid cell. Then match to
+    *longest* cell name it matches to -- to not match preterm to preterm-wks.
+    Then return cell name corresponding to longest match.
+
+    Otherwise use the name of the directory immediately above as cell name.
+
+
+    '''
+    filename = os.path.basename(filename_full)
+    matches = []
+    matches_len = []
+
+    for cell in valid_cells:
+        if filename.startswith(cell):
+            matches.append(cell)
+            matches_len.append(len(cell))
+
+    if len(matches) == 0:
+        return os.path.basename(os.path.dirname(filename_full))
+
+    return matches[matches_len.index(max(matches_len))]
 
 
 def main():
@@ -148,7 +182,7 @@ def main():
         )
 
     if len(sys.argv) > 1:
-        args = _parse()
+        args = parse_args()
     else:
         args = _test_parse()
 
@@ -161,10 +195,18 @@ def main():
         ])
     pred_df = pred_df[pred_df['prob'] >= threshold].copy()
 
-    print('Creating new columns!')
+    group_mapping = _get_cell_groups()
 
-    pred_df['cell'] = pred_df['filename_full'].apply(lambda x: os.path.basename(os.path.dirname(x)))
+    print('Creating new columns!')
     pred_df['filename'] = pred_df['filename_full'].apply(os.path.basename)
+    pred_df['cell'] = pred_df['filename_full'].apply(lambda x: derive_cell(x, list(group_mapping.keys())))
+
+    # When filename is, e.g., breastfeed-7-do-SP2_19239.pdf.page-0.jpg, need to
+    # change to SP2_19239.pdf.page-0.jpg
+    for cell in pred_df['cell'].unique():
+        to_change = (pred_df['cell'] == cell) & pred_df['filename'].str.startswith(cell)
+        pred_df.loc[to_change, 'filename'] = pred_df.loc[to_change, 'filename'].apply(lambda x: x[(len(cell) + 1):])
+
     pred_df['journal'] = pred_df['filename'].apply(lambda x: map_images_journals_ss[x])
 
     pred_df['colname_cihvr_data'] = pred_df['cell']
@@ -177,7 +219,6 @@ def main():
         pred_df = drop_duplicates(pred_df)
 
     # Group columns into meta-categories
-    group_mapping = _get_cell_groups()
     pred_df['meta_cell'] = [group_mapping.get(x, x) for x in pred_df['cell'].values]
 
     print('Summarizing!')
@@ -234,7 +275,7 @@ def main():
 
     date = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
 
-    with open(f'Y:/RegionH/Scripts/users/tsdj/storage/results/transcr-accs-{date}.tex', 'w') as file:
+    with open(os.path.join(args.out_dir, f'transcr-accs-{date}.tex'), 'w', encoding='utf-8') as file:
         print(results_str, file=file)
 
 

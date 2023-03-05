@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Apr 12 15:45:26 2021
-
 @author: sa-tsdj
+
 """
 
 
@@ -16,12 +15,13 @@ import pandas as pd
 def _load_maps():
     root_maps = 'Y:/RegionH/Scripts/users/tsdj/storage/maps'
 
-    map_lookup_df = pickle.load(
-        open(f'{root_maps}/map_lookup_df.pkl', 'rb'))
-    map_journals_images_ss = pickle.load(
-        open(f'{root_maps}/map_journals_images_ss.pkl', 'rb'))
+    with open(f'{root_maps}/map_lookup_df.pkl', 'rb') as file:
+        map_lookup_df = pickle.load(file)
 
-    map_images_journals_ss = dict()
+    with open(f'{root_maps}/map_journals_images_ss.pkl', 'rb') as file:
+        map_journals_images_ss = pickle.load(file)
+
+    map_images_journals_ss = {}
 
     for key, value in map_journals_images_ss.items():
         for fname in value:
@@ -94,7 +94,7 @@ def drop_duplicates(pred_df: pd.DataFrame) -> pd.DataFrame:
     bad_cpd_count.columns = list(bad_cpd_count.columns[:-1]) + ['bad-cpd-count']
 
     pred_df = pred_df.merge(bad_cpd_count, how='outer', on='filename')
-    pred_df['is-min-bad-cpd-count'] = pred_df.groupby('journal')['bad-cpd-count'].apply(
+    pred_df['is-min-bad-cpd-count'] = pred_df.groupby('journal')['bad-cpd-count'].transform(
         lambda x: x == min(x)
         )
     pred_df = pred_df[pred_df['is-min-bad-cpd-count']]
