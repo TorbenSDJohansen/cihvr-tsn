@@ -329,9 +329,9 @@ def gen_labels(
     # Merge info on Table B from new Lise data.
     tab_b = pd.read_csv(fn_df_tab_b_new)
 
-    # Drop all the 1-month columns as suggested by Lise
-    bad_cols = [map_lookup_df[f'tab-b-c{x}-1-mo'] for x in range(1, 17)]
-    tab_b = tab_b.drop(columns=bad_cols)
+    # Drop all the 1-month rows (columns in DataFrame) as suggested by Lise
+    bad_rows = [map_lookup_df[f'tab-b-c{x}-1-mo'] for x in range(1, 17)]
+    tab_b = tab_b.drop(columns=bad_rows)
 
     # Drop all rows corresponding to the manual 100x112 test sample
     files_in_tab_b_100x112_test = load_100x112_tab_b_sample_filenames()
@@ -363,15 +363,17 @@ def gen_labels(
     assert bad_cpd_files.issubset(set(merged['page']))
 
     if add_bad_cpd:
+        _variables = [x for x in map_lookup_df.values() if x in merged.columns]
+
         # Handle bad cpd (manual checks)
         idxs_bad_cpd1 = merged['page'].isin(bad_cpd_files)
-        merged.loc[idxs_bad_cpd1, list(map_lookup_df.values())] = 'bad cpd'
+        merged.loc[idxs_bad_cpd1, _variables] = 'bad cpd'
 
         # Handle bad CPD based on matrix determinant.
         det_ut = 1.03 # Maybe change?
         det_lt = 0.91 # Maybe change?
         idxs_bad_cpd2 = ~((merged['det'] <= det_ut) & (merged['det'] >= det_lt))
-        merged.loc[idxs_bad_cpd2, list(map_lookup_df.values())] = 'bad cpd'
+        merged.loc[idxs_bad_cpd2, _variables] = 'bad cpd'
 
     # Potentially more CPD checks...
 
