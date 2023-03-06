@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Dec 10 09:11:44 2020
-
 @author: sa-tsdj
 
 Purpose of this script: Whenever uploads are made to DST, data is prepared here
@@ -46,13 +44,16 @@ FN_INTENSITY = 'Y:/RegionH/Scripts/users/jfl/Treatment_intensity/intensity_df_un
 FN_INTENSITY_R2 = 'Y:/RegionH/Scripts/users/jfl/Treatment_intensity/intensity_df_sup_r2.pkl'
 
 ## CELLS (PREDICTIONS)
-FN_WEIGHT_PRED = 'Z:/faellesmappe/tsdj/cihvr-new/weight/wide-preds-2021-05-19-11-14-24.csv'
-FN_DATE_PRED = 'Z:/faellesmappe/tsdj/cihvr-new/date/wide-preds-2021-05-19-11-47-31.csv'
-FN_TAB_B_PRED = 'Z:/faellesmappe/tsdj/cihvr-new/tab_b/wide-preds-2021-05-24-11-21-36.csv'
-FN_LENGTH_PRED = 'Z:/faellesmappe/tsdj/cihvr-new/length/wide-preds-2021-05-19-11-22-11.csv'
-FN_DABF_PRED = 'Z:/faellesmappe/tsdj/cihvr-new/dabf/wide-preds-2021-05-19-12-33-56.csv'
-FN_NURSE_LASTNAME_PRED = 'Z:/faellesmappe/tsdj/cihvr-new/lastname/wide-matched-preds-2021-05-19-11-36-54.csv' # pylint: disable=C0301
-FN_NURSE_FIRSTNAME_PRED = 'Z:/faellesmappe/tsdj/cihvr-new/firstname/wide-matched-preds-2021-05-20-07-07-37.csv' # pylint: disable=C0301
+FN_WEIGHT_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\base\wide-preds.csv'
+FN_DATE_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\base\wide-preds.csv'
+FN_TAB_B_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b\base\wide-preds.csv'
+FN_LENGTH_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\base\wide-preds.csv'
+FN_DABF_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\base\wide-preds.csv'
+FN_NURSE_LASTNAME_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\XXX\wide-preds.csv'
+FN_NURSE_FIRSTNAME_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\wide-preds.csv'
+FN_PRETERM = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\base\wide-preds.csv'
+FN_PRETERM_WEEKS = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\base\wide-preds.csv'
+FN_BF7DO = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\base\wide-preds.csv'
 
 def _prepare_main() -> pd.DataFrame:
     main = pd.read_csv(FN_MAIN, sep=';', na_values=[''], keep_default_na=False)
@@ -110,9 +111,7 @@ def _prepare_cluster() -> pd.DataFrame:
 
 
 def _prepare_intensity() -> pd.DataFrame:
-    # FIXME
-    # 1) It appears row numbers might not make sense?
-
+    # NOTE: Row number wrong ordering fixed at DST
     intensity_r1 = pickle.load(open(FN_INTENSITY, 'rb'))
     intensity_r2 = pickle.load(open(FN_INTENSITY_R2, 'rb'))
 
@@ -158,10 +157,6 @@ def _prepare_weight() -> pd.DataFrame:
 
 
 def _prepare_date() -> pd.DataFrame:
-    # TODO instead of casting to NaN when not proper date, keep all values.
-    # For example, simply report bdd and bdm here, perhaps add to current,
-    # perhaps change current...
-
     date = pd.read_csv(FN_DATE_PRED, na_values=[''], keep_default_na=False)
     main = _prepare_main()
     dates_sequence = [
@@ -193,6 +188,9 @@ def _prepare_date() -> pd.DataFrame:
     date['byear'] = date['bdate'].astype(str).str.split('-').apply(lambda x: x[0])
 
     for col in [''.join((x, '_pred')) for x in dates_sequence]:
+        # Also keep the day and month predictions without casting NaT even if invalid
+        date[col + '_day'] = date[col].transform(lambda x: np.nan if x == 'bad cpd' else x.split(':')[0])
+        date[col + '_month'] = date[col].transform(lambda x: np.nan if x == 'bad cpd' else x.split(':')[1])
         date[col] = pd.to_datetime(date[col] + ':' + date['byear'], format='%d:%m:%Y', errors='coerce') # pylint: disable=C0301
 
     # Now, increase year if needed (i.e. december -> january switch).
@@ -258,6 +256,18 @@ def _prepare_dabf() -> pd.DataFrame:
     dabf = dabf.replace('bad cpd', np.nan)
 
     return dabf
+
+
+def _prepare_preterm() -> pd.DataFrame:
+    raise NotImplementedError
+
+
+def _prepare_preterm_weeks() -> pd.DataFrame:
+    raise NotImplementedError
+
+
+def _prepare_bf7do() -> pd.DataFrame:
+    raise NotImplementedError
 
 
 def _prepare_nurse_lastname() -> pd.DataFrame:
@@ -482,7 +492,7 @@ def round_prob(data: pd.DataFrame, nb_digits: int) -> pd.DataFrame:
 
     '''
 
-    cols_to_round = [x for x in data.columns if x[-5:] == '_prob']
+    cols_to_round = [x for x in data.columns if x.endswith('_prob')]
 
     assert len(cols_to_round) > 0
 
@@ -623,6 +633,8 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
         how='left',
         )
 
+    # TODO add the 3 new fields
+
     # Drop Filename since we are done merging and it is an ID var
     main = main.drop(columns='Filename')
 
@@ -743,17 +755,18 @@ if __name__ == '__main__':
                 _prepare_intensity, _prepare_weight, _prepare_date, _prepare_tab_b,
                 _prepare_length, _prepare_dabf, _prepare_nurse_lastname,
                 _prepare_nurse_firstname,
+                _prepare_preterm, _prepare_preterm_weeks, _prepare_bf7do,
                 ],
             'merge-var': [
                 None, 'Id', 'Id', 'Filename', ['Filename', 'page'], 'Filename',
                 'Filename', 'Filename', 'Filename', 'Filename', 'Filename',
-                'Filename',
+                'Filename', 'Filename', 'Filename', 'Filename',
                 ]
             },
         index=[
             'main', 'cpr', 'status', 'cluster', 'intensity',
             'weight', 'date', 'tab-b', 'length', 'dabf', 'nurse-lastname',
-            'nurse-firstname',
+            'nurse-firstname', 'preterm', 'preterm-weeks', 'bf7do',
             ],
         )
 
