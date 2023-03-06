@@ -37,3 +37,16 @@ python evaluate.py ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
+
+## Predict
+Base
+```
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\base ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\length\base\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\length\base\last.pth.tar ^
+--plots montage ^
+-b 2048 ^
+--dataset image-datasets-joined ^
+--dataset-cells length-0-mo length-12-mo
+```

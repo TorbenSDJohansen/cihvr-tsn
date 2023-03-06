@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jun 23 10:39:19 2021
-
 @author: sa-tsdj
+
 """
 
 
@@ -12,6 +11,7 @@ import numpy as np
 
 
 def main():
+    # FIXME this needs to be updated to work again.
     root = 'Y:/RegionH/Scripts/users/tsdj/storage/labels-root/'
     nb_docs = 95_323
 
@@ -62,3 +62,7 @@ def main():
     print(f'Share of total cells used for testing: {share_test}%.')
     print(f'Total number of test cells: {len(labels_train)}.')
     print(f'Total number of test cells: {len(labels_test)}.')
+
+
+if __name__ == '__main__':
+    main()

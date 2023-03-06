@@ -112,18 +112,18 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 
 ```
 
-Base (new formatter)
+Base
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter dates_keep_bad_cpd ^
 --experiment base ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date ^
---lr 4.0 ^
--b 1024 ^
+--lr 2.0 ^
+-b 512 ^
 --input-size 3 63 212 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells date-1-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo date-12-mo ^
+--dataset image-datasets-train ^
+--dataset-cells date ^
 --labels-subdir keep ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --log-wandb ^
@@ -199,18 +199,14 @@ python predict.py ^
 
 ```
 
-Base (new formatter)
+Base
 ```
 python predict.py ^
---formatter dates_keep_bad_cpd ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\base ^
--b 1024 ^
---input-size 3 63 212 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\base\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\base\last.pth.tar ^
+--plots montage ^
+-b 2048 ^
 --dataset image-datasets-joined ^
---dataset-cells date-1-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo date-12-mo ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\base\last.pth.tar
-
+--dataset-cells date-1-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo date-12-mo
 ```

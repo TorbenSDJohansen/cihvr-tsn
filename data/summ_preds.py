@@ -10,60 +10,14 @@ import os
 import argparse
 import datetime
 
-from typing import List
-
 import pandas as pd
 
-from format_preds_cihvr import drop_duplicates, _load_maps
-
-
-def _get_cell_groups():
-    default_measure_months = (1, 2, 3, 4, 6, 9, 12)
-
-    def _get_group(name: str, times: tuple = default_measure_months):
-        return [name.format(x) for x in times]
-
-    table_b_cols = ( # ORDER is crucial here
-        'Home economic status',
-        'Home harmony',
-        'Mother mental capacity',
-        'Mother physical capacity',
-        'Mother daily hours working at home',
-        'Mother daily hours working outside home',
-        'Nursery or kindergarten',
-        'Care and cleanliness',
-        'Own bed',
-        'In air',
-        'Smiles',
-        'Lifts head',
-        'Babbles',
-        'Sits',
-        'Nutrition',
-        'Number of daily meals',
-        )
-    inv_mapping = { # NOTE: this works on raw names, not CIHVR names
-        'Weight': _get_group('weight-{}-mo', (0, 1, 2, 3, 4, 6, 9, 12)),
-        'Date': _get_group('date-{}-mo'),
-        **{n: _get_group(f'tab-b-c{i}-{{}}-mo') for i, n in enumerate(table_b_cols, 1)},
-        'Length': _get_group('length-{}-mo', (0, 12)),
-        'Duration breastfeeding': ['dura-any-breastfeed'],
-        'Nurse name': ['nurse-name-1', 'nurse-name-2', 'nurse-name-3'],
-        'Breastfeeding 7 days': ['breastfeed-7-do'],
-        'Preterm birth': ['preterm-birth'],
-        'Preterm birth (weeks)': ['preterm-birth-weeks'],
-        }
-
-    k = 0
-    mapping = {}
-
-    for key, value in inv_mapping.items():
-        k += len(value)
-        for subvalue in value:
-            mapping[subvalue] = key
-
-    assert k == len(mapping)
-
-    return mapping
+from format_preds_cihvr import (
+    drop_duplicates,
+    _load_maps,
+    get_cell_groups,
+    derive_cell,
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -132,31 +86,6 @@ def _create_summary_table(dataframe):
     return dataframe.groupby('meta_cell')['correct'].agg(['mean', 'count']).reset_index()
 
 
-def derive_cell(filename_full: str, valid_cells: List[str]) -> str:
-    '''
-    First check if (base) filename starts with any valid cell. Then match to
-    *longest* cell name it matches to -- to not match preterm to preterm-wks.
-    Then return cell name corresponding to longest match.
-
-    Otherwise use the name of the directory immediately above as cell name.
-
-
-    '''
-    filename = os.path.basename(filename_full)
-    matches = []
-    matches_len = []
-
-    for cell in valid_cells:
-        if filename.startswith(cell):
-            matches.append(cell)
-            matches_len.append(len(cell))
-
-    if len(matches) == 0:
-        return os.path.basename(os.path.dirname(filename_full))
-
-    return matches[matches_len.index(max(matches_len))]
-
-
 def main():
     """
     Summarize results of one or multiple prediction files. Provides results by
@@ -195,7 +124,7 @@ def main():
         ])
     pred_df = pred_df[pred_df['prob'] >= threshold].copy()
 
-    group_mapping = _get_cell_groups()
+    group_mapping = get_cell_groups()
 
     print('Creating new columns!')
     pred_df['filename'] = pred_df['filename_full'].apply(os.path.basename)

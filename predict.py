@@ -10,6 +10,7 @@ import shutil
 
 from functools import partial
 from contextlib import suppress
+from functools import partial
 
 import torch
 

@@ -134,7 +134,7 @@ def gen_col(name: str, numbers: List[int] = None):
     return result
 
 
-def _run():
+def main():
     """
     Creates and saves a mapping between the names used in used in the CIHVR
     data and the names used in this "project" for folder, files etc.
@@ -228,4 +228,4 @@ def _run():
 
 
 if __name__ == '__main__':
-    _run()
+    main()

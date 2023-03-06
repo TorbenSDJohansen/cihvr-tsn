@@ -42,5 +42,12 @@ python evaluate.py ^
 ## Predict
 Base
 ```
-
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\base ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\weight\base\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\weight\base\last.pth.tar ^
+--plots montage ^
+-b 2048 ^
+--dataset image-datasets-joined ^
+--dataset-cells weight-0-mo weight-1-mo weight-2-mo weight-3-mo weight-4-mo weight-6-mo weight-9-mo weight-12-mo
 ```
