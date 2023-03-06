@@ -70,7 +70,14 @@ python evaluate.py ^
 ```
 
 ## Predict
-
+Base
 ```
-
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b\base ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\base\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\base\last.pth.tar ^
+--plots montage ^
+-b 2048 ^
+--dataset image-datasets-joined ^
+--dataset-cells %DATASET-CELLS-TAB-B%
 ```
