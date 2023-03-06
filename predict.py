@@ -9,6 +9,7 @@ import logging
 import shutil
 
 from contextlib import suppress
+from functools import partial
 
 import torch
 
@@ -180,7 +181,8 @@ def main():
             shutil.rmtree(unpacked_folder)
 
     print('Cleaning predictions and labels.')
-    preds_clean = np.array(list(map(clean_pred, preds)))
+    clean_pred_accept_all = partial(clean_pred, assert_consistency=False)
+    preds_clean = np.array(list(map(clean_pred_accept_all, preds)))
 
     pred_df = pd.DataFrame({
         'filename_full': files,
