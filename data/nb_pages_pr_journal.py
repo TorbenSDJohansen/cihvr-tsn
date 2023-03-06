@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Apr 27 09:44:08 2022
-
 @author: sa-tsdj
+
 """
 
 
@@ -60,8 +59,12 @@ def main():
         print(f'Current counts: {counter.counts}.')
 
     counts = pd.DataFrame(counter.counts, index=['Nb. journals']).T.sort_index()
-    counts.to_csv(r'C:\Users\sa-tsdj\Desktop\nb_pages.csv')
+    counts.to_csv(r'./nb_pages.csv')
 
     # searched_journals = []
     # for journals in counter.journals.values():
     #     searched_journals.extend(journals)
+
+
+if __name__ == '__main__':
+    main()

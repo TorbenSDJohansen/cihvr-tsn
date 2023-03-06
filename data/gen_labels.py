@@ -284,7 +284,7 @@ def gen_labels(
 
     # TODO After add arg to control max share bad cpd, reun everything from
     # scratch; this is turn means it is important to think about how to then
-    # add the nurse names from malthe without resulting in any duplicates
+    # add the nurse names from Malthe without resulting in any duplicates
 
     if not isinstance(max_share_bad_cpd, float):
         raise TypeError(f'max_share_for_bad_cpd must be of type float, got {max_share_bad_cpd} of type {type(max_share_bad_cpd)}')
