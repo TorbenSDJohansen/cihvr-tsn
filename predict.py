@@ -8,6 +8,7 @@ import os
 import logging
 import shutil
 
+from functools import partial
 from contextlib import suppress
 
 import torch
@@ -15,7 +16,7 @@ import torch
 import numpy as np
 import pandas as pd
 
-from timm.models import apply_test_time_pool
+from timm.models import apply_test_time_pool, safe_model_name, load_checkpoint
 from timm.data import resolve_data_config, create_dataset
 from timm.utils import setup_default_logging
 
@@ -23,14 +24,18 @@ from timm.utils import setup_default_logging
 from timmsn.utils import (
     predict_sequence_v2,
     MontageMaker,
+    PredictSequenceAR,
+    PredictSequenceCTC,
+    DecoderFactory,
     )
-from timmsn.models import create_model
+from timmsn.models import create_model_v2
 from timmsn.data import create_loader
 from timmsn.data.parsers import (
     setup_sqnet_parser,
     setup_bdatasets_parser,
     setup_sqnet_parser_predict_folders,
     )
+from timmsn.data.formatters.constants import PAD_IDX, BOS_IDX, EOS_IDX
 
 # other imports
 from argparser import parse_args
@@ -42,24 +47,18 @@ try:
 except ImportError:
     pass
 
-has_apex = False # pylint: disable=C0103
-try:
-    from apex import amp
-    has_apex = True # pylint: disable=C0103
-except ImportError:
-    pass
-
-has_native_amp = False # pylint: disable=C0103
+has_amp = False # pylint: disable=C0103
 try:
     if getattr(torch.cuda.amp, 'autocast') is not None:
-        has_native_amp = True # pylint: disable=C0103
+        has_amp = True # pylint: disable=C0103
 except AttributeError:
     pass
+
 
 torch.backends.cudnn.benchmark = True
 _logger = logging.getLogger('inference') # pylint: disable=C0103
 
-def main():
+def main(): # pylint: disable=R0914, R0912, R0915
     setup_default_logging()
     args, _ = parse_args()
 
@@ -69,7 +68,7 @@ def main():
     assert not os.path.isdir(output_dir), f'cannot write to already existing dir {output_dir}'
 
     if args.checkpoint == '':
-        print('WARNING: Predicting without any checkpoint to load model from.')
+        _logger.warning('Predicting without any checkpoint to load model from.')
     else:
         # If checkpoint, no sense in first loading pretrained weights and then
         # overwriting with resume checkpoint.
@@ -80,63 +79,89 @@ def main():
 
     parser_predict = clean_pred = unpacked_folders = None
     if args.predict_folders is not None:
-        parser_predict, clean_pred, unpacked_folders = setup_sqnet_parser_predict_folders(args)
+        parser_predict, clean_pred, unpacked_folders, num_classes = setup_sqnet_parser_predict_folders(
+            formatter_name=args.formatter,
+            predict_folders=args.predict_folders,
+            predict_on_subfolders=args.predict_on_subfolders,
+            num_classes=args.num_classes,
+            verbose=args.local_rank,
+            formatter_kwargs=args.formatter_kwargs,
+            )
     elif isinstance(args.dataset, str) and args.dataset.startswith('bdatasets.'):
-        assert args.sequence_model, 'bdatasets are for sequences'
-        parser_predict, _, clean_pred = setup_bdatasets_parser(
-            args=args, purpose='predict', split=args.data_split or 'predict',
+        parser_predict, _, clean_pred, num_classes = setup_bdatasets_parser(
+            purpose='predict',
+            dataset=args.dataset,
+            data_dir=args.data_dir,
+            evalset=args.evalset,
+            formatter_name=args.formatter,
+            num_classes=args.num_classes,
+            split=args.data_split,
+            verbose=args.local_rank,
+            formatter_kwargs=args.formatter_kwargs,
             )
     elif args.formatter is not None:
-        assert args.sequence_model
-        parser_predict, _, clean_pred = setup_sqnet_parser(
-            args=args, purpose='predict', split=args.data_split or 'predict',
+        parser_predict, _, clean_pred, num_classes = setup_sqnet_parser(
+            purpose='predict',
+            dataset=args.dataset,
+            data_dir=args.data_dir,
+            dataset_structure=args.dataset_structure,
+            evalset=args.evalset,
+            formatter_name=args.formatter,
+            num_classes=args.num_classes,
+            split=args.data_split,
+            verbose=args.local_rank,
+            formatter_kwargs=args.formatter_kwargs,
+            dataset_cells=args.dataset_cells,
+            dataset_cells_eval=args.dataset_cells_eval,
+            labels_subdir=args.labels_subdir,
             )
 
-    if args.sequence_model:
-        assert args.num_classes is not None
-    else:
-        assert args.num_classes is None or len(args.num_classes) == 1
-        args.num_classes = None if args.num_classes is None else args.num_classes[0]
+    args.num_classes = num_classes
+    assert args.num_classes is not None
 
     args.prefetcher = not args.no_prefetcher
-    amp_autocast = suppress  # do nothing
-    if args.amp:
-        if has_native_amp:
-            args.native_amp = True
-        elif has_apex:
-            args.apex_amp = True
-        else:
-            _logger.warning("Neither APEX or Native Torch AMP is available.")
-    assert not args.apex_amp or not args.native_amp, "Only one AMP mode should be set."
-    if args.native_amp:
+
+    # setup automatic mixed-precision (AMP) op casting
+    amp_autocast = suppress # do nothing
+    if args.amp and has_amp:
         amp_autocast = torch.cuda.amp.autocast
-        _logger.info('Validating in mixed precision with native PyTorch AMP.')
-    elif args.apex_amp:
-        _logger.info('Validating in mixed precision with NVIDIA APEX AMP.')
+        if args.local_rank == 0:
+            _logger.info('Using native Torch AMP. Predicting in mixed precision.')
+    elif args.amp:
+        if args.local_rank == 0:
+            _logger.warning("AMP is not available, using float32. Upgrade to PyTorch>=1.6")
     else:
-        _logger.info('Validating in float32. AMP not enabled.')
+        if args.local_rank == 0:
+            _logger.info('AMP not enabled. Predicting in float32.')
 
     # create model
-    model = create_model(
-        args.model,
+    model = create_model_v2(
+        feature_extractor_name=args.model,
         sqnet_version=args.sqnet_version,
+        pretrained=args.pretrained,
         num_classes=args.num_classes,
         in_chans=3,
         global_pool=args.gp,
-        pretrained=args.pretrained,
-        checkpoint_path=args.checkpoint,
+        scriptable=args.torchscript,
+        image_size=args.input_size,
+        classifier_name=args.classifier,
         )
 
-    _logger.info('Model %s created, param count: %d' % # pylint: disable=W1201
-                 (args.model, sum([m.numel() for m in model.parameters()])))
+    if args.checkpoint:
+        load_checkpoint(model, args.checkpoint, args.use_ema)
 
-    config = resolve_data_config(vars(args), model=model)
-    model, test_time_pool = (model, False) if args.no_test_pool else apply_test_time_pool(model, config)
+    _logger.info('Model {} created with classifier {}, param count: {}'.format( # pylint: disable=W1202
+        safe_model_name(args.model),
+        args.classifier,
+        sum([m.numel() for m in model.parameters()])),
+        )
+
+    data_config = resolve_data_config(vars(args), model=model, use_test_size=True, verbose=True)
+    test_time_pool = False
+    if not args.no_test_pool:
+        model, test_time_pool = apply_test_time_pool(model, data_config, use_test_size=True)
 
     model = model.cuda()
-
-    if args.apex_amp:
-        model = amp.initialize(model, opt_level='O1')
 
     if args.channels_last:
         model = model.to(memory_format=torch.channels_last) # pylint: disable=E1101
@@ -148,24 +173,57 @@ def main():
         root=args.data_dir, name=parser_predict or args.dataset, split=args.val_split,
         load_bytes=args.tf_preprocessing, class_map=args.class_map)
 
+    crop_pct = 1.0 if test_time_pool else data_config['crop_pct']
     loader = create_loader(
         dataset,
-        input_size=config['input_size'],
+        input_size=data_config['input_size'],
         batch_size=args.batch_size,
         resize_method=args.resize_method,
         use_prefetcher=args.prefetcher,
-        interpolation=config['interpolation'],
-        mean=config['mean'],
-        std=config['std'],
+        interpolation=data_config['interpolation'],
+        mean=data_config['mean'],
+        std=data_config['std'],
         num_workers=args.workers,
-        crop_pct=1.0 if test_time_pool else config['crop_pct'])
-
-    # TODO add initial-log here. Need to rewrite function to work when only one
-    # loader available and when labels are not available (i.e., omit montage).
+        crop_pct=crop_pct,
+        pin_memory=args.pin_mem,
+        tf_preprocessing=args.tf_preprocessing)
 
     model.eval()
 
-    preds, seq_prob, files, _, digit_probs = predict_sequence_v2(
+    if args.seq2seq:
+        decoder_type = args.decoder.split('-')[0] if args.decoder else 'greedy'
+
+        beam_size = 3
+
+        if decoder_type == 'beam' and '-' in args.decoder:
+            beam_size = int(args.decoder.split('-')[1])
+
+        # Note that when `decoder_type` is, e.g., greedy, `beam_size` is
+        # properly discarded/not used in `DecoderFactory`
+        decoder = DecoderFactory(
+            decoder_type=decoder_type,
+            max_len=len(args.num_classes),
+            start_symbol=BOS_IDX,
+            end_symbol=EOS_IDX,
+            beam_size=beam_size,
+            pad_sequences=True,
+            pad_idx=PAD_IDX,
+            )
+
+        predict_fn = PredictSequenceAR(
+            decoder=decoder,
+            decoder_is_elementwise=decoder_type != 'greedy',
+            )
+    elif args.ctc:
+        predict_fn = PredictSequenceCTC( # TODO change CTC formatter to use the global IDXs etc., right now messy
+            blank=model.blank,
+            max_len=model.width,
+            pad_idx=max(args.num_classes) - 1,
+            )
+    else:
+        predict_fn = predict_sequence_v2
+
+    preds, seq_prob, files, _, digit_probs = predict_fn(
         model=model,
         loader=loader,
         amp_autocast=amp_autocast,
@@ -180,7 +238,8 @@ def main():
             shutil.rmtree(unpacked_folder)
 
     print('Cleaning predictions and labels.')
-    preds_clean = np.array(list(map(clean_pred, preds)))
+    clean_pred_accept_all = partial(clean_pred, assert_consistency=False)
+    preds_clean = np.array(list(map(clean_pred_accept_all, preds)))
 
     pred_df = pd.DataFrame({
         'filename_full': files,
