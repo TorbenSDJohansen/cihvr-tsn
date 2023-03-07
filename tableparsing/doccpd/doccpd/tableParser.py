@@ -257,7 +257,8 @@ def tableParser_pointcloud(template_image_path:str,
                 show_fit=True,
                 showoverlay=True,
                 showcloud=True,
-                jupyternotebook=False):
+                jupyternotebook=False,
+                autocrop=False):
     
     
     try:
@@ -269,83 +270,90 @@ def tableParser_pointcloud(template_image_path:str,
         #target_image = cv.cvtColor(target_image, cv.COLOR_GRAY2BGR)
         h,w,_ = target_image.shape
         
-        target_image=autocrop_noresize(target_image.copy(),height=h,width=w)
+        if h<3200 and h>2800:
+        
+            if autocrop:
+                target_image=autocrop_noresize(target_image.copy(),height=h,width=w)           
                       
-        mask = np.zeros_like(target_image)
-        canvas_keypoints = keypoints.draw_on_image(mask,size=10)
-        #canvas_keypoints = keypoints.draw_on_image(target_image,size=10)
-        canvas_keypoints = cv.cvtColor(canvas_keypoints, cv.COLOR_BGR2GRAY)
-       
-        target_image= cv.resize(target_image.copy(),dim,interpolation = cv.INTER_AREA)  
-        img2= cv.resize(canvas_keypoints,dim,interpolation = cv.INTER_AREA)
-        kpimg2 = cv.findNonZero(img2).squeeze()        
-        keypoints_res = PointCloud(points=kpimg2)
-        #template_keypoints = keypoints_res.draw_on_image(target_image,size=10)        
-        
-        keypoints_res = crop_pointcloud(target_image, keypoints_res,crop_info)
-        if len(keypoints_res.points)>20000:
-            idx = np.random.choice(len(keypoints_res.points), size=20000, replace=False)
-            keypoints_res = PointCloud(points=keypoints_res.points[idx,:])
-        
-        template = Template.from_xml(template, 20000)
-        evaluation = Template.from_xml(evaluation, 20000)
-        #evaluation_keypoints = evaluation.point_cloud.draw_on_image(template_image,size=10)
-        #show(evaluation_keypoints)
-        cropped_temp = crop_template(template, crop_info)
-        overlay = Overlay.from_xml(overlay)
-    
-                   
-        pdrift = PointDrift(cropped_temp)
-        #pdrift.fit(keypoints_res, iterations=50, show_fit=False)
-        pdrift.fit(keypoints_res, iterations=50, show_fit=show_fit)
-        
-                        
-        IoU,dice,ownmetric = MeanIOU_Dice(target_image,pdrift,keypoints_res,evaluation)   
-        
-        transformed      = pdrift.apply_transform(target_image)
-        drawn_overlay    = overlay.draw_on_image(transformed)
-        canvas_keypoints = keypoints_res.draw_on_image(target_image,size=10)
-        #show(canvas_keypoints)       
-        #show(drawn_overlay)
-        #drawn_evaluation    = evaluation.draw_on_image(transformed)
-        #show(canvas_keypoints)       
-        #print(os.path.join(overlaydir,os.path.basename(file))
-        #print(os.path.exists(os.path.join(overlaydir,os.path.basename(file))))
-        if output is not None:
-            subdirs = os.listdir(output)
-            if len(subdirs)>0:
-                alreadycopy = os.path.exists(os.path.join(output,subdirs[0],os.path.basename(file)))
-            else:    
-                alreadycopy=False
-        if output is not None and ownmetric>threshold:
-            if alreadycopy:
-                overlay.write_cells(transformed, file.split('\\')[-1].split('.')[0], root=output)
-            else:                
-                overlay.write_cells(transformed, file.split('\\')[-1].split('.')[0], root=output)
-        if showoverlay:  
-            if jupyternotebook:
-                display(Image.fromarray(drawn_overlay).resize(size=(500,700)))
+                mask = np.zeros_like(target_image)
+                canvas_keypoints = keypoints.draw_on_image(mask,size=10)
+                #canvas_keypoints = keypoints.draw_on_image(target_image,size=10)
+                canvas_keypoints = cv.cvtColor(canvas_keypoints, cv.COLOR_BGR2GRAY)
+               
+                target_image= cv.resize(target_image.copy(),dim,interpolation = cv.INTER_AREA)  
+                img2= cv.resize(canvas_keypoints,dim,interpolation = cv.INTER_AREA)
+                kpimg2 = cv.findNonZero(img2).squeeze()        
+                keypoints_res = PointCloud(points=kpimg2)
             else:
-                show(drawn_overlay)
-        if overlaydir is not None and ownmetric>threshold:    
-            if alreadycopy:
-                cv.imwrite(overlaydir+'/'+file.split('\\')[-1],drawn_overlay)
-            else:    
-                cv.imwrite(overlaydir+'/'+file.split('\\')[-1],drawn_overlay)
-        if showcloud:  
-            if jupyternotebook:
-                display(Image.fromarray(canvas_keypoints))
-            else:
-                show(canvas_keypoints) 
-        if clouddir is not None and ownmetric>threshold:   
-            if alreadycopy:
-                cv.imwrite(clouddir+'/'+file.split('\\')[-1],canvas_keypoints) 
-            else:    
-                cv.imwrite(clouddir+'/'+file.split('\\')[-1],canvas_keypoints)   
-        return IoU,dice,ownmetric  
+                keypoints_res=keypoints
+            #template_keypoints = keypoints_res.draw_on_image(target_image,size=10)        
+            
+            keypoints_res = crop_pointcloud(target_image, keypoints_res,crop_info)
+            if len(keypoints_res.points)>20000:
+                idx = np.random.choice(len(keypoints_res.points), size=20000, replace=False)
+                keypoints_res = PointCloud(points=keypoints_res.points[idx,:])
+            
+            template = Template.from_xml(template, 20000)
+            evaluation = Template.from_xml(evaluation, 20000)
+            #evaluation_keypoints = evaluation.point_cloud.draw_on_image(template_image,size=10)
+            #show(evaluation_keypoints)
+            cropped_temp = crop_template(template, crop_info)
+            overlay = Overlay.from_xml(overlay)
+        
+                       
+            pdrift = PointDrift(cropped_temp)
+            #pdrift.fit(keypoints_res, iterations=50, show_fit=False)
+            pdrift.fit(keypoints_res, iterations=50, show_fit=show_fit)
+                                    
+            IoU,dice,ownmetric = MeanIOU_Dice(target_image,pdrift,keypoints_res,evaluation)   
+            
+            transformed      = pdrift.apply_transform(target_image)
+            drawn_overlay    = overlay.draw_on_image(transformed)
+            canvas_keypoints = keypoints_res.draw_on_image(target_image,size=10)
+            #show(canvas_keypoints)       
+            #show(drawn_overlay)
+            #drawn_evaluation    = evaluation.draw_on_image(transformed)
+            #show(canvas_keypoints)       
+            #print(os.path.join(overlaydir,os.path.basename(file))
+            #print(os.path.exists(os.path.join(overlaydir,os.path.basename(file))))
+            if output is not None:
+                subdirs = os.listdir(output)
+                if len(subdirs)>0:
+                    alreadycopy = os.path.exists(os.path.join(output,subdirs[0],os.path.basename(file)))
+                else:    
+                    alreadycopy=False
+            if output is not None and ownmetric>threshold:
+                if alreadycopy:
+                    overlay.write_cells(transformed, file.split('/')[-1].split('.')[0], root=output)
+                else:                
+                    overlay.write_cells(transformed, file.split('/')[-1].split('.')[0], root=output)
+            if showoverlay:  
+                if jupyternotebook:
+                    display(Image.fromarray(drawn_overlay).resize(size=(500,700)))
+                else:
+                    show(drawn_overlay)
+            if overlaydir is not None and ownmetric>threshold:    
+                if alreadycopy:
+                    cv.imwrite(overlaydir+'/'+file.split('/')[-1],drawn_overlay)
+                else:    
+                    cv.imwrite(overlaydir+'/'+file.split('/')[-1],drawn_overlay)
+            if showcloud:  
+                if jupyternotebook:
+                    display(Image.fromarray(canvas_keypoints))
+                else:
+                    show(canvas_keypoints) 
+            if clouddir is not None and ownmetric>threshold:   
+                if alreadycopy:
+                    cv.imwrite(clouddir+'/'+file.split('/')[-1],canvas_keypoints) 
+                else:    
+                    cv.imwrite(clouddir+'/'+file.split('/')[-1],canvas_keypoints)   
+            return IoU,dice,ownmetric  
+        else:
+            return "Not TypeA","Not TypeA","Not TypeA"
     except:
         print(f'{file} did not work')
         return "Nan","Nan","Nan"
+        
 
 def tableParser_pointcloud_local(template_image_path:str,
                 template:str,

@@ -15,7 +15,7 @@ import cv2 as cv
 
 from probreg import filterreg
 
-from utils import flatten_list, lists_to_tuples 
+#from utils import flatten_list, lists_to_tuples 
 from pointcloud import PointCloud
 
 
