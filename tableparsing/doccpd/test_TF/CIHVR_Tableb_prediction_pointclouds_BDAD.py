@@ -26,6 +26,7 @@ import os
 
 
 sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/cihvr-tsn/tableparsing/doccpd'))
+sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/cihvr-tsn/tableparsing/doccpd/doccpd'))
 sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/cihvr-tsn/data'))
 #sys.path.append(os.path.abspath('E:/faellesmappe/cmd/tfs/DK-Census/tableparsing/doccpd'))
 #sys.path.append(os.path.abspath('C:/Users/sa-sfw/Documents/GitHub/DK-Census/tableparsing/doccpd/'))
@@ -89,8 +90,8 @@ startindex_afterserverbreakdown = filenames.index(keypointlist[-1][0])+1
 '''
 keypointlist = []
 
-start =0
-end = 50
+start = 0
+end = len(filenames)
 
 n = 0
 for key in tqdm.tqdm(filenames[start:end]):  
@@ -99,14 +100,14 @@ for key in tqdm.tqdm(filenames[start:end]):
             target_image = cv.imdecode(np.fromfile(key, dtype=np.uint8), cv.IMREAD_UNCHANGED) 
             #target_image = cv.cvtColor(target_image, cv.COLOR_GRAY2BGR)
             h,w,_ = target_image.shape
-            target_imagec = autocrop_noresize(target_image.copy(),height=h,width=w)            
+            target_imagec = target_image# autocrop_noresize(target_image.copy(),height=h,width=w)            
             keypoints    = detector.find_keypoints(target_imagec, N_KEYPOINTS,) 
             
-            canvas_keypoints = keypoints.draw_on_image(target_imagec,size=10)
-            cv.imwrite('Y:/RegionH/Scripts/data/pointclouds_tableb/cloud/'+key,canvas_keypoints) 
+            #canvas_keypoints = keypoints.draw_on_image(target_imagec,size=10)
+            #cv.imwrite('Y:/RegionH/Scripts/data/pointclouds_tableb/cloud/'+key,canvas_keypoints) 
             
             keypointlist.append([key,keypoints])                
-            if n % 1000 == 0:  
+            if n % 5000 == 0:  
                 print('saving results')
                 pickled_data = pickle.dumps(keypointlist)  # returns data as a bytes object
                 compressed_pickle = blosc.compress(pickled_data)
