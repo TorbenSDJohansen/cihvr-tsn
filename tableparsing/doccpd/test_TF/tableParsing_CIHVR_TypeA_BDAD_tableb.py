@@ -31,14 +31,7 @@ from cv2_utils import erode,show
 from skimage.filters import threshold_otsu
 
 crop_info = {
-      'top': 0.1,
-      'bot': 0.5,
-      'left': 0.01,
-      'right':0.5
-      }
-
-crop_info = {
-      'top': 0.5,
+      'top': 0.45,
       'bot': 0.01,
       'left': 0.01,
       'right':0.01
