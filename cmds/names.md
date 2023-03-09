@@ -45,7 +45,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --initial-log
 ```
 
-Last name model (S2S); expect SeqAcc on HANA ~ 96.25%, see https://wandb.ai/tsdj/hana?workspace=user-tsdj:
+Last name model (S2S); expect SeqAcc ~ 96.25%, see https://wandb.ai/tsdj/hana?workspace=user-tsdj:
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter s2s_last_name_keep_bad_cpd ^
@@ -83,7 +83,7 @@ First name model (S2S)
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter s2s_first_name_keep_bad_cpd ^
---experiment last-s2s ^
+--experiment first-s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
 --input-size 3 80 522 ^
 --epochs 90 ^
@@ -106,7 +106,6 @@ python evaluate.py ^
 --dataset HANA ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\last.pth.tar
-
 ```
 
 First:
@@ -120,7 +119,6 @@ python evaluate.py ^
 --dataset HANA ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\last.pth.tar
-
 ```
 
 ## Training
