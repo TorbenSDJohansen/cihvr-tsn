@@ -1,11 +1,22 @@
 # Name (first and last) models
+Merge cells to two image folders for all names (one for train and one for test):
+```
+python data\create_train_dataset.py ^
+--dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined ^
+--labels-subdir keep-restrict-share-bad-cpd ^
+--fields nurse-name-1 nurse-name-2 nurse-name-3 ^
+--out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
+--name nurse-name ^
+--nb-pools 8
+```
 
 ## Pre-training on PR
 Danish names; see HANA for details on data.
-Train model for first names and other model for last names.
+Train one model for first names and other model for last names.
 
 ### Train
 
+**For MH models**:
 From DARE: Batch size 256 works with LR 0.5.
 Now we scale this up to utilize most memory.
 Note input size is 80x522 here and is 160x352 for DARE:
@@ -15,11 +26,11 @@ New LR: 0.5 * 384 / 256 * 2 = 1.5 (linear scaling on batch size)
 
 Number of epochs (also warmup) follow from PR-1 model of DARE.
 
-Last name model:
+Last name model (MH):
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter last_name_keep_bad_cpd ^
---experiment last ^
+--experiment last-mh ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
 --lr 1.5 ^
 -b 384 ^
@@ -32,32 +43,28 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --log-wandb ^
 --initial-log
-
 ```
 
-Last name model (EffNetV2-M - lower batch size and lr):
+Last name model (S2S); expect SeqAcc on HANA ~ 96.25%, see https://wandb.ai/tsdj/hana?workspace=user-tsdj:
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter last_name_keep_bad_cpd ^
---experiment last-m ^
+--formatter s2s_last_name_keep_bad_cpd ^
+--experiment last-s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
---lr 0.375 ^
--b 96 ^
--j 8 ^
 --input-size 3 80 522 ^
 --epochs 90 ^
---warmup-epochs 5 ^
 --data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
 --dataset HANA ^
---config ./cfgs/efficientnetv2_m.yaml
-
+--config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
 ```
 
-First name model:
+First name model (MH):
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter first_name_keep_bad_cpd ^
---experiment first ^
+--experiment first-mh ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
 --lr 1.5 ^
 -b 384 ^
@@ -70,7 +77,21 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --log-wandb ^
 --initial-log
+```
 
+First name model (S2S)
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter s2s_first_name_keep_bad_cpd ^
+--experiment last-s2s ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
+--input-size 3 80 522 ^
+--epochs 90 ^
+--data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
+--dataset HANA ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
 ```
 
 ### (Optional) Evaluate
@@ -123,7 +144,22 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --log-wandb ^
 --initial-log
+```
 
+S2S (timmsn=0.2.3). 224 ** 2 / (95 * 650) ~ 0.8, decrease image size: (224 ^ 2 / (95 * 650)) ^ 0.5 * 95 ~ 85
+```
+python train.py ^
+--formatter s2s_last_name_keep_bad_cpd ^
+--experiment s2s-0.2.3-85x585 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
+--input-size 3 85 585 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-joined ^
+--dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
+--labels-subdir keep-restrict-share-bad-cpd ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
 ```
 
 First (base)
