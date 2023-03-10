@@ -81,7 +81,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 
 First name model (S2S)
 ```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+python train.py ^
 --formatter s2s_first_name_keep_bad_cpd ^
 --experiment first-s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
