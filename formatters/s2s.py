@@ -173,6 +173,10 @@ class CIHVRDatesFormatter(CharSeqSepSubsetFormatter):
         self.handle_bad_cpd = handle_bad_cpd
         self.bad_cpd_char = bad_cpd_char
 
+        self.allowed_chars = set([
+            *self.map_char_idx.keys(), bad_cpd_char, self.sep_value]
+            )
+
     def sanitize(self, raw_input: Union[None, str]) -> Union[None, str]:
         if raw_input is None:
             return None
@@ -202,6 +206,12 @@ class CIHVRDatesFormatter(CharSeqSepSubsetFormatter):
             mod_seq.append(item.lstrip('0'))
 
         mod_seq = self.sep_value.join(mod_seq)
+
+        if len(mod_seq) > 5: # certain wrong labels such as 26:106:7
+            return None
+
+        if not set(mod_seq).issubset(self.allowed_chars): # e.g., '___'
+            return None
 
         return mod_seq
 
