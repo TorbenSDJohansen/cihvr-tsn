@@ -40,7 +40,8 @@ crop_info = {
 filebasedir             = 'Y:/RegionH/Scripts/data/storage/'
 
 tableparsingmetricsdir  = filebasedir + 'tableparsing_summary/TypeA_bottom_smaller_crop/'
-crop_root               = filebasedir+'minipics/TypeA_bottom_smaller_crop'
+crop_root = 'V:/BDADShareData2/cihvr/data/storage/minipics/TypeA_bottom_smaller_crop'
+#crop_root               = filebasedir+'minipics/TypeA_bottom_smaller_crop'
 overlaydir              = filebasedir+'overlay/TypeA_bottom_smaller_crop'
 clouddir                = filebasedir+'cloud/TypeA_bottom_smaller_crop'
 template_image_path     = 'Y:/RegionH/Scripts/data/templates_and_overlays/TypeA/SP2_00004.pdf.page-0.jpg'
@@ -67,7 +68,7 @@ template = 'Y:/RegionH/Scripts/data/templates_and_overlays/TypeA/SP2_00004.pdf.p
 overlay = 'Y:/RegionH/Scripts/data/templates_and_overlays/TypeA/SP2_00004.pdf.page-0_overlay_bottom.xml'   
 evaluation = template #'W:/BDADSharedData/Spanish Flu/Sweden/storage_additionalAdrian/templates/A0032897_00549_cropped_evaluation_deathdate.xml'
 
-begin = 40000
+begin = 40000+3949
 end=50000
 #end=len(data_full)
 performance_metrics = []
