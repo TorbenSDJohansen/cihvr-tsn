@@ -47,13 +47,13 @@ FN_INTENSITY_R2 = 'Y:/RegionH/Scripts/users/jfl/Treatment_intensity/intensity_df
 FN_WEIGHT_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\base\wide-preds.csv'
 FN_DATE_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\base\wide-preds.csv'
 FN_TAB_B_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b\base\wide-preds.csv'
-FN_LENGTH_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\base\wide-preds.csv'
+FN_LENGTH_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\base\wide-preds.csv'
 FN_DABF_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\base\wide-preds.csv'
 FN_NURSE_LASTNAME_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\XXX\wide-preds.csv'
 FN_NURSE_FIRSTNAME_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\wide-preds.csv'
-FN_PRETERM = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\base\wide-preds.csv'
-FN_PRETERM_WEEKS = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\base\wide-preds.csv'
-FN_BF7DO = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\base\wide-preds.csv'
+FN_PRETERM_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\base\wide-preds.csv'
+FN_PRETERM_WEEKS_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\base\wide-preds.csv'
+FN_BF7DO_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\base\wide-preds.csv'
 
 def _prepare_main() -> pd.DataFrame:
     main = pd.read_csv(FN_MAIN, sep=';', na_values=[''], keep_default_na=False)
@@ -68,7 +68,7 @@ def _prepare_main() -> pd.DataFrame:
 
     assert set(bad_cols).intersection(set(main.columns)) == set(bad_cols)
 
-    main = main.drop(columns=bad_cols)
+    main = main.drop(columns=bad_cols) # pylint: disable=E1101
 
     return main
 
@@ -96,7 +96,8 @@ def _prepare_status() -> pd.DataFrame:
 
 
 def _prepare_cluster() -> pd.DataFrame:
-    cluster = pickle.load(open(FN_CLUSTER, 'rb'))
+    with open(FN_CLUSTER, 'rb') as file:
+        cluster = pickle.load(file)
 
     cluster['Filename'] = list(map(rename, cluster['path'].values))
 
@@ -112,8 +113,11 @@ def _prepare_cluster() -> pd.DataFrame:
 
 def _prepare_intensity() -> pd.DataFrame:
     # NOTE: Row number wrong ordering fixed at DST
-    intensity_r1 = pickle.load(open(FN_INTENSITY, 'rb'))
-    intensity_r2 = pickle.load(open(FN_INTENSITY_R2, 'rb'))
+    with open(FN_INTENSITY, 'rb') as file:
+        intensity_r1 = pickle.load(file)
+
+    with open(FN_INTENSITY_R2, 'rb') as file:
+        intensity_r2 = pickle.load(file)
 
     intensity = pd.concat([intensity_r1, intensity_r2]).reset_index()
     intensity['Filename'] = list(map(rename, intensity['path'].values))
@@ -259,15 +263,39 @@ def _prepare_dabf() -> pd.DataFrame:
 
 
 def _prepare_preterm() -> pd.DataFrame:
-    raise NotImplementedError
+    preterm = pd.read_csv(FN_PRETERM_PRED, na_values=[''], keep_default_na=False)
+
+    preterm = preterm.rename(columns={'journal': 'Filename'})
+    preterm = round_prob(preterm, 2)
+
+    # Replace bad cpd with nan (as that is what it is for analysis purposes).
+    preterm = preterm.replace('bad cpd', np.nan)
+
+    return preterm
 
 
 def _prepare_preterm_weeks() -> pd.DataFrame:
-    raise NotImplementedError
+    preterm_weeks = pd.read_csv(FN_PRETERM_WEEKS_PRED, na_values=[''], keep_default_na=False)
+
+    preterm_weeks = preterm_weeks.rename(columns={'journal': 'Filename'})
+    preterm_weeks = round_prob(preterm_weeks, 2)
+
+    # Replace bad cpd with nan (as that is what it is for analysis purposes).
+    preterm_weeks = preterm_weeks.replace('bad cpd', np.nan)
+
+    return preterm_weeks
 
 
 def _prepare_bf7do() -> pd.DataFrame:
-    raise NotImplementedError
+    bf7do = pd.read_csv(FN_BF7DO_PRED, na_values=[''], keep_default_na=False)
+
+    bf7do = bf7do.rename(columns={'journal': 'Filename'})
+    bf7do = round_prob(bf7do, 2)
+
+    # Replace bad cpd with nan (as that is what it is for analysis purposes).
+    bf7do = bf7do.replace('bad cpd', np.nan)
+
+    return bf7do
 
 
 def _prepare_nurse_lastname() -> pd.DataFrame:
@@ -633,7 +661,26 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
         how='left',
         )
 
-    # TODO add the 3 new fields
+    # Preterm
+    main = main.merge(
+        datasets.loc['preterm', 'loader'](),
+        on=datasets.loc['preterm', 'merge-var'],
+        how='left',
+        )
+
+    # Preterm (weeks)
+    main = main.merge(
+        datasets.loc['preterm-weeks', 'loader'](),
+        on=datasets.loc['preterm-weeks', 'merge-var'],
+        how='left',
+        )
+
+    # Breastfeeding/nutrition ~7-14 days old
+    main = main.merge(
+        datasets.loc['bf7do', 'loader'](),
+        on=datasets.loc['bf7do', 'merge-var'],
+        how='left',
+        )
 
     # Drop Filename since we are done merging and it is an ID var
     main = main.drop(columns='Filename')
@@ -702,22 +749,22 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
         if col in ['empty2', 'empty1', '36mon', '30mon', '24mon', '18mon', '15mon']:
             # These cols are problematic to check equality for due to mixed
             # data types.
-            not_eq = ~(main[col].dropna() == main_reloaded[col].dropna())
-            assert main[col].dropna()[not_eq].astype(str).equals(main_reloaded[col].dropna()[not_eq].astype(str)) # pylint: disable=C0301
+            not_eq = ~(main[col].dropna() == main_reloaded[col].dropna()) # pylint: disable=E1136
+            assert main[col].dropna()[not_eq].astype(str).equals(main_reloaded[col].dropna()[not_eq].astype(str)) # pylint: disable=C0301, E1136
             continue
 
-        if main[col].equals(main_reloaded[col]):
+        if main[col].equals(main_reloaded[col]): # pylint: disable=E1136
             continue
 
         if main[col].dtype == np.dtype('O'):
-            if main[col].equals(main_reloaded[col].fillna('')):
+            if main[col].equals(main_reloaded[col].fillna('')): # pylint: disable=E1136
                 # Handles empty strings converted to nans
                 continue
-            if main[col].dropna().astype(str).equals(main_reloaded[col].dropna()):
+            if main[col].dropna().astype(str).equals(main_reloaded[col].dropna()): # pylint: disable=E1136
                 # Handles bools converted to strings for example
                 continue
 
-        raise Exception(col, main[col], main_reloaded[col])
+        raise Exception(col, main[col], main_reloaded[col]) # pylint: disable=E1136
 
     # Check balance across those with long tables and those without
     # main['longtable'] = main['type'].isin({4, 5, 25, 27})
@@ -773,4 +820,4 @@ if __name__ == '__main__':
     print('READ CAREFULLY IF BELOW SETTINGS ARE CORRECT!\n')
     print(DATASETS)
 
-    load_prepare_merge()
+    # load_prepare_merge()
