@@ -31,18 +31,18 @@ from cv2_utils import erode,show
 from skimage.filters import threshold_otsu
 
 crop_info = {
-      'top': 0.45,
-      'bot': 0.01,
+      'top': 0.55,
+      'bot': 0.2,
       'left': 0.01,
       'right':0.01
       }
 
 filebasedir             = 'Y:/RegionH/Scripts/data/storage/'
 
-tableparsingmetricsdir  = filebasedir + 'tableparsing_summary/TypeA/'
-crop_root               = filebasedir+'minipics/TypeA'
-overlaydir              = filebasedir+'overlay/TypeA_bottom'
-clouddir                = filebasedir+'cloud/TypeA_bottom'
+tableparsingmetricsdir  = filebasedir + 'tableparsing_summary/TypeA_bottom_smaller_crop/'
+crop_root               = filebasedir+'minipics/TypeA_bottom_smaller_crop'
+overlaydir              = filebasedir+'overlay/TypeA_bottom_smaller_crop'
+clouddir                = filebasedir+'cloud/TypeA_bottom_smaller_crop'
 template_image_path     = 'Y:/RegionH/Scripts/data/templates_and_overlays/TypeA/SP2_00004.pdf.page-0.jpg'
 
 pointclouddir = 'Y:/RegionH/Scripts/data/pointclouds_tableb/'
@@ -67,8 +67,8 @@ template = 'Y:/RegionH/Scripts/data/templates_and_overlays/TypeA/SP2_00004.pdf.p
 overlay = 'Y:/RegionH/Scripts/data/templates_and_overlays/TypeA/SP2_00004.pdf.page-0_overlay_bottom.xml'   
 evaluation = template #'W:/BDADSharedData/Spanish Flu/Sweden/storage_additionalAdrian/templates/A0032897_00549_cropped_evaluation_deathdate.xml'
 
-begin = 20000
-end=40000
+begin = 10000
+end=20000
 performance_metrics = []
 for file,keypoints in tqdm.tqdm(data_full[begin:end]):    
 #for file,keypoints in tqdm.tqdm(data_full[:10]): #(5,6,10)      
@@ -79,8 +79,8 @@ for file,keypoints in tqdm.tqdm(data_full[begin:end]):
                                         overlay=overlay,
                                         evaluation=evaluation,
                                         cropping=False,
-                                        overlaydir=overlaydir,
-                                        clouddir=clouddir,
+                                        overlaydir=None,
+                                        clouddir=None,
                                         file=file,
                                         output=crop_root,                                        
                                         #output=None,

@@ -1,0 +1,59 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Mar 13 10:32:59 2023
+
+@author: sa-cmd
+"""
+Y:/RegionH/SPJ/Journals_jpg/1959/2014-05-20/SPJ_2014-05-20_0020.PDF.page-0.jpg 0.29312474848609715 (0, 10000)
+ 39%|██████████████████████████▋                                         | 3930/10000 [121:18:39<299:45:30, 177.78s/it]Y:/RegionH/SPJ/Journals_jpg/1959/2014-05-20/SPJ_2014-05-20_0025.PDF.page-0.jpg
+forrtl: error (200): program aborting due to control-C event
+Image              PC                Routine            Line        Source
+libifcoremd.dll    00007FFE58993B58  Unknown               Unknown  Unknown
+KERNELBASE.dll     00007FFEBBC443C3  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFEBC897AD4  Unknown               Unknown  Unknown
+ntdll.dll          00007FFEBF07A371  Unknown               Unknown  Unknown
+(tableparser-cmd-spyder) PS Z:\faellesmappe\cmd\tfs_alt\cihvr-tsn\tableparsing\doccpd\test_TF> python .\tableParsing_CIHVR_TypeA_BDAD_tableb_Comp0D_run1.py
+
+
+Y:/RegionH/SPJ/Journals_jpg/1961/2014-07-02/SPJ_2014-07-02_0367.PDF.page-0.jpg 0.2962804541879751 (10000, 20000)
+ 37%|█████████████████████████▍                                          | 3747/10000 [121:18:39<475:41:27, 273.87s/it]Y:/RegionH/SPJ/Journals_jpg/1961/2014-07-02/SPJ_2014-07-02_0363.PDF.page-0.jpg
+forrtl: error (200): program aborting due to control-C event
+Image              PC                Routine            Line        Source
+libifcoremd.dll    00007FFE58993B58  Unknown               Unknown  Unknown
+KERNELBASE.dll     00007FFEBBC443C3  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFEBC897AD4  Unknown               Unknown  Unknown
+ntdll.dll          00007FFEBF07A371  Unknown               Unknown  Unknown
+(tableparser-cmd-spyder) PS Z:\faellesmappe\cmd\tfs_alt\cihvr-tsn\tableparsing\doccpd\test_TF> python .\tableParsing_CIHVR_TypeA_BDAD_tableb_Comp0D_run2.py
+
+
+Y:/RegionH/SPJ/Journals_jpg/1962/2014-08-25/SP2_01379.pdf.page-0.jpg 0.33585586257426214 (20000, 30000)
+ 36%|████████████████████████▊                                           | 3647/10000 [121:18:39<483:18:13, 273.87s/it]Y:/RegionH/SPJ/Journals_jpg/1962/2014-08-25/SP2_01380.pdf.page-0.jpg
+forrtl: error (200): program aborting due to control-C event
+Image              PC                Routine            Line        Source
+libifcoremd.dll    00007FFE58993B58  Unknown               Unknown  Unknown
+KERNELBASE.dll     00007FFEBBC443C3  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFEBC897AD4  Unknown               Unknown  Unknown
+ntdll.dll          00007FFEBF07A371  Unknown               Unknown  Unknown
+(tableparser-cmd-spyder) PS Z:\faellesmappe\cmd\tfs_alt\cihvr-tsn\tableparsing\doccpd\test_TF> python .\tableParsing_CIHVR_TypeA_BDAD_tableb_Comp0D_run3.py
+
+
+Y:/RegionH/SPJ/Journals_jpg/1963/2014-09-18/SP2_08302.pdf.page-0.jpg 0.3349032442741073 (30000, 40000)
+ 37%|█████████████████████████▏                                          | 3702/10000 [121:18:39<479:06:56, 273.87s/it]Y:/RegionH/SPJ/Journals_jpg/1963/2014-09-18/SP2_08303.pdf.page-0.jpg
+forrtl: error (200): program aborting due to control-C event
+Image              PC                Routine            Line        Source
+libifcoremd.dll    00007FFE58993B58  Unknown               Unknown  Unknown
+KERNELBASE.dll     00007FFEBBC443C3  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFEBC897AD4  Unknown               Unknown  Unknown
+ntdll.dll          00007FFEBF07A371  Unknown               Unknown  Unknown
+(tableparser-cmd-spyder) PS Z:\faellesmappe\cmd\tfs_alt\cihvr-tsn\tableparsing\doccpd\test_TF> python .\tableParsing_CIHVR_TypeA_BDAD_tableb_Comp0D_run4.py
+
+
+Y:/RegionH/SPJ/Journals_jpg/1959/2014-04-28/SPJ_2014-04-28_0035.PDF.page-0.jpg Not TypeA (40000, 50000)
+ 40%|███████████████████████████▋                                          | 3951/10000 [121:14:15<80:01:47, 47.63s/it]Y:/RegionH/SPJ/Journals_jpg/1959/2014-04-28/SPJ_2014-04-28_0036.PDF.page-0.jpg
+forrtl: error (200): program aborting due to control-C event
+Image              PC                Routine            Line        Source
+libifcoremd.dll    00007FFE58993B58  Unknown               Unknown  Unknown
+KERNELBASE.dll     00007FFEBBC443C3  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFEBC897AD4  Unknown               Unknown  Unknown
+ntdll.dll          00007FFEBF07A371  Unknown               Unknown  Unknown
+(tableparser-cmd-spyder) PS Z:\faellesmappe\cmd\tfs_alt\cihvr-tsn\tableparsing\doccpd\test_TF> python .\tableParsing_CIHVR_TypeA_BDAD_tableb_Comp0D_run5.py
