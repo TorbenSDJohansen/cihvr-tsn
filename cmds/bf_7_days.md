@@ -37,7 +37,7 @@ python train.py ^
 --input-size 3 93 198 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
---dataset-cells length ^
+--dataset-cells breastfeed-7-do ^
 --config ./cfgs/deit3_b_s2s.yaml ^
 --log-wandb ^
 --initial-log
