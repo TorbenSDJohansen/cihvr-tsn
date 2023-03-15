@@ -34,7 +34,7 @@ python train.py ^
 --experiment s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do ^
 -b 512 ^
---input-size 3 93 198 ^
+--input-size 3 96 202 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells breastfeed-7-do ^
