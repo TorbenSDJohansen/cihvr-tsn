@@ -11,11 +11,11 @@ python data\create_train_dataset.py ^
 ```
 
 ## Training
-Base
+MH
 ```
 python train.py ^
 --formatter two_digit_keep_bad_cpd ^
---experiment base ^
+--experiment mh ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf ^
 -b 512 ^
 --input-size 3 93 293 ^
@@ -27,24 +27,62 @@ python train.py ^
 --initial-log
 ```
 
+S2S
+```
+python train.py ^
+--formatter s2s_two_digit_keep_bad_cpd ^
+--experiment s2s ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf ^
+-b 512 ^
+--input-size 3 93 293 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells dura-any-breastfeed ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
+```
+
 ## Evaluate
-Base (no montage plot as only 8 wrong preds and 10 are needed for montage)
+MH
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\base ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\base\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\base\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\mh ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\mh\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\mh\last.pth.tar ^
+--plots cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+S2S
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\s2s ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\s2s\last.pth.tar ^
 --plots cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
 
 ## Predict
-Base
+MH
 ```
 python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\base ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\base\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\base\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\mh ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\mh\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\mh\last.pth.tar ^
+--plots montage ^
+-b 2048 ^
+--dataset image-datasets-joined ^
+--dataset-cells dura-any-breastfeed
+```
+
+S2S
+```
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\s2s ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\dabf\s2s\last.pth.tar ^
 --plots montage ^
 -b 2048 ^
 --dataset image-datasets-joined ^
