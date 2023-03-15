@@ -11,11 +11,11 @@ python data\create_train_dataset.py ^
 ```
 
 ## Training
-Base
+MH
 ```
 python train.py ^
 --formatter two_digit_keep_bad_cpd ^
---experiment base ^
+--experiment mh ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do ^
 -b 512 ^
 --input-size 3 96 202 ^
@@ -27,24 +27,62 @@ python train.py ^
 --initial-log
 ```
 
+S2S
+```
+python train.py ^
+--formatter s2s_two_digit_keep_bad_cpd ^
+--experiment s2s ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do ^
+-b 512 ^
+--input-size 3 93 198 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells length ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
+```
+
 ## Evaluate
-Base
+MH
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\base ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\base\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\base\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\mh ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\mh\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\mh\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+S2S
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\s2s ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\s2s\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
 
 ## Predict
-Base
+MH
 ```
 python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\base ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\base\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\base\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\mh ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\mh\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\mh\last.pth.tar ^
+--plots montage ^
+-b 2048 ^
+--dataset image-datasets-joined ^
+--dataset-cells breastfeed-7-do
+```
+
+S2S
+```
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\s2s ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\s2s\last.pth.tar ^
 --plots montage ^
 -b 2048 ^
 --dataset image-datasets-joined ^
