@@ -10,300 +10,191 @@ python data\create_train_dataset.py ^
 --nb-pools 8
 ```
 
-## Pre-training on PR
-Danish names; see HANA for details on data.
-Train one model for first names and other model for last names.
-
-### Train
-
-**For MH models**:
-From DARE: Batch size 256 works with LR 0.5.
-Now we scale this up to utilize most memory.
-Note input size is 80x522 here and is 160x352 for DARE:
-
-New batch size: 160 * 352 / (80 * 522) * 308 ~ 415 > 384 = 256 + 128
-New LR: 0.5 * 384 / 256 * 2 = 1.5 (linear scaling on batch size)
-
-Number of epochs (also warmup) follow from PR-1 model of DARE.
-
-Last name model (MH):
-```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter last_name_keep_bad_cpd ^
---experiment last-mh ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
---lr 1.5 ^
--b 384 ^
--j 8 ^
---input-size 3 80 522 ^
---epochs 90 ^
---warmup-epochs 5 ^
---data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
---dataset HANA ^
---config ./cfgs/efficientnetv2_s.yaml ^
---log-wandb ^
---initial-log
-```
-
-Last name model (S2S); expect SeqAcc ~ 96.25%, see https://wandb.ai/tsdj/hana?workspace=user-tsdj:
-```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter s2s_last_name_keep_bad_cpd ^
---experiment last-s2s ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
---input-size 3 80 522 ^
---epochs 90 ^
---data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
---dataset HANA ^
---config ./cfgs/deit3_b_s2s.yaml ^
---log-wandb ^
---initial-log
-```
-
-First name model (MH):
-```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter first_name_keep_bad_cpd ^
---experiment first-mh ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
---lr 1.5 ^
--b 384 ^
--j 8 ^
---input-size 3 80 522 ^
---epochs 90 ^
---warmup-epochs 5 ^
---data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
---dataset HANA ^
---config ./cfgs/efficientnetv2_s.yaml ^
---log-wandb ^
---initial-log
-```
-
-First name model (S2S)
-```
-python train.py ^
---formatter s2s_first_name_keep_bad_cpd ^
---experiment first-s2s ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
---input-size 3 80 522 ^
---epochs 90 ^
---data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
---dataset HANA ^
---config ./cfgs/deit3_b_s2s.yaml ^
---log-wandb ^
---initial-log
-```
-
-### (Optional) Evaluate
-Last:
-```
-python evaluate.py ^
---formatter last_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\pr\last ^
--b 2048 ^
---input-size 3 80 522 ^
---data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
---dataset HANA ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\last.pth.tar
-```
-
-First:
-```
-python evaluate.py ^
---formatter first_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\pr\first ^
--b 2048 ^
---input-size 3 80 522 ^
---data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
---dataset HANA ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\last.pth.tar
-```
-
 ## Training
-
 Notice larger image size, back to "default" epochs, smaller LR and batch size.
 Also note we keep and predict bad cpd cases.
 
-Last (base)
+### Last name
+MH
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter last_name_keep_bad_cpd ^
---experiment base ^
+--experiment mh ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
 --lr 0.5 ^
 -b 128 ^
 --input-size 3 95 680 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
+--dataset image-datasets-train ^
+--dataset-cells nurse-name ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --log-wandb ^
 --initial-log
 ```
 
-S2S (timmsn=0.2.3). 224 ** 2 / (95 * 650) ~ 0.8, decrease image size: (224 ^ 2 / (95 * 650)) ^ 0.5 * 95 ~ 85
+MH (TL; search for LR; disable weight decay)
+```
+for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter last_name_keep_bad_cpd ^
+--experiment mh-tl-lr=%i ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
+--lr %i ^
+--weight-decay 0 ^
+-b 128 ^
+--input-size 3 95 680 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells nurse-name ^
+--config ./cfgs/efficientnetv2_s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\last.pth.tar ^
+--log-wandb
+```
+
+S2S. Note: 224 ** 2 / (95 * 650) ~ 0.8, decrease image size: (224 ^ 2 / (95 * 650)) ^ 0.5 * 95 ~ 85
 ```
 python train.py ^
 --formatter s2s_last_name_keep_bad_cpd ^
---experiment s2s-0.2.3-85x585 ^
+--experiment s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
 --input-size 3 85 585 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep-restrict-share-bad-cpd ^
+--dataset image-datasets-train ^
+--dataset-cells nurse-name ^
 --config ./cfgs/deit3_b_s2s.yaml ^
 --log-wandb ^
 --initial-log
 ```
 
-First (base)
+### First name
+MH
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter first_name_keep_bad_cpd ^
---experiment base ^
+--experiment mh ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
 --lr 0.5 ^
 -b 128 ^
 --input-size 3 95 680 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
+--dataset image-datasets-train ^
+--dataset-cells nurse-name ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --log-wandb ^
 --initial-log
-
 ```
 
-Last (TL; search for LR; disable weight decay)
-```
-for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter last_name_keep_bad_cpd ^
---experiment tl-lr-%i ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
---lr %i ^
---weight-decay 0 ^
--b 128 ^
---input-size 3 95 680 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\last.pth.tar ^
---log-wandb
-
-```
-
-First (TL; search for LR; disable weight decay)
+MH (TL; search for LR; disable weight decay)
 ```
 for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter first_name_keep_bad_cpd ^
---experiment tl-lr-%i ^
+--experiment mh-tl-lr=%i ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
 --lr %i ^
 --weight-decay 0 ^
 -b 128 ^
 --input-size 3 95 680 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
+--dataset image-datasets-train ^
+--dataset-cells nurse-name ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\last.pth.tar ^
 --log-wandb
 
 ```
 
+S2S. Note: 224 ** 2 / (95 * 650) ~ 0.8, decrease image size: (224 ^ 2 / (95 * 650)) ^ 0.5 * 95 ~ 85
+```
+python train.py ^
+--formatter s2s_first_name_keep_bad_cpd ^
+--experiment s2s ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
+--input-size 3 85 585 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells nurse-name ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
+```
+
 ## Evaluate
 
-Last (base)
+### Last name
+MH
 ```
 python evaluate.py ^
---formatter last_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\base ^
--b 2048 ^
---input-size 3 95 680 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\base\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+MH (TL, with post-match)
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh-tl ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-lr=XXX\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-lr=XXX\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 
-```
-
-Last (TL, with post-match)
-```
-python evaluate.py ^
---formatter last_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\tl-lr-0.25 ^
--b 2048 ^
---input-size 3 95 680 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\tl-lr-0.25\last.pth.tar ^
---plots montage cov-acc cer-acc ^
---eval-plots-omit-most-occ 3
-
-python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\tl-lr-0.25\preds.csv ^
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh-tl\preds.csv ^
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
-
 ```
 
-First (base)
+S2S
 ```
 python evaluate.py ^
---formatter first_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\base ^
--b 2048 ^
---input-size 3 95 680 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\base\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\s2s ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+### First name
+MH
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+MH (TL, with post-match)
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl-lr=XXX\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl-lr=XXX\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 
-```
-
-First (TL)
-```
-python evaluate.py ^
---formatter first_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\tl-lr-0.0625 ^
--b 2048 ^
---input-size 3 95 680 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\tl-lr-0.0625\last.pth.tar ^
---plots montage cov-acc cer-acc ^
---eval-plots-omit-most-occ 3
-
-python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\tl-lr-0.0625\preds.csv ^
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl\preds.csv ^
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn-loose.pkl
 ```
 
+S2S
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\s2s ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\s2s\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
 ## Predict
-Last (TL, only nurse-name-1, with post-match)
+
+### Last name
+MH (TL, only nurse-name-1, with post-match)
 ```
 python predict.py ^
 --formatter last_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\mh-tl ^
 -b 2048 ^
 --input-size 3 95 680 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
@@ -311,18 +202,19 @@ python predict.py ^
 --dataset-cells nurse-name-1 ^
 --labels-subdir keep ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\tl-lr-0.25\last.pth.tar ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-lr=XXX\last.pth.tar ^
 --plots montage
 
-python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\preds.csv ^
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\mh-tl\preds.csv ^
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
 ```
 
-First (TL, only nurse-name-1, with post-match)
+### First name
+MH (TL, only nurse-name-1, with post-match)
 ```
 python predict.py ^
 --formatter first_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl ^
 -b 2048 ^
 --input-size 3 95 680 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
@@ -330,10 +222,10 @@ python predict.py ^
 --dataset-cells nurse-name-1 ^
 --labels-subdir keep ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\tl-lr-0.0625\last.pth.tar ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl-lr=XXX\last.pth.tar ^
 --plots montage
 
-python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625\preds.csv ^
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl\preds.csv ^
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn-loose.pkl
 ```
 
@@ -349,93 +241,77 @@ python data\labelling\prepare_nurse_name_1.py --round 1 --task create-labels
 ```
 
 ## Train
-Always based on TL from PR.
 
-To train new model with additional names (for last name):
+### Last name
+MH (TL, use extra data)
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter last_name_keep_bad_cpd ^
---experiment rev-1-tl-lr-0.25 ^
+--experiment mh-tl-extra-data ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
---lr 0.25 ^
+--lr XXX ^
 --weight-decay 0 ^
 -b 128 ^
 --input-size 3 95 680 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
+--dataset-cells nurse-name-1 ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\last.pth.tar ^
 --log-wandb
 ```
 
-To train new model with additional names (for first name):
+### First name
+MH (TL, use extra data)
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter first_name_keep_bad_cpd ^
---experiment rev-1-tl-lr-0.0625 ^
+--experiment mh-tl-extra-data ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
---lr 0.0625 ^
+--lr XXX ^
 --weight-decay 0 ^
 -b 128 ^
 --input-size 3 95 680 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
+--dataset-cells nurse-name-1 ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\last.pth.tar ^
 --log-wandb
 ```
 
 ## Evaluate
-Last (with post-match)
+
+### Last name
+MH (TL, use extra data)
 ```
 python evaluate.py ^
---formatter last_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\rev-1-tl-lr-0.25 ^
--b 2048 ^
---input-size 3 95 680 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\rev-1-tl-lr-0.25\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh-tl-extra-data ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-extra-data\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-extra-data\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
-
-python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\rev-1-tl-lr-0.25\preds.csv ^
---lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
 ```
 
-First (with post-match)
+### First name
+MH (TL, use extra data)
 ```
 python evaluate.py ^
---formatter first_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\rev-1-tl-lr-0.0625 ^
--b 2048 ^
---input-size 3 95 680 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 nurse-name-2 nurse-name-3 ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\rev-1-tl-lr-0.0625\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl-extra-data ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl-extra-data\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl-extra-data\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
-
-python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\rev-1-tl-lr-0.0625\preds.csv ^
---lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn-loose.pkl
 ```
 
 ## Predict/transcribe
-Last (only nurse-name-1, with post-match)
+
+### Last name
+MH (TL, use extra data, only nurse-name-1)
 ```
 python predict.py ^
 --formatter last_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\rev-1-tl-lr-0.25 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\mh-tl-extra-data ^
 -b 2048 ^
 --input-size 3 95 680 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
@@ -443,9 +319,6 @@ python predict.py ^
 --dataset-cells nurse-name-1 ^
 --labels-subdir keep ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\rev-1-tl-lr-0.25\last.pth.tar ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-extra-data\last.pth.tar ^
 --plots montage
-
-python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\rev-1-tl-lr-0.25\preds.csv ^
---lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
 ```
