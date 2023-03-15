@@ -34,3 +34,7 @@ compressed_file = shutil.make_archive(
          root_dir='V:/BDADShareData2/cihvr/data/storage/minipics/TypeA_bottom_smaller_crop' # directory to compress
 )
 
+d = os.listdir('Y:/RegionH/Scripts/data/storage/minipics/TypeA_bottom_smaller_crop')
+
+for x in d:
+    print(x)

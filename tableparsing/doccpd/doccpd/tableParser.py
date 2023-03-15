@@ -270,8 +270,8 @@ def tableParser_pointcloud(template_image_path:str,
         #target_image = cv.cvtColor(target_image, cv.COLOR_GRAY2BGR)
         h,w,_ = target_image.shape
         
-        if h<3200 and h>2800:
-        
+        if h>3200:
+    
             if autocrop:
                 target_image=autocrop_noresize(target_image.copy(),height=h,width=w)           
                       
@@ -306,50 +306,52 @@ def tableParser_pointcloud(template_image_path:str,
             pdrift.fit(keypoints_res, iterations=50, show_fit=show_fit)
                                     
             IoU,dice,ownmetric = MeanIOU_Dice(target_image,pdrift,keypoints_res,evaluation)   
-            
-            transformed      = pdrift.apply_transform(target_image)
-            drawn_overlay    = overlay.draw_on_image(transformed)
-            canvas_keypoints = keypoints_res.draw_on_image(target_image,size=10)
-            #show(canvas_keypoints)       
-            #show(drawn_overlay)
-            #drawn_evaluation    = evaluation.draw_on_image(transformed)
-            #show(canvas_keypoints)       
-            #print(os.path.join(overlaydir,os.path.basename(file))
-            #print(os.path.exists(os.path.join(overlaydir,os.path.basename(file))))
-            if output is not None:
-                subdirs = os.listdir(output)
-                if len(subdirs)>0:
-                    alreadycopy = os.path.exists(os.path.join(output,subdirs[0],os.path.basename(file)))
-                else:    
-                    alreadycopy=False
-            if output is not None and ownmetric>threshold:
-                if alreadycopy:
-                    overlay.write_cells(transformed, file.split('/')[-1].split('.')[0], root=output)
-                else:                
-                    overlay.write_cells(transformed, file.split('/')[-1].split('.')[0], root=output)
-            if showoverlay:  
-                if jupyternotebook:
-                    display(Image.fromarray(drawn_overlay).resize(size=(500,700)))
-                else:
-                    show(drawn_overlay)
-            if overlaydir is not None and ownmetric>threshold:    
-                if alreadycopy:
-                    cv.imwrite(overlaydir+'/'+file.split('/')[-1],drawn_overlay)
-                else:    
-                    cv.imwrite(overlaydir+'/'+file.split('/')[-1],drawn_overlay)
-            if showcloud:  
-                if jupyternotebook:
-                    display(Image.fromarray(canvas_keypoints))
-                else:
-                    show(canvas_keypoints) 
-            if clouddir is not None and ownmetric>threshold:   
-                if alreadycopy:
-                    cv.imwrite(clouddir+'/'+file.split('/')[-1],canvas_keypoints) 
-                else:    
-                    cv.imwrite(clouddir+'/'+file.split('/')[-1],canvas_keypoints)   
-            return IoU,dice,ownmetric  
+            if ownmetric<threshold:
+                return "TypeB2 ",IoU,ownmetric
+            else:            
+                transformed      = pdrift.apply_transform(target_image)
+                drawn_overlay    = overlay.draw_on_image(transformed)
+                canvas_keypoints = keypoints_res.draw_on_image(target_image,size=10)
+                #show(canvas_keypoints)       
+                #show(drawn_overlay)
+                #drawn_evaluation    = evaluation.draw_on_image(transformed)
+                #show(canvas_keypoints)       
+                #print(os.path.join(overlaydir,os.path.basename(file))
+                #print(os.path.exists(os.path.join(overlaydir,os.path.basename(file))))
+                if output is not None:
+                    subdirs = os.listdir(output)
+                    if len(subdirs)>0:
+                        alreadycopy = os.path.exists(os.path.join(output,subdirs[0],os.path.basename(file)))
+                    else:    
+                        alreadycopy=False
+                if output is not None and ownmetric>threshold:
+                    if alreadycopy:
+                        overlay.write_cells(transformed, file.split('/')[-1].split('.')[0], root=output)
+                    else:                
+                        overlay.write_cells(transformed, file.split('/')[-1].split('.')[0], root=output)
+                if showoverlay:  
+                    if jupyternotebook:
+                        display(Image.fromarray(drawn_overlay).resize(size=(500,700)))
+                    else:
+                        show(drawn_overlay)
+                if overlaydir is not None and ownmetric>threshold:    
+                    if alreadycopy:
+                        cv.imwrite(overlaydir+'/'+file.split('/')[-1],drawn_overlay)
+                    else:    
+                        cv.imwrite(overlaydir+'/'+file.split('/')[-1],drawn_overlay)
+                if showcloud:  
+                    if jupyternotebook:
+                        display(Image.fromarray(canvas_keypoints))
+                    else:
+                        show(canvas_keypoints) 
+                if clouddir is not None and ownmetric>threshold:   
+                    if alreadycopy:
+                        cv.imwrite(clouddir+'/'+file.split('/')[-1],canvas_keypoints) 
+                    else:    
+                        cv.imwrite(clouddir+'/'+file.split('/')[-1],canvas_keypoints)   
+                return IoU,dice,ownmetric  
         else:
-            return "Not TypeA","Not TypeA","Not TypeA"
+            return "Not TypeA nor TypeB","Not TypeA nor TypeB","Not TypeA nor TypeB"
     except:
         print(f'{file} did not work')
         return "Nan","Nan","Nan"
@@ -365,7 +367,7 @@ def tableParser_pointcloud_local(template_image_path:str,
                 output:str,
                 keypoints,
                 crop_info_list:list,
-                threshold=0.1,
+                threshold=0.4,
                 detector=None,
                 Rotating=None,
                 cropping=False,
