@@ -18,12 +18,11 @@ So r = 0.41 probably not bad. Further, to not scale anything down too much, let 
 **Note**: Needs to be run after the individual ones, as otherwise train data not created for this model.
 
 ## Training
-
-Base
+MH
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter two_digit_keep_bad_cpd ^
---experiment base ^
+--experiment mh ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf ^
 --lr 2.0 ^
 -b 512 ^
@@ -34,32 +33,79 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --log-wandb ^
 --initial-log
+```
 
+S2S 90x90
+```
+python train.py ^
+--formatter s2s_two_digit_keep_bad_cpd ^
+--experiment s2s-90x90 ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf ^
+--input-size 3 90 90 ^
+-b 2048 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells tab-b length dura-any-breastfeed ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
 ```
 
 ## Evaluate
-Base
+MH
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b_len_dabf\base ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\base\args.yaml ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b_len_dabf\mh ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\mh\args.yaml ^
 --dataset-cells tab-b length dura-any-breastfeed ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\base\last.pth.tar ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\mh\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
 
-Base (on our own test set, with ~100 examples of all 112 cells)
+MH (on our own test set, with ~100 examples of all 112 cells)
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b_len_dabf\base-full-table ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\base\args.yaml ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b_len_dabf\mh-full-table ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\mh\args.yaml ^
 --dataset-cells tab-b-test ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\base\last.pth.tar ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\mh\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
 
+S2S 90x90 (on our own test set, with ~100 examples of all 112 cells)
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b_len_dabf\s2s-90x90-full-table ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\s2s-90x90\args.yaml ^
+--dataset-cells tab-b-test ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\s2s-90x90\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
 
 ## Predict
+MH (on Table B)
+```
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b_len_dabf\mh-table-b ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\mh\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\mh\last.pth.tar ^
+--plots montage ^
+-b 2048 ^
+--dataset image-datasets-joined ^
+--dataset-cells %DATASET-CELLS-TAB-B%
+```
 
+S2S (on Table B)
+```
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b_len_dabf\s2s-90x90-table-b ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\s2s-90x90\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b_len_dabf\s2s-90x90\last.pth.tar ^
+--plots montage ^
+-b 2048 ^
+--dataset image-datasets-joined ^
+--dataset-cells %DATASET-CELLS-TAB-B%
+```
