@@ -11,8 +11,8 @@ import glob
 import tqdm
 import sys
 import os
-sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/cihvr-tsn/tableparsing/doccpd/doccpd'))
-#sys.path.append(os.path.abspath('E:/faellesmappe/cmd/tfs/SWE-DB/tableparsing/doccpd/doccpd'))
+#sys.path.append(os.path.abspath('Z:/faellesmappe/cmd/tfs/cihvr-tsn/tableparsing/doccpd/doccpd'))
+sys.path.append(os.path.abspath('E:/faellesmappe/cmd/tfs/cihvr-tsn/tableparsing/doccpd/doccpd'))
 #sys.path.append(os.path.abspath('C:/Users/sa-cmd/Documents/GitHub/SWE-DB/tableparsing/doccpd/doccpd'))
 import pandas as pd
 import cv2 as cv
@@ -60,7 +60,7 @@ with open(dat_files[0], "rb") as f:
 depressed_pickle = blosc.decompress(compressed_pickle)
 data_full = pickle.loads(depressed_pickle)
 
-for dat in dat_files[1:2]: 
+for dat in dat_files[1:]: 
     with open(dat, "rb") as f:
         compressed_pickle = f.read()
     
@@ -74,11 +74,11 @@ template = 'Y:/RegionH/Scripts/data/templates_and_overlays/TypeA/SP2_00004.pdf.p
 overlay = 'Y:/RegionH/Scripts/data/templates_and_overlays/TypeA/SP2_00004.pdf.page-0_overlay_top.xml'   
 evaluation = template #'W:/BDADSharedData/Spanish Flu/Sweden/storage_additionalAdrian/templates/A0032897_00549_cropped_evaluation_deathdate.xml'
 
-begin = 0
-end=1000
+begin = 80000
+end=len(data_full)
 performance_metrics = []
-#for file,keypoints in tqdm.tqdm(data_full_[begin:end]):    
-for file,keypoints in tqdm.tqdm(data_full[:10]): #(5,6,10)      
+for file,keypoints in tqdm.tqdm(data_full[begin:end]):    
+#for file,keypoints in tqdm.tqdm(data_full[:10]): #(5,6,10)      
     print(file)
     try:
         IoU,dice,ownmetric = tableParser.tableParser_pointcloud(template_image_path=template_image_path,
@@ -86,8 +86,8 @@ for file,keypoints in tqdm.tqdm(data_full[:10]): #(5,6,10)
                                         overlay=overlay,
                                         evaluation=evaluation,
                                         cropping=False,
-                                        overlaydir=overlaydir,
-                                        clouddir=clouddir,
+                                        overlaydir=None,
+                                        clouddir=None,
                                         file=file,
                                         output=crop_root,                                        
                                         #output=None,
