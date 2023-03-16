@@ -6,6 +6,9 @@
 # pylint: disable=C0301
 
 import argparse
+import os
+
+from typing import Tuple
 
 import yaml
 
@@ -70,11 +73,10 @@ def construct_parser(): # pylint: disable=R0915
                         help='YAML config file specifying default arguments')
 
     parser = argparse.ArgumentParser(
-        description='PyTorch ImageNet Training') # pylint: disable=C0103
+        description='PyTorch SeqNet Training') # pylint: disable=C0103
 
     # Dataset
-    parser.add_argument('--data_dir', '-datadir', metavar='DIR',
-                        default='',
+    parser.add_argument('--data_dir', '-datadir', metavar='DIR', default='',
                         help='path to dataset')
     parser.add_argument('--dataset', '-d', metavar='NAME(s)', default='', nargs='+',
                         help='dataset name(s), i.e. name of folder within data_dir')
@@ -154,8 +156,8 @@ def construct_parser(): # pylint: disable=R0915
                         help='Gradient clipping mode. One of ("norm", "value", "agc")')
 
     # Learning rate schedule parameters
-    parser.add_argument('--sched', default='step', type=str, metavar='SCHEDULER',
-                        help='LR scheduler (default: "step"')
+    parser.add_argument('--sched', default='cosine', type=str, metavar='SCHEDULER',
+                        help='LR scheduler (default: "cosine"')
     parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
                         help='learning rate (default: 0.01)')
     parser.add_argument('--lr-noise', type=float, nargs='+', default=None, metavar='pct, pct',
@@ -168,21 +170,21 @@ def construct_parser(): # pylint: disable=R0915
                         help='learning rate cycle len multiplier (default: 1.0)')
     parser.add_argument('--lr-cycle-limit', type=int, default=1, metavar='N',
                         help='learning rate cycle limit')
-    parser.add_argument('--warmup-lr', type=float, default=0.0001, metavar='LR',
+    parser.add_argument('--warmup-lr', type=float, default=1e-6, metavar='LR',
                         help='warmup learning rate (default: 0.0001)')
     parser.add_argument('--min-lr', type=float, default=1e-5, metavar='LR',
                         help='lower lr bound for cyclic schedulers that hit 0 (1e-5)')
     parser.add_argument('--epochs', type=int, default=200, metavar='N',
-                        help='number of epochs to train (default: 2)')
+                        help='number of epochs to train (default: 200)')
     parser.add_argument('--epoch-repeats', type=float, default=0., metavar='N',
                         help='epoch repeat multiplier (number of times to repeat dataset epoch per train epoch).')
     parser.add_argument('--start-epoch', default=None, type=int, metavar='N',
                         help='manual epoch number (useful on restarts)')
     parser.add_argument('--decay-epochs', type=float, default=30, metavar='N',
                         help='epoch interval to decay LR')
-    parser.add_argument('--warmup-epochs', type=int, default=3, metavar='N',
+    parser.add_argument('--warmup-epochs', type=int, default=5, metavar='N',
                         help='epochs to warmup LR, if scheduler supports')
-    parser.add_argument('--cooldown-epochs', type=int, default=10, metavar='N',
+    parser.add_argument('--cooldown-epochs', type=int, default=0, metavar='N',
                         help='epochs to cooldown LR at min_lr, after cyclic schedule ends')
     parser.add_argument('--patience-epochs', type=int, default=10, metavar='N',
                         help='patience epochs for Plateau LR scheduler (default: 10')
@@ -196,7 +198,7 @@ def construct_parser(): # pylint: disable=R0915
                         help='Random resize scale (default: 0.08 1.0)')
     parser.add_argument('--ratio', type=float, nargs='+', default=[3./4., 4./3.], metavar='RATIO',
                         help='Random resize aspect ratio (default: 0.75 1.33)')
-    parser.add_argument('--hflip', type=float, default=0.5,
+    parser.add_argument('--hflip', type=float, default=0.0,
                         help='Horizontal flip training aug probability')
     parser.add_argument('--vflip', type=float, default=0.,
                         help='Vertical flip training aug probability')
@@ -277,11 +279,7 @@ def construct_parser(): # pylint: disable=R0915
     parser.add_argument('--save-images', action='store_true', default=False,
                         help='save images of input bathes every log interval for debugging')
     parser.add_argument('--amp', action='store_true', default=False,
-                        help='use NVIDIA Apex AMP or Native AMP for mixed precision training')
-    parser.add_argument('--apex-amp', action='store_true', default=False,
-                        help='Use NVIDIA Apex AMP mixed precision')
-    parser.add_argument('--native-amp', action='store_true', default=False,
-                        help='Use Native Torch AMP mixed precision')
+                        help='Use Native AMP for mixed precision training')
     parser.add_argument('--channels-last', action='store_true', default=False,
                         help='Use channels_last memory layout')
     parser.add_argument('--pin-mem', action='store_true', default=False,
@@ -323,8 +321,6 @@ def construct_parser(): # pylint: disable=R0915
                         help='path to class to idx mapping file (default: "")')
 
     # Extensions
-    parser.add_argument('--sequence-model', action='store_true', default=True, # TODO Instead of arg, consider make case always
-                        help='Use sequence model, loss, accuracy, etc. Use with sequence data.')
     parser.add_argument('--resize-method', default='resize', type=str,
                         help='Replace initial transform(s) with other resize method.')
     parser.add_argument('--return-individual-probs', action='store_true', default=False,
@@ -349,22 +345,62 @@ def construct_parser(): # pylint: disable=R0915
                         )
     parser.add_argument('--sqnet-version', type=str, default='v2', choices=['v1', 'v2'], # TODO raise depreated warning if v1
                         help='SequenceNet version to base sequence model on.')
-
-    # EXPERIMENTAL -
     parser.add_argument('--skip-validate', action='store_true', default=False,
                         help='Skip validation during training.')
+    parser.add_argument('--classifier', type=str, default='multi_head',
+                        help='Classifier choice, see timmsn.models.list_classifiers()')
+    parser.add_argument('--ctc', action='store_true', default=False, help='Use CTC loss, method to predict, etc.')
+    parser.add_argument('--seq2seq', action='store_true', default=False, help='Use Seq2Seq loss, method to predict, etc.')
+    parser.add_argument('--decoder', type=str, default=None, help='Type of decoder (e.g., greedy, beam-X (X is int and controls beam size) to use for evalution, prediction for autoregressive models.')
+    parser.add_argument('--tl-from-input-size', type=int, nargs='+', default=None,
+                        help='When using --initial-checkpoint and TL to other image size with ViT-style model, pass original input size to allow proper resizing of positional embedding.')
+
+    # TODO filetypes (perhaps see BYU projects, might be something there to grab)
 
     return config_parser, parser
 
 
-def parse_args(): # pylint: disable=C0116
+def _search_config(parser: argparse.ArgumentParser) -> str:
+    args = parser.parse_args()
+
+    if not (args.checkpoint or args.output):
+        return ''
+
+    args_checkpoint = os.path.join(
+        os.path.dirname(args.checkpoint), 'args.yaml',
+        )
+    args_output = os.path.join(args.output, args.experiment, 'args.yaml')
+
+    if os.path.isfile(args_checkpoint) and os.path.isfile(args_output):
+        return ''
+
+    if os.path.isfile(args_checkpoint):
+        print(f'--config not specified but able to infer from --checkpoint; using {args_checkpoint}')
+        return args_checkpoint
+
+    if os.path.isfile(args_output):
+        print(f'--config not specified but able to infer from --output and --experiment; using {args_output}')
+        return args_output
+
+    return ''
+
+
+def _load_defaults_from_config(config: str, parser: argparse.Namespace):
+    with open(config, 'r') as f: # pylint: disable=C0103, W1514
+        cfg = yaml.safe_load(f)
+        parser.set_defaults(**cfg)
+
+
+def parse_args() -> Tuple[argparse.Namespace, str]: # pylint: disable=C0116
     config_parser, parser = construct_parser()
     # Do we have a config file to parse?
     args_config, remaining = config_parser.parse_known_args()
     if args_config.config:
-        with open(args_config.config, 'r') as f: # pylint: disable=C0103
-            cfg = yaml.safe_load(f)
-            parser.set_defaults(**cfg)
+        _load_defaults_from_config(args_config.config, parser)
+    else:
+        config = _search_config(parser)
+        if config:
+            _load_defaults_from_config(config, parser)
 
     # The main arg parser parses the rest of the args, the usual
     # defaults will have been overridden if config file specified.
@@ -372,4 +408,5 @@ def parse_args(): # pylint: disable=C0116
 
     # Cache the args as a text string to save them in the output dir later
     args_text = yaml.safe_dump(args.__dict__, default_flow_style=False)
+
     return args, args_text
