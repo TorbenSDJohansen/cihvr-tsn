@@ -3,6 +3,7 @@
 @author: sa-tsdj
 """
 
+
 import time
 import os
 import logging
@@ -14,9 +15,6 @@ from datetime import datetime
 import torch
 
 from torch.nn.parallel import DistributedDataParallel as NativeDDP
-from torch import nn
-
-import torchvision.utils
 
 # timm imports
 from timm.data import (
@@ -29,21 +27,15 @@ from timm.models import (
     resume_checkpoint,
     load_checkpoint,
     convert_splitbn_model,
-    model_parameters,
     )
 from timm.utils import (
     CheckpointSaver,
-    dispatch_clip_grad,
-    ApexScaler, NativeScaler,
-    distribute_bn, reduce_tensor,
+    NativeScaler,
+    distribute_bn,
     setup_default_logging,
-    AverageMeter, accuracy,
     ModelEmaV2,
     random_seed,
     get_outdir,
-    )
-from timm.loss import (
-    LabelSmoothingCrossEntropy, SoftTargetCrossEntropy, JsdCrossEntropy,
     )
 from timm.optim import create_optimizer_v2, optimizer_kwargs
 from timm.scheduler import create_scheduler
@@ -51,37 +43,43 @@ from timm.scheduler import create_scheduler
 # timmsn imports
 from timmsn.loss import (
     SequenceCrossEntropy,
-    LabelSmoothingSequenceCrossEntropy,
+    LabelSmoothingSequenceCrossEntropy, # TODO consider using v2
     SoftTargetSequenceCrossEntropy,
+    CTCLoss,
+    Seq2SeqCrossEntropy,
+    LabelSmoothingSeq2SeqCrossEntropy,
     )
-from timmsn.utils import sequence_accuracy, initial_log, update_summary
-from timmsn.models import create_model
+from timmsn.utils import (
+    sequence_accuracy,
+    CTCSeqAcc,
+    Seq2SeqAccuracy,
+    initial_log,
+    update_summary,
+    wandb_init,
+    )
+from timmsn.models import create_model_v2
 from timmsn.data import create_loader, Mixup, FastCollateMixup
 from timmsn.data.parsers import setup_sqnet_parser, setup_bdatasets_parser
+from timmsn.data.formatters.constants import PAD_IDX
 
 # other imports
 from argparser import parse_args
+from engine import train_one_epoch, validate
 
-try:
-    from apex import amp
-    from apex.parallel import DistributedDataParallel as ApexDDP
-    from apex.parallel import convert_syncbn_model
-    has_apex = True # pylint: disable=C0103
-except ImportError:
-    has_apex = False # pylint: disable=C0103
-
-has_native_amp = False # pylint: disable=C0103
+has_amp = False # pylint: disable=C0103
 try:
     if getattr(torch.cuda.amp, 'autocast') is not None:
-        has_native_amp = True # pylint: disable=C0103
+        has_amp = True # pylint: disable=C0103
 except AttributeError:
     pass
 
 try:
-    import wandb
+    # want to do import to set has_wandb even if not used directly
+    import wandb # pylint: disable=W0611
     has_wandb = True # pylint: disable=C0103
 except ImportError:
     has_wandb = False # pylint: disable=C0103
+
 
 torch.backends.cudnn.benchmark = True
 _logger = logging.getLogger('train') # pylint: disable=C0103
@@ -95,21 +93,36 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
 
     parser_train = parser_eval = clean_pred = None
     if isinstance(args.dataset, str) and args.dataset.startswith('bdatasets.'):
-        assert args.sequence_model, 'bdatasets are for sequences'
-        parser_train, parser_eval, clean_pred = setup_bdatasets_parser(
-            args=args, purpose='train', split=args.data_split or 'train',
+        parser_train, parser_eval, clean_pred, num_classes = setup_bdatasets_parser(
+            purpose='train',
+            dataset=args.dataset,
+            data_dir=args.data_dir,
+            evalset=args.evalset,
+            formatter_name=args.formatter,
+            num_classes=args.num_classes,
+            split=args.data_split,
+            verbose=args.local_rank,
+            formatter_kwargs=args.formatter_kwargs,
             )
     elif args.formatter is not None:
-        assert args.sequence_model
-        parser_train, parser_eval, clean_pred = setup_sqnet_parser(
-            args=args, purpose='train', split=args.data_split or 'train',
+        parser_train, parser_eval, clean_pred, num_classes = setup_sqnet_parser(
+            purpose='train',
+            dataset=args.dataset,
+            data_dir=args.data_dir,
+            dataset_structure=args.dataset_structure,
+            evalset=args.evalset,
+            formatter_name=args.formatter,
+            num_classes=args.num_classes,
+            split=args.data_split,
+            verbose=args.local_rank,
+            formatter_kwargs=args.formatter_kwargs,
+            dataset_cells=args.dataset_cells,
+            dataset_cells_eval=args.dataset_cells_eval,
+            labels_subdir=args.labels_subdir,
             )
 
-    if args.sequence_model:
-        assert args.num_classes is not None
-    else:
-        assert args.num_classes is None or len(args.num_classes) == 1
-        args.num_classes = None if args.num_classes is None else args.num_classes[0]
+    args.num_classes = num_classes
+    assert args.num_classes is not None
 
     args.prefetcher = not args.no_prefetcher
     args.distributed = False
@@ -130,22 +143,6 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
         _logger.info('Training with a single process on 1 GPUs.')
     assert args.rank >= 0
 
-    # resolve AMP arguments based on PyTorch / Apex availability
-    use_amp = None
-    if args.amp:
-        # `--amp` chooses native amp before apex (APEX ver not actively maintained)
-        if has_native_amp:
-            args.native_amp = True
-        elif has_apex:
-            args.apex_amp = True
-    if args.apex_amp and has_apex:
-        use_amp = 'apex'
-    elif args.native_amp and has_native_amp:
-        use_amp = 'native'
-    elif args.apex_amp or args.native_amp:
-        _logger.warning("Neither APEX or native Torch AMP is available, using float32. "
-                        "Install NVIDA apex or upgrade to PyTorch 1.6")
-
     random_seed(args.seed, args.rank)
 
     # See if implicit --resume is possible.
@@ -164,7 +161,7 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
     elif args.initial_checkpoint: # And no sense 2x load here either
         args.pretrained = False
 
-    model = create_model(
+    model = create_model_v2(
         args.model,
         sqnet_version=args.sqnet_version,
         pretrained=args.pretrained,
@@ -178,14 +175,21 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
         bn_eps=args.bn_eps,
         scriptable=args.torchscript,
         checkpoint_path=args.initial_checkpoint,
-        drop_modules=args.drop_modules)
+        drop_modules=args.drop_modules,
+        image_size=args.input_size,
+        classifier_name=args.classifier,
+        tl_from_input_size=args.tl_from_input_size,
+        )
     if args.num_classes is None:
         assert hasattr(model, 'num_classes'), 'Model must have `num_classes` attr if not set on cmd line/config.'
         args.num_classes = model.num_classes
 
     if args.local_rank == 0:
-        _logger.info( # pylint: disable=W1202
-            f'Model {safe_model_name(args.model)} created, param count: {sum([m.numel() for m in model.parameters()])}')
+        _logger.info('Model {} created with classifier {}, param count: {}'.format( # pylint: disable=W1202
+            safe_model_name(args.model),
+            args.classifier,
+            sum([m.numel() for m in model.parameters()])),
+            )
 
     data_config = resolve_data_config(vars(args), model=model, verbose=args.local_rank == 0)
 
@@ -208,36 +212,29 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
     # setup synchronized BatchNorm for distributed training
     if args.distributed and args.sync_bn:
         assert not args.split_bn
-        if has_apex and use_amp != 'native':
-            # Apex SyncBN preferred unless native amp is activated
-            model = convert_syncbn_model(model)
-        else:
-            model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+        model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
         if args.local_rank == 0:
             _logger.info(
                 'Converted model to use Synchronized BatchNorm. WARNING: You may have issues if using '
                 'zero initialized BN layers (enabled by default for ResNets) while sync-bn enabled.')
 
     if args.torchscript:
-        assert not use_amp == 'apex', 'Cannot use APEX AMP with torchscripted model'
         assert not args.sync_bn, 'Cannot use SyncBatchNorm with torchscripted model'
         model = torch.jit.script(model)
 
     optimizer = create_optimizer_v2(model, **optimizer_kwargs(cfg=args))
 
     # setup automatic mixed-precision (AMP) loss scaling and op casting
-    amp_autocast = suppress  # do nothing
+    amp_autocast = suppress # do nothing
     loss_scaler = None
-    if use_amp == 'apex':
-        model, optimizer = amp.initialize(model, optimizer, opt_level='O1')
-        loss_scaler = ApexScaler()
-        if args.local_rank == 0:
-            _logger.info('Using NVIDIA APEX AMP. Training in mixed precision.')
-    elif use_amp == 'native':
+    if args.amp and has_amp:
         amp_autocast = torch.cuda.amp.autocast
         loss_scaler = NativeScaler()
         if args.local_rank == 0:
             _logger.info('Using native Torch AMP. Training in mixed precision.')
+    elif args.amp:
+        if args.local_rank == 0:
+            _logger.warning("AMP is not available, using float32. Upgrade to PyTorch>=1.6")
     else:
         if args.local_rank == 0:
             _logger.info('AMP not enabled. Training in float32.')
@@ -262,15 +259,9 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
 
     # setup distributed training
     if args.distributed:
-        if has_apex and use_amp != 'native':
-            # Apex DDP preferred unless native amp is activated
-            if args.local_rank == 0:
-                _logger.info("Using NVIDIA APEX DistributedDataParallel.")
-            model = ApexDDP(model, delay_allreduce=True)
-        else:
-            if args.local_rank == 0:
-                _logger.info("Using native Torch DistributedDataParallel.")
-            model = NativeDDP(model, device_ids=[args.local_rank])  # can use device str in Torch >= 1.1
+        if args.local_rank == 0:
+            _logger.info("Using native Torch DistributedDataParallel.")
+        model = NativeDDP(model, device_ids=[args.local_rank])  # can use device str in Torch >= 1.1
         # NOTE: EMA model does not need to be wrapped by DDP
 
     # setup learning rate schedule and starting epoch
@@ -285,7 +276,7 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
         lr_scheduler.step(start_epoch)
 
     if args.local_rank == 0:
-        _logger.info('Scheduled epochs: {} (0-{})'.format(num_epochs, num_epochs- 1)) # pylint: disable=W1202
+        _logger.info('Scheduled epochs: {} ({}-{})'.format(num_epochs - start_epoch, start_epoch, num_epochs - 1)) # pylint: disable=W1202
 
     # create the train and eval datasets
     dataset_train = create_dataset(
@@ -365,35 +356,54 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
         pin_memory=args.pin_mem,
     )
 
+    if mixup_active and args.ctc:
+        raise ValueError('Mixup not implemented for ctc models')
+    if args.ctc and args.seq2seq:
+        raise ValueError('Not possible to enable CTC and seq2seq at once')
+    if args.ctc and args.smoothing:
+        _logger.warning('WARNING: CTC and smoothing enabled, but smoothing not used with CTC')
+
     # setup loss function
-    if args.sequence_model:
-        if mixup_active:
-            train_loss_fn = SoftTargetSequenceCrossEntropy().cuda()
-        elif args.smoothing:
-            train_loss_fn = LabelSmoothingSequenceCrossEntropy(args.smoothing, args.sequence_model).cuda()
-        else:
-            train_loss_fn = SequenceCrossEntropy().cuda()
-    elif args.jsd:
-        assert num_aug_splits > 1  # JSD only valid with aug splits set
-        train_loss_fn = JsdCrossEntropy(num_splits=num_aug_splits, smoothing=args.smoothing).cuda()
+    if mixup_active and args.seq2seq:
+        raise NotImplementedError
+        # Recall challenges related to need to keep unmixed targets, and in
+        # particular how this is difficult with pre-fetching
     elif mixup_active:
-        # smoothing is handled with mixup target transform
-        train_loss_fn = SoftTargetCrossEntropy().cuda()
+        train_loss_fn = SoftTargetSequenceCrossEntropy().cuda()
+    elif args.ctc:
+        # FIXME does not work with --amp
+        # -> RuntimeError: "ctc_loss_cuda" not implemented for 'Half'
+        # https://discuss.pytorch.org/t/ctc-loss-ctc-loss-not-support-float16/148800
+        # Note that train loop works, but the `loss = loss_fn(output, target)`
+        # part of validate breaks, as it is not placed within the context of
+        # the `with amp_autocast():` block due to the conditional TTA in
+        # between.
+        train_loss_fn = CTCLoss(
+            blank_label=model.blank,
+            width=model.width,
+            num_classes=args.num_classes,
+            ).cuda()
+    elif args.seq2seq and args.smoothing:
+        train_loss_fn = LabelSmoothingSeq2SeqCrossEntropy(
+            pad_idx=PAD_IDX, smoothing=args.smoothing,
+            ).cuda()
+    elif args.seq2seq and not args.smoothing:
+        train_loss_fn = Seq2SeqCrossEntropy(pad_idx=PAD_IDX).cuda()
     elif args.smoothing:
-        train_loss_fn = LabelSmoothingCrossEntropy(smoothing=args.smoothing).cuda()
+        train_loss_fn = LabelSmoothingSequenceCrossEntropy(args.smoothing, True).cuda()
     else:
-        train_loss_fn = nn.CrossEntropyLoss().cuda()
+        train_loss_fn = SequenceCrossEntropy().cuda()
 
-    if args.sequence_model:
+    # setup validate metrics
+    if args.ctc:
+        validate_loss_fn = train_loss_fn
+        validate_accuracy_fn = CTCSeqAcc(model.blank)
+    elif args.seq2seq:
+        validate_loss_fn = Seq2SeqCrossEntropy(pad_idx=PAD_IDX).cuda()
+        validate_accuracy_fn = Seq2SeqAccuracy(PAD_IDX)
+    else:
         validate_loss_fn = SequenceCrossEntropy().cuda()
-    else:
-        validate_loss_fn = nn.CrossEntropyLoss().cuda()
-
-    # setup accuracy function
-    if args.sequence_model:
         validate_accuracy_fn = sequence_accuracy
-    else:
-        validate_accuracy_fn = accuracy
 
     # setup checkpoint saver and eval metric tracking
     eval_metric = 'eval_' + args.eval_metric
@@ -411,19 +421,19 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
                 str(data_config['input_size'][-1])
             ])
         output_dir = get_outdir(args.output if args.output else './output/train', exp_name)
-        decreasing = True if eval_metric == 'loss' else False
+        decreasing = eval_metric == 'loss'
         saver = CheckpointSaver(
             model=model, optimizer=optimizer, args=args, model_ema=model_ema, amp_scaler=loss_scaler,
             checkpoint_dir=output_dir, recovery_dir=output_dir, decreasing=decreasing, max_history=args.checkpoint_hist)
-        with open(os.path.join(output_dir, 'args.yaml'), 'w') as f: # pylint: disable=C0103
+        with open(os.path.join(output_dir, 'args.yaml'), 'w') as f: # pylint: disable=C0103, W1514
             f.write(args_text)
 
     if args.log_wandb and args.local_rank == 0:
         if has_wandb:
-            wandb.init(
+            wandb_init(
+                output_dir=output_dir,
                 project=args.wandb_project_prefix + os.path.split(args.output)[-1],
                 name=args.experiment,
-                dir=output_dir,
                 resume='auto',
                 config=args,
                 )
@@ -436,7 +446,7 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
         if args.rank == 0:
             initial_log(
                 args, output_dir, loader_train, loader_eval, clean_pred,
-                log_wandb=args.log_wandb and has_wandb,
+                log_wandb=args.log_wandb and has_wandb, mixup_fn=mixup_fn,
                 )
 
     try:
@@ -448,7 +458,7 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
 
             train_metrics = train_one_epoch(
                 epoch, model, loader_train, optimizer, train_loss_fn, args,
-                lr_scheduler=lr_scheduler, saver=saver, output_dir=output_dir,
+                logger=_logger, lr_scheduler=lr_scheduler, saver=saver, output_dir=output_dir,
                 amp_autocast=amp_autocast, loss_scaler=loss_scaler, model_ema=model_ema, mixup_fn=mixup_fn)
 
             if args.distributed and args.dist_bn in ('broadcast', 'reduce'):
@@ -457,14 +467,14 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
                 distribute_bn(model, args.world_size, args.dist_bn == 'reduce')
 
             eval_metrics = validate(model, loader=loader_eval, loss_fn=validate_loss_fn, args=args, amp_autocast=amp_autocast,
-                                    accuracy_fn=validate_accuracy_fn)
+                                    accuracy_fn=validate_accuracy_fn, logger=_logger)
 
             if model_ema is not None and not args.model_ema_force_cpu:
                 if args.distributed and args.dist_bn in ('broadcast', 'reduce'):
                     distribute_bn(model_ema, args.world_size, args.dist_bn == 'reduce')
                 ema_eval_metrics = validate(
                     model_ema.module, loader_eval, validate_loss_fn, args, amp_autocast=amp_autocast, log_suffix=' (EMA)',
-                    accuracy_fn=validate_accuracy_fn)
+                    accuracy_fn=validate_accuracy_fn, logger=_logger)
                 eval_metrics = ema_eval_metrics
 
             if lr_scheduler is not None:
@@ -485,215 +495,13 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
 
             if saver is not None:
                 # save proper checkpoint with eval metric
-                save_metric = -1 if args.skip_validate else eval_metrics[eval_metric]
+                save_metric = -1 / (epoch + 1) if args.skip_validate else eval_metrics[eval_metric]
                 best_metric, best_epoch = saver.save_checkpoint(epoch, metric=save_metric)
 
     except KeyboardInterrupt:
         pass
     if best_metric is not None:
         _logger.info('*** Best metric: {0} (epoch {1})'.format(best_metric, best_epoch)) # pylint: disable=W1202
-
-
-def train_one_epoch( # pylint: disable=R0913, R0914, R0912, R0915, C0116
-        epoch, model, loader, optimizer, loss_fn, args,
-        lr_scheduler=None, saver=None, output_dir=None, amp_autocast=suppress,
-        loss_scaler=None, model_ema=None, mixup_fn=None):
-
-    if args.mixup_off_epoch and epoch >= args.mixup_off_epoch:
-        if args.prefetcher and loader.mixup_enabled:
-            loader.mixup_enabled = False
-        elif mixup_fn is not None:
-            mixup_fn.mixup_enabled = False
-
-    second_order = hasattr(optimizer, 'is_second_order') and optimizer.is_second_order
-    batch_time_m = AverageMeter()
-    data_time_m = AverageMeter()
-    losses_m = AverageMeter()
-
-    model.train()
-
-    end = time.time()
-    last_idx = len(loader) - 1
-    num_updates = epoch * len(loader)
-    for batch_idx, (input, target) in enumerate(loader): # pylint: disable=W0622
-        last_batch = batch_idx == last_idx
-        data_time_m.update(time.time() - end)
-        if not args.prefetcher:
-            input, target = input.cuda(), target.cuda()
-            if mixup_fn is not None:
-                input, target = mixup_fn(input, target)
-        if args.channels_last:
-            input = input.contiguous(memory_format=torch.channels_last) # pylint: disable=E1101
-
-        with amp_autocast():
-            output = model(input)
-            loss = loss_fn(output, target)
-
-        if not args.distributed:
-            losses_m.update(loss.item(), input.size(0))
-
-        optimizer.zero_grad()
-        if loss_scaler is not None:
-            loss_scaler(
-                loss, optimizer,
-                clip_grad=args.clip_grad, clip_mode=args.clip_mode,
-                parameters=model_parameters(model, exclude_head='agc' in args.clip_mode),
-                create_graph=second_order)
-        else:
-            loss.backward(create_graph=second_order)
-            if args.clip_grad is not None:
-                dispatch_clip_grad(
-                    model_parameters(model, exclude_head='agc' in args.clip_mode),
-                    value=args.clip_grad, mode=args.clip_mode)
-            optimizer.step()
-
-        if model_ema is not None:
-            model_ema.update(model)
-
-        torch.cuda.synchronize()
-        num_updates += 1
-        batch_time_m.update(time.time() - end)
-        if last_batch or batch_idx % args.log_interval == 0:
-            lrl = [param_group['lr'] for param_group in optimizer.param_groups]
-            lr = sum(lrl) / len(lrl) # pylint: disable=C0103
-
-            if args.distributed:
-                reduced_loss = reduce_tensor(loss.data, args.world_size)
-                losses_m.update(reduced_loss.item(), input.size(0))
-
-            if args.local_rank == 0:
-                _logger.info(
-                    'Train: {} [{:>4d}/{} ({:>3.0f}%)]  '
-                    'Loss: {loss.val:>9.6f} ({loss.avg:>6.4f})  '
-                    'Time: {batch_time.val:.3f}s, {rate:>7.2f}/s  '
-                    '({batch_time.avg:.3f}s, {rate_avg:>7.2f}/s)  '
-                    'LR: {lr:.3e}  '
-                    'Data: {data_time.val:.3f} ({data_time.avg:.3f})'.format(
-                        epoch,
-                        batch_idx, last_idx,
-                        100. * batch_idx / last_idx,
-                        loss=losses_m,
-                        batch_time=batch_time_m,
-                        rate=input.size(0) * args.world_size / batch_time_m.val,
-                        rate_avg=input.size(0) * args.world_size / batch_time_m.avg,
-                        lr=lr,
-                        data_time=data_time_m))
-
-                if args.save_images and output_dir:
-                    torchvision.utils.save_image(
-                        input,
-                        os.path.join(output_dir, 'train-batch-%d.jpg' % batch_idx),
-                        padding=0,
-                        normalize=True)
-
-        if saver is not None and args.recovery_interval and (
-                last_batch or (batch_idx + 1) % args.recovery_interval == 0):
-            saver.save_recovery(epoch, batch_idx=batch_idx)
-
-        if lr_scheduler is not None:
-            lr_scheduler.step_update(num_updates=num_updates, metric=losses_m.avg)
-
-        end = time.time()
-        # end for
-
-    if hasattr(optimizer, 'sync_lookahead'):
-        optimizer.sync_lookahead()
-
-    return OrderedDict([
-        ('train_loss', losses_m.avg),
-        ('train_time', batch_time_m.sum),
-        ('train_data_time', data_time_m.sum),
-        ('train_model_time', batch_time_m.sum - data_time_m.sum),
-        ])
-
-
-def validate(model, loader, loss_fn, args, amp_autocast=suppress, log_suffix='', accuracy_fn=accuracy): # pylint: disable=R0913, R0914, C0116
-    if args.sequence_model:
-        acc_metric_1_name, acc_metric_2_name = 'SeqAcc', 'TokenAcc'
-    else:
-        acc_metric_1_name, acc_metric_2_name = 'Acc@1', 'Acc@5'
-
-    if args.skip_validate:
-        metrics = OrderedDict([
-            ('eval_loss', None),
-            ('eval_' + acc_metric_1_name, None),
-            ('eval_' + acc_metric_2_name, None),
-            ])
-
-        return metrics
-
-    batch_time_m = AverageMeter()
-    losses_m = AverageMeter()
-    acc_metric_1_m = AverageMeter()
-    acc_metric_2_m = AverageMeter()
-
-    model.eval()
-
-    end = time.time()
-    last_idx = len(loader) - 1
-    with torch.no_grad():
-        for batch_idx, (input, target) in enumerate(loader): # pylint: disable=W0622
-            last_batch = batch_idx == last_idx
-            if not args.prefetcher:
-                input = input.cuda()
-                target = target.cuda()
-            if args.channels_last:
-                input = input.contiguous(memory_format=torch.channels_last) # pylint: disable=E1101
-
-            with amp_autocast():
-                output = model(input)
-            if isinstance(output, (tuple, list)) and not args.sequence_model:
-                output = output[0]
-
-            # augmentation reduction
-            reduce_factor = args.tta
-            if reduce_factor > 1:
-                assert not args.sequence_model, 'TTA not implemented for sequence models'
-                output = output.unfold(0, reduce_factor, reduce_factor).mean(dim=2)
-                target = target[0:target.size(0):reduce_factor]
-
-            loss = loss_fn(output, target)
-
-            if args.sequence_model:
-                acc_metric_1, acc_metric_2 = accuracy_fn(output, target)
-            else:
-                acc_metric_1, acc_metric_2 = accuracy_fn(output, target, topk=(1, 5))
-
-            if args.distributed:
-                reduced_loss = reduce_tensor(loss.data, args.world_size)
-                acc_metric_1 = reduce_tensor(acc_metric_1, args.world_size)
-                acc_metric_2 = reduce_tensor(acc_metric_2, args.world_size)
-            else:
-                reduced_loss = loss.data
-
-            torch.cuda.synchronize()
-
-            losses_m.update(reduced_loss.item(), input.size(0))
-            acc_metric_1_m.update(acc_metric_1.item(), target.size(0))
-            acc_metric_2_m.update(acc_metric_2.item(), target.size(0))
-
-            batch_time_m.update(time.time() - end)
-            end = time.time()
-            if args.local_rank == 0 and (last_batch or batch_idx % args.log_interval == 0):
-                log_name = 'Test' + log_suffix
-                _logger.info(
-                    '{0}: [{1:>4d}/{2}]  '
-                    'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})  '
-                    'Loss: {loss.val:>7.4f} ({loss.avg:>6.4f})  '
-                    '{acc_metric_1_name}: {acc_metric_1_m.val:>7.4f} ({acc_metric_1_m.avg:>7.4f})  '
-                    '{acc_metric_2_name}: {acc_metric_2_m.val:>7.4f} ({acc_metric_2_m.avg:>7.4f})'.format(
-                        log_name, batch_idx, last_idx, batch_time=batch_time_m,
-                        loss=losses_m, acc_metric_1_name=acc_metric_1_name,
-                        acc_metric_2_name=acc_metric_2_name,
-                        acc_metric_1_m=acc_metric_1_m, acc_metric_2_m=acc_metric_2_m))
-
-    metrics = OrderedDict([
-        ('eval_loss', losses_m.avg),
-        ('eval_' + acc_metric_1_name, acc_metric_1_m.avg),
-        ('eval_' + acc_metric_2_name, acc_metric_2_m.avg),
-        ])
-
-    return metrics
 
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@ import torch
 import torch.nn.parallel
 
 from timm.models import (
+    safe_model_name,
     apply_test_time_pool,
     load_checkpoint,
     )
@@ -32,13 +33,17 @@ from timm.utils import (
 # timmsn imports
 from timmsn.utils import (
     predict_sequence_v2,
+    PredictSequenceAR,
+    PredictSequenceCTC,
     multiple_coverage_acc_plot,
     multiple_certainty_acc_plot,
     MontageMaker,
+    DecoderFactory,
     )
-from timmsn.models import create_model
+from timmsn.models import create_model_v2
 from timmsn.data import create_loader
 from timmsn.data.parsers import setup_sqnet_parser, setup_bdatasets_parser
+from timmsn.data.formatters.constants import PAD_IDX, BOS_IDX, EOS_IDX
 
 # other imports
 from argparser import parse_args
@@ -50,18 +55,18 @@ try:
 except ImportError:
     pass
 
-has_apex = False # pylint: disable=C0103
-try:
-    from apex import amp
-    has_apex = True # pylint: disable=C0103
-except ImportError:
-    pass
-
-has_native_amp = False # pylint: disable=C0103
+has_amp = False # pylint: disable=C0103
 try:
     if getattr(torch.cuda.amp, 'autocast') is not None:
-        has_native_amp = True # pylint: disable=C0103
+        has_amp = True # pylint: disable=C0103
 except AttributeError:
+    pass
+
+has_torchmetrics = False # pylint: disable=C0103
+try:
+    from torchmetrics import CharErrorRate
+    has_torchmetrics = True # pylint: disable=C0103
+except ImportError:
     pass
 
 
@@ -86,61 +91,79 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
 
     parser_eval = clean_pred = None
     if isinstance(args.dataset, str) and args.dataset.startswith('bdatasets.'):
-        assert args.sequence_model, 'bdatasets are for sequences'
-        parser_eval, _, clean_pred = setup_bdatasets_parser(
-            args=args, purpose='test', split=args.data_split or 'test',
+        parser_eval, _, clean_pred, num_classes = setup_bdatasets_parser(
+            purpose='test',
+            dataset=args.dataset,
+            data_dir=args.data_dir,
+            evalset=args.evalset,
+            formatter_name=args.formatter,
+            num_classes=args.num_classes,
+            split=args.data_split,
+            verbose=args.local_rank,
+            formatter_kwargs=args.formatter_kwargs,
             )
     elif args.formatter is not None:
-        assert args.sequence_model
-        parser_eval, _, clean_pred = setup_sqnet_parser(
-            args=args, purpose='test', split=args.data_split or 'test',
+        parser_eval, _, clean_pred, num_classes = setup_sqnet_parser(
+            purpose='test',
+            dataset=args.dataset,
+            data_dir=args.data_dir,
+            dataset_structure=args.dataset_structure,
+            evalset=args.evalset,
+            formatter_name=args.formatter,
+            num_classes=args.num_classes,
+            split=args.data_split,
+            verbose=args.local_rank,
+            formatter_kwargs=args.formatter_kwargs,
+            dataset_cells=args.dataset_cells,
+            dataset_cells_eval=args.dataset_cells_eval,
+            labels_subdir=args.labels_subdir,
             )
 
-    if args.sequence_model:
-        assert args.num_classes is not None
-    else:
-        assert args.num_classes is None or len(args.num_classes) == 1
-        args.num_classes = None if args.num_classes is None else args.num_classes[0]
+    args.num_classes = num_classes
+    assert args.num_classes is not None
 
     args.prefetcher = not args.no_prefetcher
-    amp_autocast = suppress  # do nothing
-    if args.amp:
-        if has_native_amp:
-            args.native_amp = True
-        elif has_apex:
-            args.apex_amp = True
-        else:
-            _logger.warning("Neither APEX or Native Torch AMP is available.")
-    assert not args.apex_amp or not args.native_amp, "Only one AMP mode should be set."
-    if args.native_amp:
+
+    # setup automatic mixed-precision (AMP) op casting
+    amp_autocast = suppress # do nothing
+    if args.amp and has_amp:
         amp_autocast = torch.cuda.amp.autocast
-        _logger.info('Validating in mixed precision with native PyTorch AMP.')
-    elif args.apex_amp:
-        _logger.info('Validating in mixed precision with NVIDIA APEX AMP.')
+        if args.local_rank == 0:
+            _logger.info('Using native Torch AMP. Evaluating in mixed precision.')
+    elif args.amp:
+        if args.local_rank == 0:
+            _logger.warning("AMP is not available, using float32. Upgrade to PyTorch>=1.6")
     else:
-        _logger.info('Validating in float32. AMP not enabled.')
+        if args.local_rank == 0:
+            _logger.info('AMP not enabled. Evaluating in float32.')
 
     if args.legacy_jit:
         set_jit_legacy()
 
     # create model
-    model = create_model(
-        args.model,
+    model = create_model_v2(
+        feature_extractor_name=args.model,
         sqnet_version=args.sqnet_version,
         pretrained=args.pretrained,
         num_classes=args.num_classes,
         in_chans=3,
         global_pool=args.gp,
-        scriptable=args.torchscript)
+        scriptable=args.torchscript,
+        image_size=args.input_size,
+        classifier_name=args.classifier,
+        )
     if args.num_classes is None:
         assert hasattr(model, 'num_classes'), 'Model must have `num_classes` attr if not set on cmd line/config.'
         args.num_classes = model.num_classes
 
-    if args.checkpoint: #
+    if args.checkpoint:
         load_checkpoint(model, args.checkpoint, args.use_ema)
 
-    param_count = sum([m.numel() for m in model.parameters()])
-    _logger.info('Model %s created, param count: %d' % (args.model, param_count)) # pylint: disable=W1201
+    _logger.info('Model {} created with classifier {}, param count: {}'.format( # pylint: disable=W1202
+        safe_model_name(args.model),
+        args.classifier,
+        sum([m.numel() for m in model.parameters()])),
+        )
 
     data_config = resolve_data_config(vars(args), model=model, use_test_size=True, verbose=True)
     test_time_pool = False
@@ -152,9 +175,6 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
         model = torch.jit.script(model)
 
     model = model.cuda()
-
-    if args.apex_amp:
-        model = amp.initialize(model, opt_level='O1')
 
     if args.channels_last:
         model = model.to(memory_format=torch.channels_last) # pylint: disable=E1101
@@ -181,12 +201,42 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
         pin_memory=args.pin_mem,
         tf_preprocessing=args.tf_preprocessing)
 
-    # TODO add initial-log here. Need to rewrite function to work when only one
-    # loader available.
-
     model.eval()
 
-    preds, seq_prob, files, labels, digit_probs = predict_sequence_v2(
+    if args.seq2seq:
+        decoder_type = args.decoder.split('-')[0] if args.decoder else 'greedy'
+
+        beam_size = 3
+
+        if decoder_type == 'beam' and '-' in args.decoder:
+            beam_size = int(args.decoder.split('-')[1])
+
+        # Note that when `decoder_type` is, e.g., greedy, `beam_size` is
+        # properly discarded/not used in `DecoderFactory`
+        decoder = DecoderFactory(
+            decoder_type=decoder_type,
+            max_len=len(args.num_classes),
+            start_symbol=BOS_IDX,
+            end_symbol=EOS_IDX,
+            beam_size=beam_size,
+            pad_sequences=True,
+            pad_idx=PAD_IDX,
+            )
+
+        predict_fn = PredictSequenceAR(
+            decoder=decoder,
+            decoder_is_elementwise=decoder_type != 'greedy',
+            )
+    elif args.ctc:
+        predict_fn = PredictSequenceCTC( # TODO change CTC formatter to use the global IDXs etc., right now messy
+            blank=model.blank,
+            max_len=model.width,
+            pad_idx=max(args.num_classes) - 1,
+            )
+    else:
+        predict_fn = predict_sequence_v2
+
+    preds, seq_prob, files, labels, digit_probs = predict_fn(
         model=model,
         loader=loader,
         amp_autocast=amp_autocast,
@@ -208,7 +258,12 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
         })
 
     acc = 100 * (pred_df['label'] == pred_df['pred']).mean()
-    print(f'Accuracy: {acc}%.')
+    print(f'Accuracy: {acc:.2f}%.')
+
+    if has_torchmetrics:
+        metric = CharErrorRate()
+        cer = 100 * metric(pred_df['pred'].values, pred_df['label'].values)
+        print(f'CER: {cer:.2f}%. NOTE: CER might not be meaningful for many tasks.')
 
     if args.return_individual_probs:
         for i, probs in enumerate(digit_probs.T):
@@ -258,6 +313,7 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
             cv2.imwrite(os.path.join(output_dir, 'montage.png'), montage) # pylint: disable=E1101
         else:
             _logger.warning('You have requested to create cv2 montage but package not found.')
+
 
 def main():
     setup_default_logging()
