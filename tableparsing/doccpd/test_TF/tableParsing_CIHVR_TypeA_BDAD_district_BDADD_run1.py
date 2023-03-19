@@ -71,11 +71,11 @@ overlay = 'Y:/RegionH/Scripts/data/templates_and_overlays/TypeA/SP2_00004.pdf.pa
 evaluation = template #'W:/BDADSharedData/Spanish Flu/Sweden/storage_additionalAdrian/templates/A0032897_00549_cropped_evaluation_deathdate.xml'
 
 begin = 0
-end=30
+end=30000
 performance_metrics = []
 for file,keypoints in tqdm.tqdm(data_full[begin:end]):    
 #for file,keypoints in tqdm.tqdm(data_full[:10]): #(5,6,10)      
-    print(file)
+    #print(file)
     try:
         IoU,dice,ownmetric = tableParser.tableParser_pointcloud(template_image_path=template_image_path,
                                         template=template,
@@ -92,7 +92,7 @@ for file,keypoints in tqdm.tqdm(data_full[begin:end]):
                                         detector=None,
                                         Rotating=None,
                                         jupyternotebook=False,
-                                        show_fit=True,
+                                        show_fit=False,
                                         showcloud=False,
                                         showoverlay=False)
         print(file,ownmetric,(begin,end))

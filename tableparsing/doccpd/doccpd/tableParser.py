@@ -270,7 +270,7 @@ def tableParser_pointcloud(template_image_path:str,
         #target_image = cv.cvtColor(target_image, cv.COLOR_GRAY2BGR)
         h,w,_ = target_image.shape
         
-        if h>3200:
+        if h>0:
     
             if autocrop:
                 target_image=autocrop_noresize(target_image.copy(),height=h,width=w)           
