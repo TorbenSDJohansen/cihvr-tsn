@@ -46,6 +46,13 @@ def main():
         vsub = v.copy()
         vsub = vsub[np.isin(vsub[:, 1], list(allowed))] # NEED list instead of set
         vsub[:, 1] = [remap.get(x, x) for x in vsub[:, 1]]
+        vsub[:, 0] = [x.split('.page-')[0] for x in vsub[:, 0]]
+        vsub[:, 0] = [x.replace('.pdf', '.jpg').replace('.PDF', '.jpg') for x in vsub[:, 0]]
+
+        for file in vsub[:, 0]:
+            if not file.endswith('.jpg'):
+                raise ValueError(file)
+
         np.save(os.path.join(outdir, k), vsub)
 
 
