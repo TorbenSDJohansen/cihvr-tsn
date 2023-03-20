@@ -14,8 +14,8 @@ from typing import Set, Dict
 import numpy as np
 import pandas as pd
 
-from .prepare_nuse_name_data import _format_name
-from .gen_map_lookup_df import gen_map_name
+from prepare_nurse_name_data import _format_name
+from gen_map_lookup_df import gen_map_name
 
 
 FN_MAIN = 'Y:/RegionH/SPJ/Database/export_181106.txt' # to merge on
@@ -50,7 +50,7 @@ def _merge_filename_on(df: pd.DataFrame, df_main: pd.DataFrame):
 def _recast_name(name: str):
     # Mostly similar to `from prepare_nuse_name_data import _recast_name`
     if not isinstance(name, str):
-        raise Exception(name)
+        raise TypeError(f'name {name} is not str')
 
     if name == '':
         return 'IsNaN;IsNaN;IsNaN'
@@ -143,7 +143,7 @@ def prepare_nurse_names(df_cpc, df_cc, overlap):
 
     for col in new_nurse_names_unique.columns:
         if not new_nurse_names_unique[col].equals(reloaded[col]):
-            raise Exception(col)
+            raise ValueError(col)
 
 
 def rename_cols(frame: pd.DataFrame, map_name: Dict[str, str]) -> pd.DataFrame:
@@ -224,7 +224,7 @@ def prepare_tab_b(
 
     for col in tab_b.columns:
         if not tab_b[col].equals(reloaded[col]):
-            raise Exception(col)
+            raise ValueError(col)
 
     # Lise recommends maybe not use any of v3 (1 mo), highest prob wrong.
     # Handle this in `gen_labels.py`: In cases where overlap with old sample,
