@@ -10,7 +10,7 @@ import numpy as np
 
 def main():
     indir = r'Y:\RegionH\Scripts\users\tsdj\storage\labels-root\210304-tab-b-cmd-tsdj-merge\tab_b_test_all_cells'
-    outdir = r'Y:\RegionH\Scripts\data\storage\minipics\labels\tab-b-100x112-test-set\test'
+    outdir = r'Y:\RegionH\Scripts\data\storage\labels\tab-b-100x112-test-set\test'
 
     labels = {f: np.load(os.path.join(indir, f)) for f in os.listdir(indir)}
     labels_arr = np.concatenate([np.c_[v, np.repeat(k, len(v))] for k, v in labels.items()])
