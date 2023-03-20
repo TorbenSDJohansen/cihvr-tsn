@@ -36,7 +36,7 @@ To create dictionary to map between EPI data dump variable names and SDU variabl
 
 To create .csv with number of images per journal use `python data/nb_pages_pr_journal.py`.
 
-To prepare nurse name data (before new labels from @Malthe are added, see `cmds/names.md` for details) use `python data/prepare_nuse_name_data.py`. **Note**: Typo in name, "nuse" is meant to be "nurse".
+To prepare nurse name data (before new labels from @Malthe are added, see `cmds/names.md` for details) use `python data/prepare_nurse_name_data.py`.
 
 To prepare new EPI data dump and harmonize with original EPI data dump use `python data/prepare_extra_data_lise.py`.
 

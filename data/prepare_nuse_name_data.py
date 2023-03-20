@@ -9,6 +9,7 @@ import math
 import string
 import os
 import pickle
+import warnings
 
 import pandas as pd
 
@@ -99,7 +100,7 @@ def _create_lexicon():
     assert set(lex_dfs['0172-0173']['Efternavn']) - set(names['Efternavn']) == set()
 
     lex_last = set(names['Efternavn'])
-    lex_first = set([x for x in names['Fornavn'] if len(x) > 1])
+    lex_first = set(x for x in names['Fornavn'] if len(x) > 1)
     lex_first_i = set(names['Fornavn'].apply(lambda x: x[0])) # Perhaps include all/more letters?
 
     return {
@@ -114,7 +115,7 @@ def _recast_name(name: str):
         if math.isnan(name):
             return 'IsNaN;IsNaN;IsNaN'
 
-        raise Exception(name)
+        raise TypeError(f'name {name} it not str')
 
     # Special case typo fixing...
     if name == 'P. Lund; M. Ravnborg, M. L. Poort':
@@ -168,7 +169,7 @@ def _format_name(name_raw: str):
         return None
 
     if not set(name).issubset(LETTERS_SET):
-        raise Exception(name_raw)
+        raise ValueError(f'name_raw {name_raw} -> {name} contains chars not part of {LETTERS_SET}')
 
     k = len(names_split)
 
@@ -210,7 +211,7 @@ def _save_lex(lex: set, path: str, fname: str):
         with open(fname_full, 'wb') as file:
             pickle.dump(lex, file)
     else:
-        print(f'WARNING: File "{fname_full}" already exists! Not writing.')
+        warnings.warn(f'File "{fname_full}" already exists! Not writing.')
 
 
 def _save_lexicons(lex: dict, last_names: set, first_names: set):
@@ -294,23 +295,19 @@ def main():
 
     _save_lexicons(lex, last_names=unique_last_names, first_names=unique_first_names)
 
-    # TODO if a name is rare in labels and a close match to either something in
-    # `lex` or another, non-rare, label, it is likely incorrect. Maybe use this
-    # information to, e.g., match to nearest valid
-
     fname = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv'
 
     if not os.path.isfile(fname):
         names_merged.to_csv(fname, index=False)
     else:
-        print(f'WARNING: File "{fname}" already exist - not writing new file!')
+        warnings.warn(f'File "{fname}" already exist - not writing new file!')
 
     # Check save/load value preservation...
     reloaded = pd.read_csv(fname)
 
     for col in names_merged.columns:
         if not names_merged[col].equals(reloaded[col]):
-            raise Exception(col)
+            raise ValueError(col)
             # equal = names_merged[col] == reloaded[col]
             # sub1, sub2 = names_merged[~equal], reloaded[~equal]
 
