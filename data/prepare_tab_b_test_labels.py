@@ -10,7 +10,7 @@ import numpy as np
 
 def main():
     indir = r'Y:\RegionH\Scripts\users\tsdj\storage\labels-root\210304-tab-b-cmd-tsdj-merge\tab_b_test_all_cells'
-    outdir = r'Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined\labels\keep-tab-b-test\test'
+    outdir = r'Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined\labels\tab-b-100x112-test-set\test'
 
     labels = {f: np.load(os.path.join(indir, f)) for f in os.listdir(indir)}
     labels_arr = np.concatenate([np.c_[v, np.repeat(k, len(v))] for k, v in labels.items()])
@@ -21,19 +21,23 @@ def main():
     # [['SP2_30478.pdf.page-0.jpg' '23' 'tab-b-c16-6-mo.npy']] NOT OK!!!
     # Conclusion: Valid digits is 0-11, both inclusive.
 
-    allowed = {'0=Mangler', '', 'b', *[str(i) for i in range(12)]}
+    allowed = {'0=Mangler', '', *[str(i) for i in range(12)]}
     not_allowed = set(unique) - allowed
     print(f'Dropping all cases of {not_allowed}')
 
     for bad in not_allowed:
         sub = labels_arr[labels_arr[:, 1] == bad]
-        if bad == 'x': # lots of these, we not able to read
+
+        if bad == 'x': # lots of these, cases we were not able to read
             continue
+
+        if bad == 'b': # cannot use old bad CPD labels as new segmentation
+            continue
+
         print(bad)
         print(sub)
 
     remap = {
-        'b': 'bad cpd',
         '': '0=Mangler',
         }
     assert set(remap.keys()).issubset(allowed)
