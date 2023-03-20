@@ -12,7 +12,7 @@ git clone https://github.com/TorbenSDJohansen/cihvr-tsn
 
 Then prepare an environment (here using conda and the name `cihvr`):
 ```
-conda create -n cihvr numpy pandas pillow scikit-learn opencv matplotlib pyyaml
+conda create -n cihvr numpy pandas pillow scikit-learn opencv matplotlib pyyaml xlrd
 conda activate cihvr
 conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
 pip install imutils timm
