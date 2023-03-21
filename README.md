@@ -42,7 +42,7 @@ To prepare new EPI data dump and harmonize with original EPI data dump use `pyth
 
 To prepare the @CMD & @TSDJ ~100x112 Table B test labels use `python data/prepare_tab_b_test_labels.py`.
 
-To prepare train and test labels use `python data/gen_labels.py`.
+To prepare train and test labels use `python data/gen_labels.py --dir Y:\RegionH\Scripts\data\storage\labels\keep`.
 
 **Note**: For details on how to cluster journal pages, see [Applications of machine learning in tabular document digitisation](https://www.tandfonline.com/doi/abs/10.1080/01615440.2023.2164879).
 
@@ -57,6 +57,8 @@ To merge Type A and Type B segmentations (by copying B to A), use `python data/m
 See individual markdowns under `./cmds/` for how to train, evaluate, and predict for all models.
 This will also include details on any pre-training on other datasets, details on how to prepare the datasets used to train the models, and details on how to expand the datasets between rounds (e.g., for nurse names).
 Pre-training and adding data between rounds happens only for some models.
+
+**TODO**: List order to run in and hyperlink to .md
 
 ### Post-transcription
 To produce table with transcription accuracies:
