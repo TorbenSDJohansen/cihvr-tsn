@@ -12,12 +12,18 @@ segmentation" examples and add those.
 """
 
 
+# TODO (1) Add new nurse name labels form @malthe
+# TODO (2) Check the cast 0 -> 0=Mangler for preterm weeks
+# TODO (3) Probably want to add some "bad segmentation" labels in some way
+# TODO (4) might want to add some empty labels in some way
 
+
+import argparse
 import os
 import pickle
 import warnings
 
-from typing import Callable, Dict, Set
+from typing import Callable, Dict, List, Set, Union
 
 import json
 
@@ -27,6 +33,29 @@ import numpy as np
 import pandas as pd
 
 from verifiers import Verifiers
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--dir', type=str)
+    parser.add_argument('--fields', type=str, nargs='+', default=None)
+    parser.add_argument('--share-test', type=float, default=0.1)
+    parser.add_argument('--handle-bad-segmentation', type=str, default='keep', choices=['keep', 'drop', 'ignore'])
+    parser.add_argument('--max-share-bad_segmentation', type=float, default=0.1)
+
+    args = parser.parse_args()
+
+    if not os.path.isdir(args.dir):
+        raise NotADirectoryError(f'--dir {args.dir} does not exist')
+
+    if not 0 <= args.share_test < 1:
+        raise ValueError('--share-test must be in [0, 1), got {args.share_test}')
+
+    if not 0 <= args.max_share_bad_segmentation < 1:
+        raise ValueError('--max-share-bad_segmentation must be in [0, 1), got {args.max_share_bad_segmentation }')
+
+    return args
 
 
 def load_mod_weight() -> pd.DataFrame:
@@ -203,6 +232,7 @@ def init_verifiers() -> Dict[str, Callable]:
 
 def gen_labels(
         labels_root: str,
+        fields: Union[List[str], None],
         share_test: float,
         handle_bad_segmentation: str = 'keep',
         max_share_bad_segmentation: float = 1.0,
@@ -215,6 +245,9 @@ def gen_labels(
     ----------
     labels_root : str
         The directory where the label files are exported to.
+    fields : List[str] or None
+        List of fields to create labels for. If None, try to create for all
+        fields part of the `fn_map_lookup_df` file.
     share_test : float
         Share of observations sorted away to test set.
     handle_bad_segmentation : str
@@ -262,6 +295,13 @@ def gen_labels(
     with open(fn_map_lookup_df, 'rb') as file:
         map_lookup_df = pickle.load(file)
 
+    # If no fields selected, try all in `map_lookup_df`
+    fields = fields if fields else map_lookup_df.keys()
+
+    if not set(fields).issubset(map_lookup_df.keys()):
+        bad_fields = set(fields) - map_lookup_df.keys()
+        raise ValueError(f'requested --fields {bad_fields} not in {map_lookup_df.keys()}')
+
     empty_cells = load_mod_weight()
 
     # Merge info on nurse names into main_df
@@ -280,7 +320,9 @@ def gen_labels(
 
     lookup_verify = init_verifiers()
 
-    for i, (key, value) in enumerate(map_lookup_df.items(), start=1):
+    for i, key in enumerate(fields, start=1):
+        value = map_lookup_df[key]
+
         if value not in df_main.columns:
             warnings.warn(f'Skipping {key} as column not found')
             continue
@@ -359,10 +401,17 @@ def gen_labels(
     # directly in `gen_map_lookup_df.py` as well!!
 
 
-if __name__ == '__main__':
+def main():
+    args = parse_args()
+
     gen_labels(
-        labels_root=r'Y:\RegionH\Scripts\data\storage\labels\keep',
-        share_test=0.1,
-        handle_bad_segmentation='keep',
-        max_share_bad_segmentation=0.1,
+        labels_root=args.dir,
+        fields=args.fields,
+        share_test=args.share_test,
+        handle_bad_segmentation=args.handle_bad_segmentation,
+        max_share_bad_segmentation=args.max_share_bad_segmentation,
         )
+
+
+if __name__ == '__main__':
+    main()
