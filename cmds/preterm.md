@@ -3,11 +3,11 @@ Merge cells to two image folders (one for train and one for test):
 ```
 python data\create_train_dataset.py ^
 --dir Y:\RegionH\Scripts\data\storage ^
---labels-subdir keep-restrict-share-bad-cpd ^
+--labels-subdir keep ^
 --fields preterm-birth ^
 --out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
 --name preterm-birth ^
---nb-pools 16
+--nb-pools 8
 ```
 
 **Note on image size**: Use of 249x107 as that matches for Type A.

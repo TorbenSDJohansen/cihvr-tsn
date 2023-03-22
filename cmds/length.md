@@ -3,7 +3,7 @@ Merge cells to two image folders for all lengths (one for train and one for test
 ```
 python data\create_train_dataset.py ^
 --dir Y:\RegionH\Scripts\data\storage ^
---labels-subdir keep-restrict-share-bad-cpd ^
+--labels-subdir keep ^
 --fields length-0-mo length-12-mo ^
 --out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
 --name length ^
