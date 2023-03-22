@@ -2,17 +2,19 @@
 Merge cells to two image folders for all names (one for train and one for test):
 ```
 python data\create_train_dataset.py ^
---dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined ^
---labels-subdir keep-restrict-share-bad-cpd ^
+--dir Y:\RegionH\Scripts\data\storage ^
+--labels-subdir keep ^
 --fields nurse-name-1 nurse-name-2 nurse-name-3 ^
 --out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
 --name nurse-name ^
 --nb-pools 8
 ```
 
+**Note on image size**: Use of 91x530 as that matches nurse-name-1 (primary target) for Type A.
+nurse-name-{2, 3} resolution borth 105x535, so proportions hardly different.
+**NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
+
 ## Training
-Notice larger image size, back to "default" epochs, smaller LR and batch size.
-Also note we keep and predict bad cpd cases.
 
 ### Last name
 MH
@@ -23,7 +25,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
 --lr 0.5 ^
 -b 128 ^
---input-size 3 95 680 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
@@ -41,7 +43,7 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --lr %i ^
 --weight-decay 0 ^
 -b 128 ^
---input-size 3 95 680 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
@@ -50,13 +52,13 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --log-wandb
 ```
 
-S2S. Note: 224 ** 2 / (95 * 650) ~ 0.8, decrease image size: (224 ^ 2 / (95 * 650)) ^ 0.5 * 95 ~ 85
+S2S
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter s2s_last_name_keep_bad_cpd ^
---experiment s2s-old-segmentation ^
+--experiment s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
---input-size 3 85 585 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
@@ -84,9 +86,9 @@ S2S w/ TL from HANA **NOTE** potentially experiment with --weight-decay 0
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter s2s_last_name_keep_bad_cpd ^
---experiment s2s-tl-old-segmentation ^
+--experiment s2s-tl ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
---input-size 3 85 585 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
@@ -106,7 +108,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
 --lr 0.5 ^
 -b 128 ^
---input-size 3 95 680 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
@@ -124,7 +126,7 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --lr %i ^
 --weight-decay 0 ^
 -b 128 ^
---input-size 3 95 680 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
@@ -134,13 +136,13 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 
 ```
 
-S2S. Note: 224 ** 2 / (95 * 650) ~ 0.8, decrease image size: (224 ^ 2 / (95 * 650)) ^ 0.5 * 95 ~ 85
+S2S
 ```
 python train.py ^
 --formatter s2s_first_name_keep_bad_cpd ^
 --experiment s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
---input-size 3 85 585 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
@@ -228,7 +230,7 @@ python predict.py ^
 --formatter last_name_keep_bad_cpd ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\mh-tl ^
 -b 2048 ^
---input-size 3 95 680 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-joined ^
 --dataset-cells nurse-name-1 ^
@@ -248,7 +250,7 @@ python predict.py ^
 --formatter first_name_keep_bad_cpd ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl ^
 -b 2048 ^
---input-size 3 95 680 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-joined ^
 --dataset-cells nurse-name-1 ^
@@ -262,6 +264,9 @@ python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl\preds.c
 ```
 
 # Post round 1 revision
+**TODO**: Move this to README probably... to only keep pure "NN" parts in these .mds
+**Especially** since gen_labels.py now takes care of wsp to label part
+
 To create workspaces for more labelling:
 ```
 python data\labelling\prepare_nurse_name_1.py --round 1 --task create-workspaces
@@ -284,7 +289,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --lr XXX ^
 --weight-decay 0 ^
 -b 128 ^
---input-size 3 95 680 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-joined ^
 --dataset-cells nurse-name-1 ^
@@ -303,7 +308,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --lr XXX ^
 --weight-decay 0 ^
 -b 128 ^
---input-size 3 95 680 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-joined ^
 --dataset-cells nurse-name-1 ^
@@ -345,7 +350,7 @@ python predict.py ^
 --formatter last_name_keep_bad_cpd ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\mh-tl-extra-data ^
 -b 2048 ^
---input-size 3 95 680 ^
+--input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-joined ^
 --dataset-cells nurse-name-1 ^
