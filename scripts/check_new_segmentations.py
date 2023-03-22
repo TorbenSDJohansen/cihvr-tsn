@@ -26,11 +26,11 @@ def count(root: str) -> Dict[str, int]:
             continue
 
         print(f'Counting files in {folder} ({i}/{len(cells)})')
-        files = os.listdir(folder)
-        images = [x for x in files if x.endswith('.jpg')]
+        files = set(os.listdir(folder))
+        images = {x for x in files if x.endswith('.jpg')}
 
-        if not len(files) == len(images):
-            warnings.warn(f'Number files/folders in {folder} does not match number ending with ".jpg"')
+        if not len(files) == len(images): # this is due to "Thumps.db" files
+            warnings.warn(f'Number files/folders in {folder} does not match number ending with ".jpg": {files - images}')
 
         counts[cell] = len(images)
 
