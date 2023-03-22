@@ -46,21 +46,53 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\last.pth.tar ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last-mh\last-new-style-format.pth.tar ^
 --log-wandb
 ```
 
 S2S. Note: 224 ** 2 / (95 * 650) ~ 0.8, decrease image size: (224 ^ 2 / (95 * 650)) ^ 0.5 * 95 ~ 85
 ```
-python train.py ^
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter s2s_last_name_keep_bad_cpd ^
---experiment s2s ^
+--experiment s2s-old-segmentation ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
 --input-size 3 85 585 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
 --config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
+```
+
+S2S square 224x224
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter s2s_last_name_keep_bad_cpd ^
+--experiment s2s-224x224-old-segmentation ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
+--input-size 3 224 224 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells nurse-name ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
+```
+
+S2S w/ TL from HANA **NOTE** potentially experiment with --weight-decay 0
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter s2s_last_name_keep_bad_cpd ^
+--experiment s2s-tl-old-segmentation ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
+--input-size 3 85 585 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells nurse-name ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last-s2s\last.pth.tar ^
+--tl-from-input-size 3 80 522 ^
 --log-wandb ^
 --initial-log
 ```
@@ -97,7 +129,7 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
 --config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\last.pth.tar ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first-mh\last-new-style-format.pth.tar ^
 --log-wandb
 
 ```
