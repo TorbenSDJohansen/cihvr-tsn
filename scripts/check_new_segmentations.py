@@ -32,6 +32,9 @@ def count(root: str) -> Dict[str, int]:
         if not len(files) == len(images): # this is due to "Thumps.db" files
             warnings.warn(f'Number files/folders in {folder} does not match number ending with ".jpg": {files - images}')
 
+            if files - images - {'Thumbs.db'} != set():
+                raise OSError(f'Unexpected file type(s) for {files - images - {"Thumbs.db"}}')
+
         counts[cell] = len(images)
 
     return counts
