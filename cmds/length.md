@@ -2,13 +2,16 @@
 Merge cells to two image folders for all lengths (one for train and one for test):
 ```
 python data\create_train_dataset.py ^
---dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined ^
+--dir Y:\RegionH\Scripts\data\storage ^
 --labels-subdir keep-restrict-share-bad-cpd ^
 --fields length-0-mo length-12-mo ^
 --out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
 --name length ^
---nb-pools 16
+--nb-pools 8
 ```
+
+**Note on image size**: Use of 297x109 as length-0-mo is 297x109 and length-12-mo is 216x89 for Type A.
+**NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
 
 ## Training
 MH
@@ -18,7 +21,7 @@ python train.py ^
 --experiment mh ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\length ^
 -b 512 ^
---input-size 3 93 198 ^
+--input-size 3 109 297 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells length ^
@@ -34,7 +37,7 @@ python train.py ^
 --experiment s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\length ^
 -b 512 ^
---input-size 3 93 198 ^
+--input-size 3 109 297 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells length ^
