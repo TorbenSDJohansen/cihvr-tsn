@@ -1,5 +1,5 @@
 # Table B
-Many cells - define here. 
+Large number of cells - define here for improved readability.
 First all 112, then smaller set exluding, e.g., tab-b-c9-1-mo from which we have no labels.
 ```
 set DATASET-CELLS-TAB-B=tab-b-c1-1-mo tab-b-c1-2-mo tab-b-c1-3-mo tab-b-c1-4-mo tab-b-c1-6-mo tab-b-c1-9-mo tab-b-c1-12-mo tab-b-c2-1-mo tab-b-c2-2-mo tab-b-c2-3-mo tab-b-c2-4-mo tab-b-c2-6-mo tab-b-c2-9-mo tab-b-c2-12-mo tab-b-c3-1-mo tab-b-c3-2-mo tab-b-c3-3-mo tab-b-c3-4-mo tab-b-c3-6-mo tab-b-c3-9-mo tab-b-c3-12-mo tab-b-c4-1-mo tab-b-c4-2-mo tab-b-c4-3-mo tab-b-c4-4-mo tab-b-c4-6-mo tab-b-c4-9-mo tab-b-c4-12-mo tab-b-c5-1-mo tab-b-c5-2-mo tab-b-c5-3-mo tab-b-c5-4-mo tab-b-c5-6-mo tab-b-c5-9-mo tab-b-c5-12-mo tab-b-c6-1-mo tab-b-c6-2-mo tab-b-c6-3-mo tab-b-c6-4-mo tab-b-c6-6-mo tab-b-c6-9-mo tab-b-c6-12-mo tab-b-c7-1-mo tab-b-c7-2-mo tab-b-c7-3-mo tab-b-c7-4-mo tab-b-c7-6-mo tab-b-c7-9-mo tab-b-c7-12-mo tab-b-c8-1-mo tab-b-c8-2-mo tab-b-c8-3-mo tab-b-c8-4-mo tab-b-c8-6-mo tab-b-c8-9-mo tab-b-c8-12-mo tab-b-c9-1-mo tab-b-c9-2-mo tab-b-c9-3-mo tab-b-c9-4-mo tab-b-c9-6-mo tab-b-c9-9-mo tab-b-c9-12-mo tab-b-c10-1-mo tab-b-c10-2-mo tab-b-c10-3-mo tab-b-c10-4-mo tab-b-c10-6-mo tab-b-c10-9-mo tab-b-c10-12-mo tab-b-c11-1-mo tab-b-c11-2-mo tab-b-c11-3-mo tab-b-c11-4-mo tab-b-c11-6-mo tab-b-c11-9-mo tab-b-c11-12-mo tab-b-c12-1-mo tab-b-c12-2-mo tab-b-c12-3-mo tab-b-c12-4-mo tab-b-c12-6-mo tab-b-c12-9-mo tab-b-c12-12-mo tab-b-c13-1-mo tab-b-c13-2-mo tab-b-c13-3-mo tab-b-c13-4-mo tab-b-c13-6-mo tab-b-c13-9-mo tab-b-c13-12-mo tab-b-c14-1-mo tab-b-c14-2-mo tab-b-c14-3-mo tab-b-c14-4-mo tab-b-c14-6-mo tab-b-c14-9-mo tab-b-c14-12-mo tab-b-c15-1-mo tab-b-c15-2-mo tab-b-c15-3-mo tab-b-c15-4-mo tab-b-c15-6-mo tab-b-c15-9-mo tab-b-c15-12-mo tab-b-c16-1-mo tab-b-c16-2-mo tab-b-c16-3-mo tab-b-c16-4-mo tab-b-c16-6-mo tab-b-c16-9-mo tab-b-c16-12-mo
@@ -9,25 +9,30 @@ set DATASET-CELLS-TAB-B-SUB=tab-b-c1-1-mo tab-b-c1-2-mo tab-b-c1-3-mo tab-b-c1-4
 Merge cells to two image folders for all Table B (one for train and one for test):
 ```
 python data\create_train_dataset.py ^
---dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined ^
---labels-subdir keep-restrict-share-bad-cpd ^
+--dir Y:\RegionH\Scripts\data\storage ^
+--labels-subdir keep ^
 --fields %DATASET-CELLS-TAB-B-SUB% ^
 --out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
 --name tab-b ^
---nb-pools 16
+--nb-pools 8
 ```
 
 Merge cells to two image folders for all Table B (for 100x112 test set):
 ```
 python data\create_train_dataset.py ^
---dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined ^
---labels-subdir keep-tab-b-test ^
+--dir Y:\RegionH\Scripts\data\storage ^
+--labels-subdir tab-b-100x112-test-set ^
 --fields %DATASET-CELLS-TAB-B% ^
 --out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
 --name tab-b-test ^
 --splits test ^
 --nb-pools 8
 ```
+
+**Note on image size**: For Type A, fields are either 98x65 (91 fields) or 121x72 (21 fields).
+Weighted average of aspect ratio is then ~1.54.
+Use 121x79 as quite close.
+**NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
 
 ## Training
 MH
@@ -38,7 +43,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b ^
 --lr 2.0 ^
 -b 512 ^
---input-size 3 64 125 ^
+--input-size 3 79 121 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells tab-b ^
@@ -47,14 +52,14 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --initial-log
 ```
 
-S2S 90x90 ~ 64x125, -b 8 times higher compared to cfg, same lr as diverges with 8 times higher lr
+S2S
 ```
 python train.py ^
 --formatter s2s_two_digit_keep_bad_cpd ^
---experiment s2s-90x90 ^
+--experiment s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b ^
---input-size 3 90 90 ^
--b 2048 ^
+--input-size 3 79 121 ^
+-b 512 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells tab-b ^
@@ -63,20 +68,6 @@ python train.py ^
 --initial-log
 ```
 
-S2S 224x224
-```
-python train.py ^
---formatter s2s_two_digit_keep_bad_cpd ^
---experiment s2s-224x224 ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b ^
---input-size 3 224 224 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-train ^
---dataset-cells tab-b ^
---config ./cfgs/deit3_b_s2s.yaml ^
---log-wandb ^
---initial-log
-```
 
 ## Evaluate
 MH
@@ -100,13 +91,13 @@ python evaluate.py ^
 --eval-plots-omit-most-occ 3
 ```
 
-S2S 90x90 (on our own test set, with ~100 examples of all 112 cells)
+S2S
 ```
 python evaluate.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\s2s-90x90-full-table ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s-90x90\args.yaml ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s\args.yaml ^
 --dataset-cells tab-b-test ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s-90x90\last.pth.tar ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
@@ -124,12 +115,12 @@ python predict.py ^
 --dataset-cells %DATASET-CELLS-TAB-B%
 ```
 
-S2S 90x90
+S2S
 ```
 python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b\s2s-90x90 ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s-90x90\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s-90x90\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b\s2s^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s\last.pth.tar ^
 --plots montage ^
 -b 2048 ^
 --dataset image-datasets-joined ^
