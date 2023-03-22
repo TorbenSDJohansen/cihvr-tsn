@@ -11,7 +11,7 @@ python data\create_train_dataset.py ^
 ```
 
 **Note on image size**: Different for each weight-{0, 1, 2, 3, 4, 6, 9, 12}-mo (209x102, 262x72, 266x74, 259x75, 264x70, 258x80, 248x72, 255x72, respectively) even within Type A.
-Use of 258x80 as that fits quite nicely (at least for all other than weight-0-mo, which is the most unique one, and of all the others is is the closest in terms of aspect ratio).
+Use of 258x80 as that fits quite nicely (at least for all other than weight-0-mo, which is the most unique one, and of all the others it is the closest in terms of aspect ratio).
 
 **NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
 
