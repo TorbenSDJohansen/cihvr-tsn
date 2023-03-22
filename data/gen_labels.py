@@ -13,9 +13,8 @@ segmentation" examples and add those.
 
 
 # TODO (1) Add new nurse name labels form @malthe
-# TODO (2) Check the cast 0 -> 0=Mangler for preterm weeks
-# TODO (3) Probably want to add some "bad segmentation" labels in some way
-# TODO (4) might want to add some empty labels in some way
+# TODO (2) Probably want to add some "bad segmentation" labels in some way
+# TODO (3) might want to add some empty labels in some way
 
 
 import argparse
@@ -222,7 +221,7 @@ def init_verifiers() -> Dict[str, Callable]:
         **{f'tab-b-c16-{x}-mo': verifiers.verify_tab_b_int for x in (1, 2, 3, 4, 6, 9, 12)},
         'dura-any-breastfeed': verifiers.verify_bfdurany,
         'preterm-birth': verifiers.verify_tab_b_12,
-        'preterm-birth-weeks': verifiers.verify_tab_b_int, # FIXME prob cast 0 to 0=Mangler here!!
+        'preterm-birth-weeks': verifiers.verify_preterm_birth_weeks,
         'breastfeed-7-do': verifiers.verify_tab_b_123,
         **{f'nurse-name-{x}': verifiers.verify_nurse_name for x in (1, 2, 3)},
         }
@@ -233,7 +232,7 @@ def init_verifiers() -> Dict[str, Callable]:
 def gen_labels(
         labels_root: str,
         fields: Union[List[str], None],
-        share_test: float,
+        share_test: float = 0.1,
         handle_bad_segmentation: str = 'keep',
         max_share_bad_segmentation: float = 1.0,
         ):
@@ -327,7 +326,7 @@ def gen_labels(
             warnings.warn(f'Skipping {key} as column not found')
             continue
 
-        print(f'Creating/appending labels for/to {key} ({i}/{len(map_lookup_df)})')
+        print(f'Creating/appending labels for/to {key} ({i}/{len(fields)})')
         sub = df_main[['fname', 'Journal', value]].copy()
 
         # Handle empty (this is only for weight, see `load_mod_weight`)

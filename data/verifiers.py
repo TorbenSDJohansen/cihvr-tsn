@@ -133,7 +133,7 @@ class Verifiers: # pylint: disable=C0115
 
         return name
 
-    def verity_preterm_birth_weeks(self, weeks: Union[str, int, float]):
+    def verify_preterm_birth_weeks(self, weeks: Union[str, int, float]) -> str:
         if weeks == 'bad cpd':
             return weeks
 
@@ -143,10 +143,13 @@ class Verifiers: # pylint: disable=C0115
             weeks = int(weeks)
         if isinstance(weeks, int):
             weeks = str(weeks)
-        elif not isinstance(weeks, str):
+        elif isinstance(weeks, str):
+            if float(weeks) == int(float(weeks)): # cast "0.0" to "0" etc
+                weeks = str(int(float(weeks)))
+        else:
             raise TypeError(f'weeks must be type str, int, or float, got {weeks} of type {type(weeks)}')
 
-        if weeks == '0': # TODO **NEED** to check this is actually the case, strong assumption
+        if weeks == '0': # "mis-labelled" and should be 0=Mangler
             weeks = '0=Mangler'
         else: # should be str representing int value now
             weeks_as_int = int(weeks)
