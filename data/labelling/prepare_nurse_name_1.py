@@ -53,7 +53,6 @@ def parse_args():
     if args.round < 0:
         raise ValueError(f'--round cannot be negative, got {args.round}')
 
-
     return args
 
 
@@ -321,6 +320,39 @@ def _workspace_to_labels(
     save_labels(labels_file_test, new_labels_test)
 
 
+def workspace_to_labels_dataframe(wsp_dir: dir) -> pd.DataFrame:
+    if not os.path.isdir(wsp_dir):
+        raise NotADirectoryError(f'workspace directory {wsp_dir} does not exist')
+
+    wsp_files = [os.path.join(wsp_dir, x) for x in os.listdir(wsp_dir)]
+    wsp_files = [x for x in wsp_files if x.endswith('.json')]
+
+    if len(wsp_files) == 0:
+        raise FileNotFoundError(f'no workspaces found in {wsp_dir}')
+
+    print(f'creating labels from {len(wsp_files)} workspaces')
+
+    labels = []
+
+    for file in wsp_files:
+        labels.append(load_workspace(file))
+
+    labels = pd.concat(labels)
+    labels['label'] = labels['label'].apply(recast_chars)
+
+    new_labels = labels[labels['label'] != 'x'].copy() # drop those failed to label
+
+    is_invalid = ~new_labels['label'].apply(check_name_valid)
+
+    if is_invalid.sum() > 0:
+        warnings.warn(f'dropping {is_invalid.sum()} invalid names:\n {new_labels[is_invalid]}')
+
+    new_labels = new_labels[~is_invalid]
+    new_labels['label'] = new_labels['label'].replace({'': '0=Mangler'})
+
+    return new_labels
+
+
 def create_workspaces(current_round: int):
     r'''
     Take as input predictions of first and last name. Could be matched, could
@@ -333,8 +365,8 @@ def create_workspaces(current_round: int):
     '''
 
     if current_round == 0: # Test round to MW
-        fn_pred_ln=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\preds_matched.csv'
-        fn_pred_fn=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625\preds_matched.csv'
+        fn_pred_ln=r'Z:\faellesmappe\tsdj\cihvr-timmsn\0-old-segmentation-pred\names\last\tl-lr-0.25\preds_matched.csv'
+        fn_pred_fn=r'Z:\faellesmappe\tsdj\cihvr-timmsn\0-old-segmentation-pred\names\first\tl-lr-0.0625\preds_matched.csv'
 
         pred_ln = pd.read_csv(fn_pred_ln)
         pred_fn = pd.read_csv(fn_pred_fn)
@@ -350,8 +382,8 @@ def create_workspaces(current_round: int):
         use_matching = True
         nb_packages = 1
     elif current_round == 1: # To Malthe Hauschildt Veje <malthehv@econ.ku.dk>
-        fn_pred_ln=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\tl-lr-0.25\preds_matched.csv'
-        fn_pred_fn=r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\tl-lr-0.0625\preds_matched.csv'
+        fn_pred_ln=r'Z:\faellesmappe\tsdj\cihvr-timmsn\0-old-segmentation-pred\names\last\tl-lr-0.25\preds_matched.csv'
+        fn_pred_fn=r'Z:\faellesmappe\tsdj\cihvr-timmsn\0-old-segmentation-pred\names\first\tl-lr-0.0625\preds_matched.csv'
 
         pred_ln = pd.read_csv(fn_pred_ln)
         pred_fn = pd.read_csv(fn_pred_fn)

@@ -12,9 +12,8 @@ segmentation" examples and add those.
 """
 
 
-# TODO (1) Add new nurse name labels form @malthe
-# TODO (2) Probably want to add some "bad segmentation" labels in some way
-# TODO (3) might want to add some empty labels in some way
+# TODO (1) Probably want to add some "bad segmentation" labels in some way
+# TODO (2) might want to add some empty labels in some way
 
 
 import argparse
@@ -32,6 +31,7 @@ import numpy as np
 import pandas as pd
 
 from verifiers import Verifiers
+from labelling.prepare_nurse_name_1 import workspace_to_labels_dataframe
 
 
 def parse_args() -> argparse.Namespace:
@@ -122,13 +122,25 @@ def merge_nurse_names(
     nurse_names = pd.read_csv(fn_df_nurse_names)
     nurse_names_new = pd.read_csv(fn_df_nurse_names_new)
 
-    # TODO prob add @malthe set here, then add to intersect check and to concat
+    # Add from WSPs returned from @malthe
+    nurse_names_from_wsp = workspace_to_labels_dataframe(r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\manual-nurse-name-1\round-1-returned')
+    nurse_names_from_wsp['Filename'] = nurse_names_from_wsp['image_id'].transform(lambda x: x.split('.page-')[0])
+    nurse_names_from_wsp = nurse_names_from_wsp.rename(columns={'label': 'nurse-name-1'})
+    nurse_names_from_wsp = nurse_names_from_wsp.drop(columns='image_id')
+    nurse_names_from_wsp['nurse-name-2'] = None
+    nurse_names_from_wsp['nurse-name-3'] = None
 
-    assert set(nurse_names['Filename']).intersection(nurse_names_new['Filename']) == set()
+     # expect NO overlap -- verify by checking intersection
+    assert (
+        set(nurse_names['Filename']) &
+        set(nurse_names_new['Filename']) &
+        set(nurse_names_from_wsp['Filename'])
+        ) == set()
 
     nurse_names = pd.concat([
         nurse_names[['Filename', 'nurse-name-1', 'nurse-name-2', 'nurse-name-3']],
         nurse_names_new[['Filename', 'nurse-name-1', 'nurse-name-2', 'nurse-name-3']],
+        nurse_names_from_wsp[['Filename', 'nurse-name-1', 'nurse-name-2', 'nurse-name-3']],
         ])
 
     # As identifier use journal name without file suffix
@@ -301,7 +313,7 @@ def gen_labels(
         bad_fields = set(fields) - map_lookup_df.keys()
         raise ValueError(f'requested --fields {bad_fields} not in {map_lookup_df.keys()}')
 
-    empty_cells = load_mod_weight()
+    empty_weight_cells = load_mod_weight()
 
     # Merge info on nurse names into main_df
     df_main = merge_nurse_names(
@@ -330,7 +342,7 @@ def gen_labels(
         sub = df_main[['fname', 'Journal', value]].copy()
 
         # Handle empty (this is only for weight, see `load_mod_weight`)
-        idxs_empty = sub['Journal'].isin(empty_cells.loc[empty_cells['cell'] == key, 'Journal'])
+        idxs_empty = sub['Journal'].isin(empty_weight_cells.loc[empty_weight_cells['cell'] == key, 'Journal'])
         sub.loc[idxs_empty, value] = 'empty'
 
         # Keep only where we have the label
