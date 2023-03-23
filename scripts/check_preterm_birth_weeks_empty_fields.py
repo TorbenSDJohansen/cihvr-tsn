@@ -6,9 +6,11 @@ Theorize that labels "0" in EPI data dump for preterm birth weeks is in fact
 wrong and should be "0=Mangler". Automatically change this when writing labels
 for preterm birth weeks, but important to check this is actually the case.
 
-Manually reviewing 333 examples, only 2 exceptions:
+Manually reviewing 333 examples (crashed after 333*), only 2 exceptions:
     (1) SP6_00881
     (2) SPJ_2014-04-30_0125
+
+* Based on labels requested image file that did not exist.
 
 """
 
