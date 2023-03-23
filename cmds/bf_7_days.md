@@ -20,7 +20,6 @@ python train.py ^
 --formatter two_digit_keep_bad_cpd ^
 --experiment mh ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do ^
--b 512 ^
 --input-size 3 117 537 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
@@ -36,7 +35,6 @@ python train.py ^
 --formatter s2s_two_digit_keep_bad_cpd ^
 --experiment s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do ^
--b 512 ^
 --input-size 3 117 537 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
