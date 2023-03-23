@@ -29,9 +29,10 @@ python train.py ^
 --initial-log
 ```
 
-S2S
+S2S (due to large image batch size, OOM if run on 1 GPU)
 ```
-python train.py ^
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+-b 128 ^
 --formatter s2s_two_digit_keep_bad_cpd ^
 --experiment s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do ^
