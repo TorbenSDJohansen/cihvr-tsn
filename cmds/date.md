@@ -68,6 +68,22 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --log-wandb
 ```
 
+S2S
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter s2s_dates_keep_bad_cpd ^
+--experiment s2s ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date ^
+-b 512 ^
+--input-size 3 67 181 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells date ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
+```
+
 ## Evaluate
 MH (old formatter, only to compare and verify new approach works)
 ```
