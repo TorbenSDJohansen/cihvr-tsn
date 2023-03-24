@@ -60,15 +60,15 @@ This will also include details on any pre-training on other datasets and details
 Pre-training happens only for some models.
 
 For full rundown, refer to markdowns in following order (some parts need to run before others, though the specific order listed below is not the only feasible order):
-1. [Breastfeeding at 7-14 days old](cmds/bf_7_days)
-1. [Date of visits](cmds/date)
-1. [Duration of any breastfeeding](cmds/duration_any_bf)
-1. [Length at birth and one year](cmds/length)
-1. [Nurse names](cmds/names)
-1. [Preterm birth](cmds/preterm)
-1. [Preterm birth number of weeks](cmds/preterm_weeks)
-1. [Table B visits information](cmds/tab_b)
-1. [Weight at birth and at visits](cmds/weight)
+1. [Breastfeeding at 7-14 days old](cmds/bf_7_days.md)
+1. [Date of visits](cmds/date.md)
+1. [Duration of any breastfeeding](cmds/duration_any_bf.md)
+1. [Length at birth and one year](cmds/length.md)
+1. [Nurse names](cmds/names.md)
+1. [Preterm birth](cmds/preterm.md)
+1. [Preterm birth number of weeks](cmds/preterm_weeks.md)
+1. [Table B visits information](cmds/tab_b.md)
+1. [Weight at birth and at visits](cmds/weight.md)
 
 ### Post-transcription
 To produce table with transcription accuracies:
