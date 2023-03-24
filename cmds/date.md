@@ -13,6 +13,9 @@ python data\create_train_dataset.py ^
 **Note on image size**: Use of 181x67 as that matches for Type A for all date-{1, 2, 3, 4, 6, 9, 12}-mo.
 **NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
 
+## Pre-training
+See [Nurse names (pretraining)](pretrain/names.md).
+
 ## Training
 
 MH (old formatter, only to compare and verify new approach works)

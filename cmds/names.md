@@ -14,6 +14,9 @@ python data\create_train_dataset.py ^
 nurse-name-{2, 3} resolution borth 105x535, so proportions hardly different.
 **NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
 
+## Pre-training
+See [Date of visits (pretraining)](pretrain/date.md).
+
 ## Training
 
 ### Last name
