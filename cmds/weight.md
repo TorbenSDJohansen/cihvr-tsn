@@ -35,7 +35,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 S2S
 ```
 python train.py ^
---formatter s2s_two_digit_keep_bad_cpd ^
+--formatter s2s_five_digit_keep_bad_cpd ^
 --experiment s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\weight ^
 -b 512 ^
