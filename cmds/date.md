@@ -14,7 +14,7 @@ python data\create_train_dataset.py ^
 **NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
 
 ## Pre-training
-See [Nurse names (pretraining)](pretrain/names.md).
+See [Date of visits (pretraining)](pretrain/date.md).
 
 ## Training
 
