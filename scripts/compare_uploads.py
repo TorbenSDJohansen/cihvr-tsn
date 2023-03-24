@@ -14,9 +14,6 @@ difference to be very large.
 """
 
 
-# TODO How to handle, e.g., nurse-name, where cast to hashed format?
-
-
 import argparse
 import os
 
