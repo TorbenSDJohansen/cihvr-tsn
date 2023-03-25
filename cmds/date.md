@@ -88,22 +88,22 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 ```
 
 ## Evaluate
-MH (old formatter, only to compare and verify new approach works)
-```
-python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\mh-old-formatter ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\mh-old-formatter\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\mh-old-formatter\last.pth.tar ^
---plots montage cov-acc cer-acc ^
---eval-plots-omit-most-occ 3
-```
-
 MH
 ```
 python evaluate.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\mh ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\mh\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\mh\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+S2S
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\s2s ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\s2s\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
