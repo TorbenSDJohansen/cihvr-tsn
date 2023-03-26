@@ -11,7 +11,7 @@ python data\create_train_dataset.py ^
 ```
 
 **Note on image size**: Use of 91x530 as that matches nurse-name-1 (primary target) for Type A.
-nurse-name-{2, 3} resolution borth 105x535, so proportions hardly different.
+nurse-name-{2, 3} resolution both 105x535, so proportions hardly different.
 **NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
 
 ## Pre-training
@@ -139,17 +139,19 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 
 ```
 
-S2S
+S2S w/ TL from HANA (**note**: TL from HANA *last* name model, as first name model not available)
 ```
-python train.py ^
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter s2s_first_name_keep_bad_cpd ^
---experiment s2s ^
+--experiment s2s-tl ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
 --input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
 --config ./cfgs/deit3_b_s2s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last-s2s\last.pth.tar ^
+--tl-from-input-size 3 80 522 ^
 --log-wandb ^
 --initial-log
 ```
@@ -269,6 +271,7 @@ python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl\preds.c
 # Post round 1 revision
 **TODO**: Move this to README probably... to only keep pure "NN" parts in these .mds
 **Especially** since gen_labels.py now takes care of wsp to label part
+...
 
 To create workspaces for more labelling:
 ```
