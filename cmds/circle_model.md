@@ -43,5 +43,50 @@ python train.py ^
 
 ## Evaluate
 
+### Breastfeeding 7-14 days old
+MH
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\circle-mh ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\mh\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\mh\last.pth.tar ^
+--dataset-cells breastfeed-7-do ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+S2S
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\circle-s2s ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\s2s\last.pth.tar ^
+--dataset-cells breastfeed-7-do ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+### Preterm birth model
+MH
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\circle-mh ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\mh\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\mh\last.pth.tar ^
+--dataset-cells preterm-birth ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+S2S
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\circle-s2s ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\s2s\last.pth.tar ^
+--dataset-cells preterm-birth ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
 
 ## Predict
