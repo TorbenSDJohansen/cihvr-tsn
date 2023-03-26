@@ -10,7 +10,7 @@ python data\create_train_dataset.py ^
 --nb-pools 8
 ```
 
-**Note on image size**: Use of 88x284 as that matches for Type A.
+**Note on image size**: Use of 284x88 as that matches for Type A.
 **NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
 
 ## Training

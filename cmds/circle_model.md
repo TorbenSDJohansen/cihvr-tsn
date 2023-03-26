@@ -3,7 +3,7 @@ Motivation: Both are circle number models:
 1. **Breastfeeding 7-14 days old**: Circle 1, 2, or 3
 1. **Preterm birth**: Circle 1 or 2
 
-**Note**: Need to be run after [Breastfeeding at 7-14 days old](bf_7_days.md) and [Preterm birth](preterm.md) as datasets otherwise won't exist.
+**Note**: Needs to be run after [Breastfeeding at 7-14 days old](bf_7_days.md) and [Preterm birth](preterm.md) as datasets otherwise won't exist.
 
 **Note on image size**:
 Use of 537x117 and 193x100 for the individual models as that matches for Type A.
