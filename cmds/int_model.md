@@ -25,7 +25,7 @@ For individual models, following image sizes (aspect ratios) used:
 Aim for middleground of aspect ratio of ~2.5 with image size 230x90
 **NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
 
-# Training
+## Training
 S2S 5-digits (with weight)
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
@@ -42,6 +42,66 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --initial-log
 ```
 
-# Evaluate
+## Evaluate
 
-# Predict
+### Duration any breastfeeding
+S2S 5-digits
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\int-s2s-5d ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
+--dataset-cells dura-any-breastfeed ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+### Length
+S2S 5-digits
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\int-s2s-5d ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
+--dataset-cells length ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+### Preterm number weeks
+S2S 5-digits
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\int-s2s-5d ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
+--dataset-cells preterm-birth-weeks ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+### Table B
+**~100x112 test set**: S2S 5-digits
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
+--dataset-cells tab-b-test ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+### Weight
+S2S 5-digits
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\int-s2s-5d ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
+--dataset-cells weight ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+## Predict
