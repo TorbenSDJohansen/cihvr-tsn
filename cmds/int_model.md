@@ -116,3 +116,27 @@ python evaluate.py ^
 ```
 
 ## Predict
+
+### Length
+S2S 5-digits
+```
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\int-s2s-5d ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
+-b 2048 ^
+--predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\length-0-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\length-12-mo ^
+--plots montage
+```
+
+S2S 5-digits force max 2 digits
+```
+python predict.py ^
+--formatter s2s_two_digit_keep_bad_cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\int-s2s-5d-restrict-2d ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
+-b 2048 ^
+--predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\length-0-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\length-12-mo ^
+--plots montage
+```
