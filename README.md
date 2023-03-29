@@ -52,7 +52,7 @@ To create figures showcasing different page heights, use `python data/check_imag
 
 **TODO**: Refer to new @CMD code once ready and merged to main.
 
-To merge Type A and Type B segmentations (by copying B to A), use `python data/move_images.py --in-folder Y:\RegionH\Scripts\data\storage\minipics\TypeB --out-folder Y:\RegionH\Scripts\data\storage\minipics\TypeA --pools 20 --cells breastfeed-7-do date-0-mo date-1-mo date-12-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo district-1 district-2 district-3 dura-any-breastfeed length-0-mo length-12-mo meals-7-do moth-civ-status nb-abort nb-liveborn nb-stillborn nurse-name-1 nurse-name-2 nurse-name-3 PKU-7-do preterm-birth preterm-birth-weeks tab-b-c0-1-mo tab-b-c0-12-mo tab-b-c0-2-mo tab-b-c0-3-mo tab-b-c0-4-mo tab-b-c0-6-mo tab-b-c0-9-mo tab-b-c1-1-mo tab-b-c1-12-mo tab-b-c1-2-mo tab-b-c1-3-mo tab-b-c1-4-mo tab-b-c1-6-mo tab-b-c1-9-mo tab-b-c10-1-mo tab-b-c10-12-mo tab-b-c10-2-mo tab-b-c10-3-mo tab-b-c10-4-mo tab-b-c10-6-mo tab-b-c10-9-mo tab-b-c11-1-mo tab-b-c11-12-mo tab-b-c11-2-mo tab-b-c11-3-mo tab-b-c11-4-mo tab-b-c11-6-mo tab-b-c11-9-mo tab-b-c12-1-mo tab-b-c12-12-mo tab-b-c12-2-mo tab-b-c12-3-mo tab-b-c12-4-mo tab-b-c12-6-mo tab-b-c12-9-mo tab-b-c13-1-mo tab-b-c13-12-mo tab-b-c13-2-mo tab-b-c13-3-mo tab-b-c13-4-mo tab-b-c13-6-mo tab-b-c13-9-mo tab-b-c14-1-mo tab-b-c14-12-mo tab-b-c14-2-mo tab-b-c14-3-mo tab-b-c14-4-mo tab-b-c14-6-mo tab-b-c14-9-mo tab-b-c15-1-mo tab-b-c15-12-mo tab-b-c15-2-mo tab-b-c15-3-mo tab-b-c15-4-mo tab-b-c15-6-mo tab-b-c15-9-mo tab-b-c16-1-mo tab-b-c16-12-mo tab-b-c16-2-mo tab-b-c16-3-mo tab-b-c16-4-mo tab-b-c16-6-mo tab-b-c16-9-mo tab-b-c2-1-mo tab-b-c2-12-mo tab-b-c2-2-mo tab-b-c2-3-mo tab-b-c2-4-mo tab-b-c2-6-mo tab-b-c2-9-mo tab-b-c3-1-mo tab-b-c3-12-mo tab-b-c3-2-mo tab-b-c3-3-mo tab-b-c3-4-mo tab-b-c3-6-mo tab-b-c3-9-mo tab-b-c4-1-mo tab-b-c4-12-mo tab-b-c4-2-mo tab-b-c4-3-mo tab-b-c4-4-mo tab-b-c4-6-mo tab-b-c4-9-mo tab-b-c5-1-mo tab-b-c5-12-mo tab-b-c5-2-mo tab-b-c5-3-mo tab-b-c5-4-mo tab-b-c5-6-mo tab-b-c5-9-mo tab-b-c6-1-mo tab-b-c6-12-mo tab-b-c6-2-mo tab-b-c6-3-mo tab-b-c6-4-mo tab-b-c6-6-mo tab-b-c6-9-mo tab-b-c7-1-mo tab-b-c7-12-mo tab-b-c7-2-mo tab-b-c7-3-mo tab-b-c7-4-mo tab-b-c7-6-mo tab-b-c7-9-mo tab-b-c8-1-mo tab-b-c8-12-mo tab-b-c8-2-mo tab-b-c8-3-mo tab-b-c8-4-mo tab-b-c8-6-mo tab-b-c8-9-mo tab-b-c9-1-mo tab-b-c9-12-mo tab-b-c9-2-mo tab-b-c9-3-mo tab-b-c9-4-mo tab-b-c9-6-mo tab-b-c9-9-mo weight-0-mo weight-1-mo weight-12-mo weight-2-mo weight-3-mo weight-4-mo weight-6-mo weight-9-mo`
+To merge Type A and Type B segmentations (by copying B to A), use ```python data/move_images.py --in-folder Y:\RegionH\Scripts\data\storage\minipics\TypeB --out-folder Y:\RegionH\Scripts\data\storage\minipics\TypeA --pools 20 --cells breastfeed-7-do date-0-mo date-1-mo date-12-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo district-1 district-2 district-3 dura-any-breastfeed length-0-mo length-12-mo meals-7-do moth-civ-status nb-abort nb-liveborn nb-stillborn nurse-name-1 nurse-name-2 nurse-name-3 PKU-7-do preterm-birth preterm-birth-weeks tab-b-c0-1-mo tab-b-c0-12-mo tab-b-c0-2-mo tab-b-c0-3-mo tab-b-c0-4-mo tab-b-c0-6-mo tab-b-c0-9-mo tab-b-c1-1-mo tab-b-c1-12-mo tab-b-c1-2-mo tab-b-c1-3-mo tab-b-c1-4-mo tab-b-c1-6-mo tab-b-c1-9-mo tab-b-c10-1-mo tab-b-c10-12-mo tab-b-c10-2-mo tab-b-c10-3-mo tab-b-c10-4-mo tab-b-c10-6-mo tab-b-c10-9-mo tab-b-c11-1-mo tab-b-c11-12-mo tab-b-c11-2-mo tab-b-c11-3-mo tab-b-c11-4-mo tab-b-c11-6-mo tab-b-c11-9-mo tab-b-c12-1-mo tab-b-c12-12-mo tab-b-c12-2-mo tab-b-c12-3-mo tab-b-c12-4-mo tab-b-c12-6-mo tab-b-c12-9-mo tab-b-c13-1-mo tab-b-c13-12-mo tab-b-c13-2-mo tab-b-c13-3-mo tab-b-c13-4-mo tab-b-c13-6-mo tab-b-c13-9-mo tab-b-c14-1-mo tab-b-c14-12-mo tab-b-c14-2-mo tab-b-c14-3-mo tab-b-c14-4-mo tab-b-c14-6-mo tab-b-c14-9-mo tab-b-c15-1-mo tab-b-c15-12-mo tab-b-c15-2-mo tab-b-c15-3-mo tab-b-c15-4-mo tab-b-c15-6-mo tab-b-c15-9-mo tab-b-c16-1-mo tab-b-c16-12-mo tab-b-c16-2-mo tab-b-c16-3-mo tab-b-c16-4-mo tab-b-c16-6-mo tab-b-c16-9-mo tab-b-c2-1-mo tab-b-c2-12-mo tab-b-c2-2-mo tab-b-c2-3-mo tab-b-c2-4-mo tab-b-c2-6-mo tab-b-c2-9-mo tab-b-c3-1-mo tab-b-c3-12-mo tab-b-c3-2-mo tab-b-c3-3-mo tab-b-c3-4-mo tab-b-c3-6-mo tab-b-c3-9-mo tab-b-c4-1-mo tab-b-c4-12-mo tab-b-c4-2-mo tab-b-c4-3-mo tab-b-c4-4-mo tab-b-c4-6-mo tab-b-c4-9-mo tab-b-c5-1-mo tab-b-c5-12-mo tab-b-c5-2-mo tab-b-c5-3-mo tab-b-c5-4-mo tab-b-c5-6-mo tab-b-c5-9-mo tab-b-c6-1-mo tab-b-c6-12-mo tab-b-c6-2-mo tab-b-c6-3-mo tab-b-c6-4-mo tab-b-c6-6-mo tab-b-c6-9-mo tab-b-c7-1-mo tab-b-c7-12-mo tab-b-c7-2-mo tab-b-c7-3-mo tab-b-c7-4-mo tab-b-c7-6-mo tab-b-c7-9-mo tab-b-c8-1-mo tab-b-c8-12-mo tab-b-c8-2-mo tab-b-c8-3-mo tab-b-c8-4-mo tab-b-c8-6-mo tab-b-c8-9-mo tab-b-c9-1-mo tab-b-c9-12-mo tab-b-c9-2-mo tab-b-c9-3-mo tab-b-c9-4-mo tab-b-c9-6-mo tab-b-c9-9-mo weight-0-mo weight-1-mo weight-12-mo weight-2-mo weight-3-mo weight-4-mo weight-6-mo weight-9-mo```
 
 ### Transcription
 See individual markdowns under `./cmds/` for all details on how to train, evaluate, and predict for all models.
@@ -69,6 +69,8 @@ For full rundown, refer to markdowns in following order (some parts need to run 
 1. [Preterm birth number of weeks](cmds/preterm_weeks.md)
 1. [Table B visits information](cmds/tab_b.md)
 1. [Weight at birth and at visits](cmds/weight.md)
+
+**TODO**: Once/if joint models added, update the list. Lists these *last* as dependent on above.
 
 ### Post-transcription
 To produce table with transcription accuracies:
@@ -102,7 +104,7 @@ python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\
 
 To prepare data for upload to DST use `python data/prepare_data_dst.py`.
 
-To compare to older upload use `python scripts/compare_uploads.py` --fn-old path/to/old.csv --fn-new path/to/new --fn-out path/to/out.csv
+To compare to older upload use `python scripts/compare_uploads.py --fn-old path/to/old.csv --fn-new path/to/new --fn-out path/to/out.csv`.
 
 ## License
 Our code is licensed under Apache 2.0 (see [LICENSE](LICENSE)).
@@ -112,8 +114,3 @@ Our code is licensed under Apache 2.0 (see [LICENSE](LICENSE)).
 - [ ] `timmsn`, with reference to `timm`
 - [ ] Research papers based on `timmsn`
 - [ ] Other papers used in, e.g., TL, such as HANA
-
-## TODO
-
-- [ ] Mask for bad CPD samples
-- [ ] Optimal label construction, see `./data/gen_labels.py`
