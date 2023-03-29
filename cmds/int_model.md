@@ -84,7 +84,7 @@ python evaluate.py ^
 **~100x112 test set**: S2S 5-digits
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-full-table ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
 --dataset-cells tab-b-test ^

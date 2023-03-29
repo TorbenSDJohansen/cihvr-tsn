@@ -83,7 +83,7 @@ python evaluate.py ^
 MH (on our own test set, with ~100 examples of all 112 cells)
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\mh-full-table ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\mh-full-table ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\mh\args.yaml ^
 --dataset-cells tab-b-test ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\mh\last.pth.tar ^
@@ -91,10 +91,10 @@ python evaluate.py ^
 --eval-plots-omit-most-occ 3
 ```
 
-S2S
+S2S (on our own test set, with ~100 examples of all 112 cells)
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\s2s-90x90-full-table ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\s2s-full-table ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s\args.yaml ^
 --dataset-cells tab-b-test ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s\last.pth.tar ^
