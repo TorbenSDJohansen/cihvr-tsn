@@ -16,7 +16,7 @@ from typing import List
 import pandas as pd
 
 
-def _load_maps():
+def load_maps():
     root_maps = 'Y:/RegionH/Scripts/users/tsdj/storage/maps'
 
     with open(f'{root_maps}/map_lookup_df.pkl', 'rb') as file:
@@ -193,7 +193,7 @@ def main():
     args = parse_args()
 
     print('Loading data!')
-    map_lookup_df, map_images_journals_ss = _load_maps()
+    map_lookup_df, map_images_journals_ss = load_maps()
     pred_df = pd.read_csv(args.file, na_values=[''], keep_default_na=False)
     group_mapping = get_cell_groups()
 

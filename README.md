@@ -79,14 +79,16 @@ For full rundown, refer to markdowns in following order (some parts need to run 
 To produce table with transcription accuracies:
 ```
 python data/summ_preds.py ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\base-full-table\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\base\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\circle-s2s\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\int-s2s-5d\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-full-table\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\int-s2s-5d\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\s2s-tl\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\s2s-tl\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\circle-s2s\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\int-s2s-5d\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\int-s2s-5d\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\s2s\preds.csv ^
 --cihvr-duplicate-drop ^
 --out-dir ./
 ```
@@ -101,7 +103,7 @@ python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\l
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\base\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\base\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b\base\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\base\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\base\preds.csv --use-cihvr-name-if-available
 ```
 
