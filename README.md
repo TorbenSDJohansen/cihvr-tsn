@@ -12,7 +12,7 @@ git clone https://github.com/TorbenSDJohansen/cihvr-tsn
 
 Then prepare an environment (here using conda and the name `cihvr`):
 ```
-conda create -n cihvr numpy pandas pillow scikit-learn opencv matplotlib pyyaml
+conda create -n cihvr numpy pandas pillow scikit-learn opencv matplotlib pyyaml xlrd openpyxl
 conda activate cihvr
 conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
 pip install imutils timm
@@ -24,6 +24,7 @@ pip install path/to/timm-sequence-net
 ```
 
 ## Replicate results
+**Note**: 
 A number of scripts refer to specific full paths.
 To replicate results on different server, some work to change this is needed.
 
@@ -36,13 +37,13 @@ To create dictionary to map between EPI data dump variable names and SDU variabl
 
 To create .csv with number of images per journal use `python data/nb_pages_pr_journal.py`.
 
-To prepare nurse name data (before new labels from @Malthe are added, see `cmds/names.md` for details) use `python data/prepare_nuse_name_data.py`. **Note**: Typo in name, "nuse" is meant to be "nurse".
+To prepare nurse name data (before new labels from @Malthe are added, see `data/labelling/prepare_nurse_name_1.py` and `data/gen_labels.py` for details) use `python data/prepare_nurse_name_data.py`.
 
 To prepare new EPI data dump and harmonize with original EPI data dump use `python data/prepare_extra_data_lise.py`.
 
 To prepare the @CMD & @TSDJ ~100x112 Table B test labels use `python data/prepare_tab_b_test_labels.py`.
 
-To prepare train and test labels use `python data/gen_labels.py`.
+To prepare train and test labels use `python data/gen_labels.py --dir Y:\RegionH\Scripts\data\storage\labels\keep`.
 
 **Note**: For details on how to cluster journal pages, see [Applications of machine learning in tabular document digitisation](https://www.tandfonline.com/doi/abs/10.1080/01615440.2023.2164879).
 
@@ -51,23 +52,43 @@ To create figures showcasing different page heights, use `python data/check_imag
 
 **TODO**: Refer to new @CMD code once ready and merged to main.
 
+To merge Type A and Type B segmentations (by copying B to A), use 
+```
+python data/move_images.py --in-folder Y:\RegionH\Scripts\data\storage\minipics\TypeB --out-folder Y:\RegionH\Scripts\data\storage\minipics\TypeA --pools 20 --cells breastfeed-7-do date-0-mo date-1-mo date-12-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo district-1 district-2 district-3 dura-any-breastfeed length-0-mo length-12-mo meals-7-do moth-civ-status nb-abort nb-liveborn nb-stillborn nurse-name-1 nurse-name-2 nurse-name-3 PKU-7-do preterm-birth preterm-birth-weeks tab-b-c0-1-mo tab-b-c0-12-mo tab-b-c0-2-mo tab-b-c0-3-mo tab-b-c0-4-mo tab-b-c0-6-mo tab-b-c0-9-mo tab-b-c1-1-mo tab-b-c1-12-mo tab-b-c1-2-mo tab-b-c1-3-mo tab-b-c1-4-mo tab-b-c1-6-mo tab-b-c1-9-mo tab-b-c10-1-mo tab-b-c10-12-mo tab-b-c10-2-mo tab-b-c10-3-mo tab-b-c10-4-mo tab-b-c10-6-mo tab-b-c10-9-mo tab-b-c11-1-mo tab-b-c11-12-mo tab-b-c11-2-mo tab-b-c11-3-mo tab-b-c11-4-mo tab-b-c11-6-mo tab-b-c11-9-mo tab-b-c12-1-mo tab-b-c12-12-mo tab-b-c12-2-mo tab-b-c12-3-mo tab-b-c12-4-mo tab-b-c12-6-mo tab-b-c12-9-mo tab-b-c13-1-mo tab-b-c13-12-mo tab-b-c13-2-mo tab-b-c13-3-mo tab-b-c13-4-mo tab-b-c13-6-mo tab-b-c13-9-mo tab-b-c14-1-mo tab-b-c14-12-mo tab-b-c14-2-mo tab-b-c14-3-mo tab-b-c14-4-mo tab-b-c14-6-mo tab-b-c14-9-mo tab-b-c15-1-mo tab-b-c15-12-mo tab-b-c15-2-mo tab-b-c15-3-mo tab-b-c15-4-mo tab-b-c15-6-mo tab-b-c15-9-mo tab-b-c16-1-mo tab-b-c16-12-mo tab-b-c16-2-mo tab-b-c16-3-mo tab-b-c16-4-mo tab-b-c16-6-mo tab-b-c16-9-mo tab-b-c2-1-mo tab-b-c2-12-mo tab-b-c2-2-mo tab-b-c2-3-mo tab-b-c2-4-mo tab-b-c2-6-mo tab-b-c2-9-mo tab-b-c3-1-mo tab-b-c3-12-mo tab-b-c3-2-mo tab-b-c3-3-mo tab-b-c3-4-mo tab-b-c3-6-mo tab-b-c3-9-mo tab-b-c4-1-mo tab-b-c4-12-mo tab-b-c4-2-mo tab-b-c4-3-mo tab-b-c4-4-mo tab-b-c4-6-mo tab-b-c4-9-mo tab-b-c5-1-mo tab-b-c5-12-mo tab-b-c5-2-mo tab-b-c5-3-mo tab-b-c5-4-mo tab-b-c5-6-mo tab-b-c5-9-mo tab-b-c6-1-mo tab-b-c6-12-mo tab-b-c6-2-mo tab-b-c6-3-mo tab-b-c6-4-mo tab-b-c6-6-mo tab-b-c6-9-mo tab-b-c7-1-mo tab-b-c7-12-mo tab-b-c7-2-mo tab-b-c7-3-mo tab-b-c7-4-mo tab-b-c7-6-mo tab-b-c7-9-mo tab-b-c8-1-mo tab-b-c8-12-mo tab-b-c8-2-mo tab-b-c8-3-mo tab-b-c8-4-mo tab-b-c8-6-mo tab-b-c8-9-mo tab-b-c9-1-mo tab-b-c9-12-mo tab-b-c9-2-mo tab-b-c9-3-mo tab-b-c9-4-mo tab-b-c9-6-mo tab-b-c9-9-mo weight-0-mo weight-1-mo weight-12-mo weight-2-mo weight-3-mo weight-4-mo weight-6-mo weight-9-mo
+```
+
 ### Transcription
-See individual markdowns under `./cmds/` for how to train, evaluate, and predict for all models.
-This will also include details on any pre-training on other datasets, details on how to prepare the datasets used to train the models, and details on how to expand the datasets between rounds (e.g., for nurse names).
-Pre-training and adding data between rounds happens only for some models.
+See individual markdowns under `./cmds/` for all details on how to train, evaluate, and predict for all models.
+This will also include details on any pre-training on other datasets and details on how to prepare the datasets used to train and evaluate the models.
+Pre-training happens only for some models.
+
+For full rundown, refer to markdowns in following order (some parts need to run before others, though the specific order listed below is not the only feasible order):
+1. [Breastfeeding at 7-14 days old](cmds/bf_7_days.md)
+1. [Date of visits](cmds/date.md)
+1. [Duration of any breastfeeding](cmds/duration_any_bf.md)
+1. [Length at birth and one year](cmds/length.md)
+1. [Nurse names](cmds/names.md)
+1. [Preterm birth](cmds/preterm.md)
+1. [Preterm birth number of weeks](cmds/preterm_weeks.md)
+1. [Table B visits information](cmds/tab_b.md)
+1. [Weight at birth and at visits](cmds/weight.md)
+
+**TODO**: Once/if joint models added, update the list. Lists these *last* as dependent on above.
 
 ### Post-transcription
 To produce table with transcription accuracies:
 ```
 python data/summ_preds.py ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\base-full-table\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\base\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\base\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\circle-s2s\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\int-s2s-5d\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-full-table\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\int-s2s-5d\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\s2s-tl\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\s2s-tl\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\circle-s2s\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\int-s2s-5d\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\int-s2s-5d\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\s2s\preds.csv ^
 --cihvr-duplicate-drop ^
 --out-dir ./
 ```
@@ -82,21 +103,19 @@ python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\l
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\base\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\base\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b\base\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\base\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\base\preds.csv --use-cihvr-name-if-available
 ```
 
 To prepare data for upload to DST use `python data/prepare_data_dst.py`.
 
+To compare to older upload use `python scripts/compare_uploads.py --fn-old path/to/old.csv --fn-new path/to/new --fn-out path/to/out.csv`.
+
 ## License
+Our code is licensed under Apache 2.0 (see [LICENSE](LICENSE)).
 
 ## Citing
 
 - [ ] `timmsn`, with reference to `timm`
 - [ ] Research papers based on `timmsn`
 - [ ] Other papers used in, e.g., TL, such as HANA
-
-## TODO
-
-- [ ] Mask for bad CPD samples
-- [ ] Optimal label construction, see `./data/gen_labels.py`

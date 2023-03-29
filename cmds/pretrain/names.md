@@ -1,5 +1,5 @@
 ## Pre-training on PR
-Danish names; see HANA for details on data.
+Danish names; see [HANA Code](https://github.com/TorbenSDJohansen/HANA) and [HANA Database](https://www.kaggle.com/datasets/sdusimonwittrock/hana-database) for details on data.
 Train one model for first names and other model for last names.
 
 ### Train
@@ -33,7 +33,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --initial-log
 ```
 
-Last name model (S2S); expect SeqAcc ~ 96.25%, see https://wandb.ai/tsdj/hana?workspace=user-tsdj:
+Last name model (S2S)
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter s2s_last_name_keep_bad_cpd ^
@@ -80,31 +80,4 @@ python train.py ^
 --config ./cfgs/deit3_b_s2s.yaml ^
 --log-wandb ^
 --initial-log
-```
-
-### (Optional) Evaluate
-Last:
-```
-python evaluate.py ^
---formatter last_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\pr\last ^
--b 2048 ^
---input-size 3 80 522 ^
---data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
---dataset HANA ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\last.pth.tar
-```
-
-First:
-```
-python evaluate.py ^
---formatter first_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\pr\first ^
--b 2048 ^
---input-size 3 80 522 ^
---data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
---dataset HANA ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\last.pth.tar
 ```

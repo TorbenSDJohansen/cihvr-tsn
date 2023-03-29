@@ -20,7 +20,7 @@ def main():
     new_segmentations = os.listdir(r'Y:\RegionH\Scripts\data\storage\minipics\TypeA_bottom_smaller_crop\weight-0-mo')
     new_journals = [x.split('.')[0] for x in new_segmentations]
 
-    preds = pd.read_csv(r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\base\preds.csv')
+    preds = pd.read_csv(r'Z:\faellesmappe\tsdj\cihvr-timmsn\0-old-segmentation-pred\weight\base\preds.csv')
     preds['field'] = preds['filename_full'].transform(lambda x: os.path.basename(os.path.dirname(x)))
     preds['journal'] = preds['filename_full'].transform(lambda x: os.path.basename(x).split('.')[0])
     preds = preds[preds['field'] == 'weight-0-mo']

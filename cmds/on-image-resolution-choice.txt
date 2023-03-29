@@ -1,0 +1,5 @@
+NOTE
+SP0_00001 is Type B
+SP0_00003 is Type A
+
+Use SP0_00003 for res, as Type A most common

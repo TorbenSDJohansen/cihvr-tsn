@@ -2,13 +2,16 @@
 Merge cells to two image folders (one for train and one for test):
 ```
 python data\create_train_dataset.py ^
---dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-joined ^
---labels-subdir keep-restrict-share-bad-cpd ^
+--dir Y:\RegionH\Scripts\data\storage ^
+--labels-subdir keep ^
 --fields preterm-birth-weeks ^
 --out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
 --name preterm-birth-weeks ^
---nb-pools 16
+--nb-pools 8
 ```
+
+**Note on image size**: Use of 193x100 as that matches for Type A.
+**NOTE**: Since multiple types, that resolution is not guaranteed for *all* examples -- only for that specific type (Type A).
 
 ## Training
 MH
@@ -18,7 +21,7 @@ python train.py ^
 --experiment mh ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm-wks ^
 -b 512 ^
---input-size 3 96 202 ^
+--input-size 3 100 193 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells preterm-birth-weeks ^
@@ -34,7 +37,7 @@ python train.py ^
 --experiment s2s ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm-wks ^
 -b 512 ^
---input-size 3 96 202 ^
+--input-size 3 100 193 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells preterm-birth-weeks ^

@@ -263,7 +263,7 @@ def s2s_five_digit_keep_bad_cpd() -> CIHVRCharSeqFormatter:
         max_seq_len=5, # this is before BOS and EOS tokens added
         map_char_idx=map_char_idx,
         map_idx_char=map_idx_char,
-        allowed_empty={'', '0=Mangler'},
+        allowed_empty={'', '0=Mangler', 'empty'},
         empty_value='0=Mangler',
         unk_value='?',
         invalid_pred_value='InvalidPred',

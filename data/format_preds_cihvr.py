@@ -5,16 +5,18 @@
 """
 
 
-import os
 import argparse
+import functools
+import os
 import pickle
+import warnings
 
 from typing import List
 
 import pandas as pd
 
 
-def _load_maps():
+def load_maps():
     root_maps = 'Y:/RegionH/Scripts/users/tsdj/storage/maps'
 
     with open(f'{root_maps}/map_lookup_df.pkl', 'rb') as file:
@@ -27,7 +29,12 @@ def _load_maps():
 
     for key, value in map_journals_images_ss.items():
         for fname in value:
-            map_images_journals_ss[fname] = key
+            # map_images_journals_ss[fname] = key
+            # With new image file names, need to change value from old format
+            # with ".PDF.page-0.jpg"-style ending
+
+            new_fname = fname.split('.')[0] + '.jpg'
+            map_images_journals_ss[new_fname] = key
 
     return map_lookup_df, map_images_journals_ss
 
@@ -60,27 +67,13 @@ def parse_args():
 
     args = parser.parse_args()
 
-    return args
+    if not os.path.isfile(args.file):
+        raise FileNotFoundError(f'pred file {args.file} does not exist')
 
-
-def _test_parse():
-    parser = argparse.ArgumentParser(description='Format pred. file to CIHVR format.')
-    args = parser.parse_args()
-
-    args.file = r'Z:\faellesmappe\tsdj\cihvr-new\weight\preds-2021-05-19-11-14-24.csv' # pylint: disable=C0301
-    args.to = 'both'
-    args.use_cihvr_name_if_available = True
-    args.threshold = 0
+    if not 0 <= args.threshold <= 1:
+        raise ValueError(f'--threshold must be in [0, 1], got {args.threshold}')
 
     return args
-
-
-def _format_args(args):
-    print(f'Parsed args: {args}.')
-    assert os.path.isfile(args.file)
-    assert 0 <= args.threshold < 1
-
-    return args.file, args.to, args.use_cihvr_name_if_available
 
 
 def get_cell_groups():
@@ -140,7 +133,6 @@ def derive_cell(filename_full: str, valid_cells: List[str]) -> str:
 
     Otherwise use the name of the directory immediately above as cell name.
 
-
     '''
     filename = os.path.basename(filename_full)
     matches = []
@@ -162,6 +154,9 @@ def drop_duplicates(pred_df: pd.DataFrame) -> pd.DataFrame:
     of same journal cropped. However, also only needs to maintain ONE. As
     such, keep the "best" version - sorting away the one with the highest
     number of "bad cpd" cases.
+
+    NOTE: With new segmentation, this function is expected do not change any-
+    thing, as never predicted on more than one page of a journal.
     '''
 
     bad_cpd_count = pred_df.groupby('filename').apply(
@@ -196,22 +191,22 @@ def main():
 
     """
     args = parse_args()
-    file, format_to, use_cihvr_name_if_available = _format_args(args)
 
     print('Loading data!')
-    map_lookup_df, map_images_journals_ss = _load_maps()
-    pred_df = pd.read_csv(file, na_values=[''], keep_default_na=False)
+    map_lookup_df, map_images_journals_ss = load_maps()
+    pred_df = pd.read_csv(args.file, na_values=[''], keep_default_na=False)
     group_mapping = get_cell_groups()
 
     # Threshold
     pred_df = pred_df[pred_df['prob'] >= args.threshold]
 
     print('Creating new/renaming columns!')
-    pred_df['filename'] = pred_df['filename_full'].apply(os.path.basename)
-    pred_df['cell'] = pred_df['filename_full'].apply(lambda x: derive_cell(x, list(group_mapping.keys())))
-    pred_df['journal'] = pred_df['filename'].apply(lambda x: map_images_journals_ss[x])
+    derive_cell_partial = functools.partial(derive_cell, valid_cells=list(group_mapping.keys()))
+    pred_df['filename'] = pred_df['filename_full'].transform(os.path.basename)
+    pred_df['cell'] = pred_df['filename_full'].transform(derive_cell_partial)
+    pred_df['journal'] = pred_df['filename'].apply(lambda x: map_images_journals_ss[x]) # need to be .apply and not .transform when indexing to dict like this
 
-    if use_cihvr_name_if_available:
+    if args.use_cihvr_name_if_available:
         pred_df['colname_cihvr_data'] = pred_df['cell'].apply(
             lambda x: map_lookup_df.get(x, x),
             )
@@ -242,20 +237,20 @@ def main():
     assert len(pred_df_wide_pred) == len(pred_df_wide_prob) == len(pred_df_wide)
 
     print('Writing file(s)!')
-    path, fname = os.path.dirname(file), os.path.basename(file)
+    path, fname = os.path.split(args.file)
 
-    if format_to in ('long', 'both'):
-        file_long = ''.join((path, '/long-', fname))
+    if args.to in ('long', 'both'):
+        file_long = os.path.join(path, '-'.join(('long', fname)))
         if os.path.isfile(file_long):
-            print(f'WARNING: Long file already exists: "{file_long}". Not writing!')
+            warnings.warn(f'Long file already exists: "{file_long}". Not writing!')
         else:
             print(f'Writing: "{file_long}."')
             pred_df.to_csv(file_long, index=False)
 
-    if format_to in ('wide', 'both'):
-        file_wide = ''.join((path, '/wide-', fname))
+    if args.to in ('wide', 'both'):
+        file_wide = os.path.join(path, '-'.join(('wide', fname)))
         if os.path.isfile(file_wide):
-            print(f'WARNING: Wide file already exists: "{file_wide}". Not writing!')
+            warnings.warn(f'Wide file already exists: "{file_wide}". Not writing!')
         else:
             print(f'Writing: "{file_wide}."')
             pred_df_wide.to_csv(file_wide, index=False)

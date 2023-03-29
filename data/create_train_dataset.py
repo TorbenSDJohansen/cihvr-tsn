@@ -34,6 +34,7 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument('--dir', type=str)
     parser.add_argument('--labels-subdir', type=str, default='')
+    parser.add_argument('--images-subdir', type=str, default='TypeA')
     parser.add_argument('--fields', type=str, nargs='+')
     parser.add_argument('--out-dir', type=str)
     parser.add_argument('--name', type=str, help='name of merged fields')
@@ -171,7 +172,7 @@ def move_images_by_copy(
 def main():
     args = parse_args()
 
-    image_dir = os.path.join(args.dir, 'minipics')
+    image_dir = os.path.join(args.dir, 'minipics', args.images_subdir)
     image_folders = {x: os.path.join(image_dir, x) for x in os.listdir(image_dir)}
 
     if not set(args.fields).issubset(image_folders.keys()):

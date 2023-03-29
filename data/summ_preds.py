@@ -9,12 +9,13 @@ import sys
 import os
 import argparse
 import datetime
+import warnings
 
 import pandas as pd
 
 from format_preds_cihvr import (
     drop_duplicates,
-    _load_maps,
+    load_maps,
     get_cell_groups,
     derive_cell,
     )
@@ -102,8 +103,7 @@ def main():
     None.
 
     """
-    print(
-        'WARNING\n\n' +
+    warnings.warn(
         'Note a weakness of this script: If multiple predictions on same ' +
         'image, this is caught by duplicate drop and dropped, even though ' +
         'there might be cases where both are wanted, such as for names, ' +
@@ -118,7 +118,7 @@ def main():
     files, cihvr_duplicate_drop, threshold = _format_args(args)
 
     print('Loading data!')
-    _, map_images_journals_ss = _load_maps()
+    _, map_images_journals_ss = load_maps()
     pred_df = pd.concat([
         pd.read_csv(file, na_values=[''], keep_default_na=False) for file in files
         ])

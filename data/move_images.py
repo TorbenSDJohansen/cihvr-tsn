@@ -10,6 +10,7 @@ import os
 import shutil
 import argparse
 import multiprocessing
+import time
 
 
 class MPCopier():
@@ -39,8 +40,13 @@ def _mp_copy(cells, inroot, outroot, nb_pools):
         mp_copier = MPCopier(indir, outdir)
         mp_copy = mp_copier.copy
 
+        start = time.time()
+
         with multiprocessing.Pool(nb_pools) as pool:
             pool.map(mp_copy, new_files)
+
+        elapsed = time.time() - start
+        print(f'Copying took {elapsed:.0f} seconds')
 
 
 def parse_args():
