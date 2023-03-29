@@ -73,7 +73,7 @@ python train.py ^
 MH
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab_b\mh-train-fields ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\mh-train-fields ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\mh\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\mh\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
@@ -87,6 +87,16 @@ python evaluate.py ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\mh\args.yaml ^
 --dataset-cells tab-b-test ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\mh\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
+S2S
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\s2s-train-fields ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```

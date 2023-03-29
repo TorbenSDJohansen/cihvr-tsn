@@ -11,7 +11,7 @@ Motivation: Following fields consist of sequence of integers with lengths 1-2/5
     [Length at birth and one year](length.md),
     [Preterm birth number of weeks](preterm_weeks.md),
     [Table B visits information](tab_b.md),
-    and [Weight at birth and at visits](cmds/weight.md),
+    and [Weight at birth and at visits](weight.md),
 as datasets otherwise won't exist.
 
 **Note on image size**: 
@@ -81,6 +81,17 @@ python evaluate.py ^
 ```
 
 ### Table B
+**Train fields**: S2S 5-digits
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-train-fields ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
+--dataset-cells tab-b ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
+```
+
 **~100x112 test set**: S2S 5-digits
 ```
 python evaluate.py ^
