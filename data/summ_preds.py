@@ -5,7 +5,6 @@
 """
 
 
-import sys
 import os
 import argparse
 import datetime
@@ -52,28 +51,7 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def _test_parse():
-    parser = argparse.ArgumentParser(description='Format pred. file to CIHVR format.')
-    args = parser.parse_args()
-
-    args.files = [
-        r'Z:\faellesmappe\tsdj\cihvr-new\dabf\eval-2021-05-18-14-30-12\eval-preds.csv',
-        r'Z:\faellesmappe\tsdj\cihvr-new\date\eval-2021-05-18-14-30-48\eval-preds.csv',
-        # r'Z:\faellesmappe\tsdj\cihvr-new\firstname\eval-2021-05-20-06-47-15\matched-eval-preds.csv',
-        # r'Z:\faellesmappe\tsdj\cihvr-new\lastname\eval-2021-05-18-14-32-04\matched-eval-preds.csv',
-        r'Z:\faellesmappe\tsdj\cihvr-new\length\eval-2021-05-18-14-32-54\eval-preds.csv',
-        r'Z:\faellesmappe\tsdj\cihvr-new\tab_b\eval-2021-05-24-09-58-03\eval-preds.csv',
-        r'Z:\faellesmappe\tsdj\cihvr-new\tab_b\eval-2021-05-24-10-02-39\eval-preds.csv',
-        r'Z:\faellesmappe\tsdj\cihvr-new\weight\eval-2021-05-18-14-33-29\eval-preds.csv',
-        ]
-    args.cihvr_duplicate_drop = True
-    args.threshold = 0.0
-    # args.threshold = 0.5
-
-    return args
-
-
-def _format_args(args):
+def format_args(args):
     print(f'Parsed args: {args}.')
     assert 0 <= args.threshold < 1
     for file in args.files:
@@ -110,12 +88,8 @@ def main():
         'in case seperate for first and last names!\n'
         )
 
-    if len(sys.argv) > 1:
-        args = parse_args()
-    else:
-        args = _test_parse()
-
-    files, cihvr_duplicate_drop, threshold = _format_args(args)
+    args = parse_args()
+    files, cihvr_duplicate_drop, threshold = format_args(args)
 
     print('Loading data!')
     _, map_images_journals_ss = load_maps()
