@@ -83,6 +83,9 @@ def compare_field(
     if field not in old.columns:
         return [field, 0, len(new) - new[field].isnull().sum(), None]
 
+    if field not in new.columns:
+        return [field, len(old) - old[field].isnull().sum(), 0, None]
+
     merged = old[['Id', field]].merge(new[['Id', field]], on='Id', how='inner')
 
     assert len(merged) == len(old) == len(new)
@@ -110,8 +113,6 @@ def main():
     old: pd.DataFrame = load(args.fn_old, args.fields)
     new: pd.DataFrame = load(args.fn_new, args.fields)
 
-    assert set(old.columns).issubset(new.columns)
-
     fields = args.fields if args.fields else list(new.columns)[1:] # [1:] drops "Id"
     results = []
 
@@ -120,6 +121,9 @@ def main():
 
     results = pd.DataFrame(results, columns=['field', 'Cov (old)', 'Cov (new)', 'Share similar'])
     results['Change cov.'] = results['Cov (new)'] / results['Cov (old)'] - 1
+
+    results['Share similar'] = (100 * results['Share similar']).round(1)
+    results['Change cov.'] = (100 * results['Change cov.']).round(1)
 
     results.to_csv(args.fn_out, index=False)
 
