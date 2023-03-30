@@ -90,3 +90,27 @@ python evaluate.py ^
 ```
 
 ## Predict
+
+### Breastfeeding status at 7-14 days old models
+S2S
+```
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\circle-s2s ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\s2s\last.pth.tar ^
+-b 2048 ^
+--predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\breastfeed-7-do ^
+--plots montage
+```
+
+### Preterm birth
+MH
+```
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-mh ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\s2s\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\s2s\last.pth.tar ^
+-b 2048 ^
+--predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\preterm-birth ^
+--plots montage
+```

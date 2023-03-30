@@ -70,26 +70,13 @@ python evaluate.py ^
 ```
 
 ## Predict
-MH
+Current highest achieving model on test set is the MH model.
 ```
 python predict.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\mh ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\weight\mh\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\weight\mh\last.pth.tar ^
---plots montage ^
 -b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells weight-0-mo weight-1-mo weight-2-mo weight-3-mo weight-4-mo weight-6-mo weight-9-mo weight-12-mo
-```
-
-S2S
-```
-python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\s2s ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\weight\s2s\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\weight\s2s\last.pth.tar ^
---plots montage ^
--b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells weight-0-mo weight-1-mo weight-2-mo weight-3-mo weight-4-mo weight-6-mo weight-9-mo weight-12-mo
+--predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\weight-0-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\weight-1-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\weight-2-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\weight-3-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\weight-4-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\weight-6-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\weight-9-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\weight-12-mo ^
+--plots montage
 ```

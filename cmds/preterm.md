@@ -68,26 +68,5 @@ python evaluate.py ^
 ```
 
 ## Predict
-MH
-```
-python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\mh ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm\mh\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm\mh\last.pth.tar ^
---plots montage ^
--b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells preterm-birth
-```
-
-S2S
-```
-python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\s2s ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm\s2s\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm\s2s\last.pth.tar ^
---plots montage ^
--b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells preterm-birth
-```
+Current highest achieving model on test set is the circle-mh model (tie with MH).
+For that reason, see [Circle model](circle_model.md) for prediction code.

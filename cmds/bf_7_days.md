@@ -67,26 +67,5 @@ python evaluate.py ^
 ```
 
 ## Predict
-MH
-```
-python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\mh ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\mh\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\mh\last.pth.tar ^
---plots montage ^
--b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells breastfeed-7-do
-```
-
-S2S
-```
-python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\s2s ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\s2s\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\bf7do\s2s\last.pth.tar ^
---plots montage ^
--b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells breastfeed-7-do
-```
+Current highest achieving model on test set is the circle-s2s model.
+For that reason, see [Circle model](circle_model.md) for prediction code.

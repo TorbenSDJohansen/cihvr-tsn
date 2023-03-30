@@ -68,26 +68,5 @@ python evaluate.py ^
 ```
 
 ## Predict
-MH
-```
-python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\mh ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm-wks\mh\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm-wks\mh\last.pth.tar ^
---plots montage ^
--b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells preterm-birth-weeks
-```
-
-S2S
-```
-python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\s2s ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm-wks\s2s\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\preterm-wks\s2s\last.pth.tar ^
---plots montage ^
--b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells preterm-birth-weeks
-```
+While MH outperforms int-s2s-5d-restrict-2d, still go with int-s2s-5d-restrict-2d as speculated to generalize better.
+For that reason, see [Integer model](int_model.md) for prediction code.
