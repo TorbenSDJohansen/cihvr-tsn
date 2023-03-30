@@ -93,18 +93,24 @@ Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\s2s\preds.csv ^
 --out-dir ./
 ```
 
+**Note**: Performance on [Preterm birth number of weeks](cmds/preterm_weeks.md) appears very poor.
+However, this is in large part due to inconsistent labelling:
+Images often containt a range, such as "5-6", whereas the label only contains 1 number and not a range, even if present on the image.
+Further, it is not consistent whether the first or the second number in a range was used as the label.
+To try to 
+
 To format predictions to wide form:
 ```
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\base\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\base\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\base\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\base\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\XXXX\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\XXXX\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\XXXX\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\XXXX\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\XXX\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\base\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\base\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\base\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\base\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\XXXX\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\XXXX\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\XXXX\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\XXXX\preds.csv --use-cihvr-name-if-available
 ```
 
 To prepare data for upload to DST use `python data/prepare_data_dst.py`.
