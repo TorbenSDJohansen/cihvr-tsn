@@ -46,21 +46,6 @@ python train.py ^
 --initial-log
 ```
 
-S2S square 224x224
-```
-python train.py ^
---formatter s2s_two_digit_keep_bad_cpd ^
---experiment s2s-224x224 ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\length ^
---input-size 3 224 224 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-train ^
---dataset-cells length ^
---config ./cfgs/deit3_b_s2s.yaml ^
---log-wandb ^
---initial-log
-```
-
 ## Evaluate
 MH
 ```
@@ -82,25 +67,6 @@ python evaluate.py ^
 --eval-plots-omit-most-occ 3
 ```
 
-S2S square 224x224
-```
-python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\s2s-224x224 ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\length\s2s-224x224\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\length\s2s-224x224\last.pth.tar ^
---plots montage cov-acc cer-acc ^
---eval-plots-omit-most-occ 3
-```
-
 ## Predict
-Base
-```
-python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\mh ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\length\mh\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\length\mh\last.pth.tar ^
---plots montage ^
--b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells length-0-mo length-12-mo
-```
+While MH outperforms int-s2s-5d-restrict-2d, still go with int-s2s-5d-restrict-2d as MH has never seen empty cases, and thus is speculated to generalize poorer.
+For that reason, see [Integer model](int_model.md) for prediction code.

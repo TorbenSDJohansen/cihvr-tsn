@@ -15,26 +15,9 @@ python data\create_train_dataset.py ^
 
 ## Pre-training
 See [Date of visits (pretraining)](pretrain/date.md).
+**NOTE**: Currently TL is not used.
 
 ## Training
-
-MH (old formatter, only to compare and verify new approach works)
-```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter dates_keep_bad_cpd_old ^
---experiment mh-old-formatter ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date ^
---lr 4.0 ^
--b 1024 ^
---input-size 3 67 181 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-train ^
---dataset-cells date ^
---config ./cfgs/efficientnetv2_s.yaml ^
---log-wandb ^
---initial-log
-```
-
 MH
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
@@ -50,25 +33,6 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --config ./cfgs/efficientnetv2_s.yaml ^
 --log-wandb ^
 --initial-log
-```
-
-MH w/ TL
-```
-for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter dates_keep_bad_cpd ^
---experiment mh-tl-lr=%i ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date ^
---lr %i ^
---weight-decay 0 ^
--b 512 ^
--j 8 ^
---input-size 3 67 181 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-train ^
---dataset-cells date ^
---config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\DARE\base\last.pth.tar ^
---log-wandb
 ```
 
 S2S
@@ -109,14 +73,13 @@ python evaluate.py ^
 ```
 
 ## Predict
-MH
+Current highest achieving model on test set is the MH model.
 ```
 python predict.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\mh ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\mh\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\mh\last.pth.tar ^
---plots montage ^
 -b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells date-1-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo date-12-mo
+--predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-1-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-2-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-3-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-4-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-6-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-9-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-12-mo
+--plots montage
 ```
