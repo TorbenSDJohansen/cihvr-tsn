@@ -16,6 +16,7 @@ difference to be very large.
 
 import argparse
 import os
+import pickle
 
 from typing import List, Union
 
@@ -119,11 +120,31 @@ def main():
     for field in fields:
         results.append(compare_field(old, new, field))
 
-    results = pd.DataFrame(results, columns=['field', 'Cov (old)', 'Cov (new)', 'Share similar'])
+    results = pd.DataFrame(results, columns=['Field', 'Cov (old)', 'Cov (new)', 'Share similar'])
     results['Change cov.'] = results['Cov (new)'] / results['Cov (old)'] - 1
 
     results['Share similar'] = (100 * results['Share similar']).round(1)
     results['Change cov.'] = (100 * results['Change cov.']).round(1)
+
+    # Rename field to "pretty" format
+    with open('Y:/RegionH/Scripts/users/tsdj/storage/maps/map_lookup_df.pkl', 'rb') as file:
+        map_lookup_df = pickle.load(file)
+
+    results['Field'].replace(
+        {
+            'nn_ln_m_1_pred': 'nurse-last-name-1',
+            'nn_ln_m_2_pred': 'nurse-last-name-2',
+            'nn_ln_m_3_pred': 'nurse-last-name-3',
+            'nn_fn_m_1_pred': 'nurse-first-name-1',
+            'nn_fn_m_2_pred': 'nurse-first-name-2',
+            'nn_fn_m_3_pred': 'nurse-first-name-3',
+            **{v + '_pred': k for k, v in map_lookup_df.items() if not k.startswith('tab-b')},
+            **{k.replace('-', '_') + '_pred': k for k, v in map_lookup_df.items() if k.startswith('tab-b')},
+            },
+        inplace=True
+        )
+
+    # TODO potentially group some rows/fields? Otherwise > 100 rows
 
     if args.fn_out.lower().endswith('.csv'):
         results.to_csv(args.fn_out, index=False)
@@ -135,7 +156,7 @@ def main():
             escape=False,
             )
 
-    results_str = '\n'.join(results_str.split('\n')[2:-3])
+    results_str = '\n'.join(results_str.split('\n')[4:-3])
 
     with open(args.fn_out, 'w', encoding='utf-8') as file:
         print(results_str, file=file)
