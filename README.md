@@ -109,7 +109,7 @@ python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\l
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-mh\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\int-s2s-5d-restrict-2d\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\int-s2s-5d-restrict-2d\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\int-s2s-5d-restrict-2d\preds.csv
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\mh\preds.csv --use-cihvr-name-if-available
 ```
 
