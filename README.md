@@ -24,7 +24,7 @@ pip install path/to/timm-sequence-net
 ```
 
 ## Replicate results
-**Note**: 
+**Note**:
 A number of scripts refer to specific full paths.
 To replicate results on different server, some work to change this is needed.
 
@@ -52,7 +52,7 @@ To create figures showcasing different page heights, use `python data/check_imag
 
 **TODO**: Refer to new @CMD code once ready and merged to main.
 
-To merge Type A and Type B segmentations (by copying B to A), use 
+To merge Type A and Type B segmentations (by copying B to A), use
 ```
 python data/move_images.py --in-folder Y:\RegionH\Scripts\data\storage\minipics\TypeB --out-folder Y:\RegionH\Scripts\data\storage\minipics\TypeA --pools 20 --cells breastfeed-7-do date-0-mo date-1-mo date-12-mo date-2-mo date-3-mo date-4-mo date-6-mo date-9-mo district-1 district-2 district-3 dura-any-breastfeed length-0-mo length-12-mo meals-7-do moth-civ-status nb-abort nb-liveborn nb-stillborn nurse-name-1 nurse-name-2 nurse-name-3 PKU-7-do preterm-birth preterm-birth-weeks tab-b-c0-1-mo tab-b-c0-12-mo tab-b-c0-2-mo tab-b-c0-3-mo tab-b-c0-4-mo tab-b-c0-6-mo tab-b-c0-9-mo tab-b-c1-1-mo tab-b-c1-12-mo tab-b-c1-2-mo tab-b-c1-3-mo tab-b-c1-4-mo tab-b-c1-6-mo tab-b-c1-9-mo tab-b-c10-1-mo tab-b-c10-12-mo tab-b-c10-2-mo tab-b-c10-3-mo tab-b-c10-4-mo tab-b-c10-6-mo tab-b-c10-9-mo tab-b-c11-1-mo tab-b-c11-12-mo tab-b-c11-2-mo tab-b-c11-3-mo tab-b-c11-4-mo tab-b-c11-6-mo tab-b-c11-9-mo tab-b-c12-1-mo tab-b-c12-12-mo tab-b-c12-2-mo tab-b-c12-3-mo tab-b-c12-4-mo tab-b-c12-6-mo tab-b-c12-9-mo tab-b-c13-1-mo tab-b-c13-12-mo tab-b-c13-2-mo tab-b-c13-3-mo tab-b-c13-4-mo tab-b-c13-6-mo tab-b-c13-9-mo tab-b-c14-1-mo tab-b-c14-12-mo tab-b-c14-2-mo tab-b-c14-3-mo tab-b-c14-4-mo tab-b-c14-6-mo tab-b-c14-9-mo tab-b-c15-1-mo tab-b-c15-12-mo tab-b-c15-2-mo tab-b-c15-3-mo tab-b-c15-4-mo tab-b-c15-6-mo tab-b-c15-9-mo tab-b-c16-1-mo tab-b-c16-12-mo tab-b-c16-2-mo tab-b-c16-3-mo tab-b-c16-4-mo tab-b-c16-6-mo tab-b-c16-9-mo tab-b-c2-1-mo tab-b-c2-12-mo tab-b-c2-2-mo tab-b-c2-3-mo tab-b-c2-4-mo tab-b-c2-6-mo tab-b-c2-9-mo tab-b-c3-1-mo tab-b-c3-12-mo tab-b-c3-2-mo tab-b-c3-3-mo tab-b-c3-4-mo tab-b-c3-6-mo tab-b-c3-9-mo tab-b-c4-1-mo tab-b-c4-12-mo tab-b-c4-2-mo tab-b-c4-3-mo tab-b-c4-4-mo tab-b-c4-6-mo tab-b-c4-9-mo tab-b-c5-1-mo tab-b-c5-12-mo tab-b-c5-2-mo tab-b-c5-3-mo tab-b-c5-4-mo tab-b-c5-6-mo tab-b-c5-9-mo tab-b-c6-1-mo tab-b-c6-12-mo tab-b-c6-2-mo tab-b-c6-3-mo tab-b-c6-4-mo tab-b-c6-6-mo tab-b-c6-9-mo tab-b-c7-1-mo tab-b-c7-12-mo tab-b-c7-2-mo tab-b-c7-3-mo tab-b-c7-4-mo tab-b-c7-6-mo tab-b-c7-9-mo tab-b-c8-1-mo tab-b-c8-12-mo tab-b-c8-2-mo tab-b-c8-3-mo tab-b-c8-4-mo tab-b-c8-6-mo tab-b-c8-9-mo tab-b-c9-1-mo tab-b-c9-12-mo tab-b-c9-2-mo tab-b-c9-3-mo tab-b-c9-4-mo tab-b-c9-6-mo tab-b-c9-9-mo weight-0-mo weight-1-mo weight-12-mo weight-2-mo weight-3-mo weight-4-mo weight-6-mo weight-9-mo
 ```
@@ -95,22 +95,22 @@ Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\s2s\preds.csv ^
 
 **Note**: Performance on [Preterm birth number of weeks](cmds/preterm_weeks.md) appears very poor.
 However, this is in large part due to inconsistent labelling:
-Images often containt a range, such as "5-6", whereas the label only contains 1 number and not a range, even if present on the image.
+Images often contains a range, such as "5-6", whereas the label only contains 1 number and not a range, even if present on the image.
 Further, it is not consistent whether the first or the second number in a range was used as the label.
-To try to 
+To try to get a better measure of performance, calculate accuracy when allowing a difference of 1 between label and transcription, see `python scripts/preterm_weeks_error_rate.py --files Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\int-s2s-5d\preds.csv --fn-out path/to/output.tex`
 
 To format predictions to wide form:
 ```
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\XXXX\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\XXXX\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\XXXX\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\XXXX\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\XXX\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\circle-s2s\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\int-s2s-5d-restrict-2d\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\mh\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\int-s2s-5d-restrict-2d\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\s2s-tl\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\XXXX\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\XXXX\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\XXXX\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\XXXX\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-mh\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\int-s2s-5d-restrict-2d\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\int-s2s-5d-restrict-2d\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\mh\preds.csv --use-cihvr-name-if-available
 ```
 
 To prepare data for upload to DST use `python data/prepare_data_dst.py`.
