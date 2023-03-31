@@ -113,26 +113,5 @@ python evaluate.py ^
 ```
 
 ## Predict
-MH
-```
-python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b\mh ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\mh\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\mh\last.pth.tar ^
---plots montage ^
--b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells %DATASET-CELLS-TAB-B%
-```
-
-S2S
-```
-python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b\s2s^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\tab_b\s2s\last.pth.tar ^
---plots montage ^
--b 2048 ^
---dataset image-datasets-joined ^
---dataset-cells %DATASET-CELLS-TAB-B%
-```
+Current highest achieving model on test set is the int-s2s-5d model.
+For that reason, see [Integer model](int_model.md) for prediction code.
