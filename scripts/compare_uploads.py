@@ -125,7 +125,20 @@ def main():
     results['Share similar'] = (100 * results['Share similar']).round(1)
     results['Change cov.'] = (100 * results['Change cov.']).round(1)
 
-    results.to_csv(args.fn_out, index=False)
+    if args.fn_out.lower().endswith('.csv'):
+        results.to_csv(args.fn_out, index=False)
+        return
+
+    with pd.option_context("max_colwidth", 1000):
+        results_str = results.to_latex(
+            index=False,
+            escape=False,
+            )
+
+    results_str = '\n'.join(results_str.split('\n')[2:-3])
+
+    with open(args.fn_out, 'w', encoding='utf-8') as file:
+        print(results_str, file=file)
 
 
 if __name__ == '__main__':
