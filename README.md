@@ -117,6 +117,8 @@ To prepare data for upload to DST use `python data/prepare_data_dst.py`.
 
 To compare to older upload use `python scripts/compare_uploads.py --fn-old path/to/old.csv --fn-new path/to/new --fn-out path/to/out.csv`.
 
+To create balance table (with respect to born 1-3) use `python scripts/balance_tables.py --fn-in path/to/transcriptions.csv --fn-out path/to/out.tex`
+
 ## License
 Our code is licensed under Apache 2.0 (see [LICENSE](LICENSE)).
 

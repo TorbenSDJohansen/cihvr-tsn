@@ -48,7 +48,6 @@ def merge_on_cpr_info(data: pd.DataFrame) -> pd.DataFrame:
 
     cpr['dob'] = cpr['cpr'].apply(lambda x: x[:-4])
     cpr['bdd'] = cpr['dob'].apply(lambda x: x[:2])
-    cpr['bdd'] = cpr['bdd'].transform(lambda x: str(int(x)))
 
     cpr = cpr.rename(columns={'id_s': 'Id'})
     cpr = cpr.drop(columns=['id_c', 'dob', 'cpr'])
@@ -61,7 +60,11 @@ def merge_on_cpr_info(data: pd.DataFrame) -> pd.DataFrame:
 def load(fname: Union[str, os.PathLike], fields: Union[List[str], None]) -> pd.DataFrame:
     data = pd.read_csv(fname)
     data = data.drop_duplicates('Id')
-    data = merge_on_cpr_info(data)
+
+    if 'bdd' not in data.columns: # in newer versions already merged in
+        data = merge_on_cpr_info(data)
+
+    data.loc[~data['bdd'].isnull(), 'bdd'] = data.loc[~data['bdd'].isnull(), 'bdd'].transform(lambda x: str(int(x)))
 
     if fields is None:
         fields = [x for x in data.columns if x.endswith('_pred')]
@@ -79,7 +82,7 @@ def balance_row(
     sub = data[[split_by, field]]
     sub = sub[~sub[split_by].isnull()]
     sub = sub[~sub[field].isnull()]
-    sub = sub[~sub[field].isin({'0=Mangler', 'empty', 'bad cpd'})]
+    sub = sub[~sub[field].isin({'0=Mangler', 'empty', 'bad cpd', 'InvalidPred'})]
 
     # Means, counts
     sub[field] = sub[field].astype(int)
