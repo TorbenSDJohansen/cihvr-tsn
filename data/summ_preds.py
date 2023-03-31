@@ -174,7 +174,7 @@ def main():
             escape=False,
             )
 
-    results_str = '\n'.join(results_str.split('\n')[2:-3])
+    results_str = '\n'.join(results_str.split('\n')[4:-3])
 
     date = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
 
