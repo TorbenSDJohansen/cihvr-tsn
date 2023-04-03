@@ -55,36 +55,6 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --log-wandb
 ```
 
-S2S
-```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter s2s_last_name_keep_bad_cpd ^
---experiment s2s ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
---input-size 3 91 530 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-train ^
---dataset-cells nurse-name ^
---config ./cfgs/deit3_b_s2s.yaml ^
---log-wandb ^
---initial-log
-```
-
-S2S square 224x224
-```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter s2s_last_name_keep_bad_cpd ^
---experiment s2s-224x224-old-segmentation ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
---input-size 3 224 224 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-train ^
---dataset-cells nurse-name ^
---config ./cfgs/deit3_b_s2s.yaml ^
---log-wandb ^
---initial-log
-```
-
 S2S w/ TL from HANA **NOTE** potentially experiment with --weight-decay 0
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
@@ -136,10 +106,9 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --config ./cfgs/efficientnetv2_s.yaml ^
 --initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first-mh\last-new-style-format.pth.tar ^
 --log-wandb
-
 ```
 
-S2S w/ TL from HANA (**note**: TL from HANA *last* name model, as first name model not available)
+S2S w/ TL from HANA
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter s2s_first_name_keep_bad_cpd ^
@@ -150,7 +119,7 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
 --config ./cfgs/deit3_b_s2s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last-s2s\last.pth.tar ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first-s2s\last.pth.tar ^
 --tl-from-input-size 3 80 522 ^
 --log-wandb ^
 --initial-log
@@ -229,139 +198,13 @@ python evaluate.py ^
 ## Predict
 
 ### Last name
-MH (TL, only nurse-name-1, with post-match)
+Currently only model trained and ready for predict.
 ```
 python predict.py ^
---formatter last_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\mh-tl ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\s2s-tl ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s-tl\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s-tl\last.pth.tar ^
 -b 2048 ^
---input-size 3 91 530 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-lr=XXX\last.pth.tar ^
---plots montage
-
-python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\mh-tl\preds.csv ^
---lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
-```
-
-### First name
-MH (TL, only nurse-name-1, with post-match)
-```
-python predict.py ^
---formatter first_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl ^
--b 2048 ^
---input-size 3 91 530 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl-lr=XXX\last.pth.tar ^
---plots montage
-
-python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl\preds.csv ^
---lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn-loose.pkl
-```
-
-# Post round 1 revision
-**TODO**: Move this to README probably... to only keep pure "NN" parts in these .mds
-**Especially** since gen_labels.py now takes care of wsp to label part
-...
-
-To create workspaces for more labelling:
-```
-python data\labelling\prepare_nurse_name_1.py --round 1 --task create-workspaces
-```
-
-To create labels from returned workspaces:
-```
-python data\labelling\prepare_nurse_name_1.py --round 1 --task create-labels
-```
-
-## Train
-
-### Last name
-MH (TL, use extra data)
-```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter last_name_keep_bad_cpd ^
---experiment mh-tl-extra-data ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
---lr XXX ^
---weight-decay 0 ^
--b 128 ^
---input-size 3 91 530 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 ^
---config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last\last.pth.tar ^
---log-wandb
-```
-
-### First name
-MH (TL, use extra data)
-```
-python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter first_name_keep_bad_cpd ^
---experiment mh-tl-extra-data ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
---lr XXX ^
---weight-decay 0 ^
--b 128 ^
---input-size 3 91 530 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 ^
---config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first\last.pth.tar ^
---log-wandb
-```
-
-## Evaluate
-
-### Last name
-MH (TL, use extra data)
-```
-python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh-tl-extra-data ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-extra-data\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-extra-data\last.pth.tar ^
---plots montage cov-acc cer-acc ^
---eval-plots-omit-most-occ 3
-```
-
-### First name
-MH (TL, use extra data)
-```
-python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl-extra-data ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl-extra-data\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl-extra-data\last.pth.tar ^
---plots montage cov-acc cer-acc ^
---eval-plots-omit-most-occ 3
-```
-
-## Predict/transcribe
-
-### Last name
-MH (TL, use extra data, only nurse-name-1)
-```
-python predict.py ^
---formatter last_name_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\mh-tl-extra-data ^
--b 2048 ^
---input-size 3 91 530 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-joined ^
---dataset-cells nurse-name-1 ^
---labels-subdir keep ^
---config ./cfgs/efficientnetv2_s.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-extra-data\last.pth.tar ^
+--predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-1 Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-2 Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-3 ^
 --plots montage
 ```
