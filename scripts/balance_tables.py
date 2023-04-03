@@ -94,7 +94,7 @@ def balance_row(
         b=sub.loc[sub[split_by] == False, field], # normal negate not possible as dtype is not bool pylint: disable=C0121
         )
 
-    return [field, *statistics['mean'], *statistics['count'], round(test_stats.pvalue, 2)]
+    return [field, *statistics['mean'], *statistics['count'], round(test_stats.pvalue, 3)]
 
 
 def balance_table(
