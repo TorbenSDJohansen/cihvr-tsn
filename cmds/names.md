@@ -20,19 +20,19 @@ See [Nurse names (pretraining)](pretrain/names.md).
 ## Training
 
 ### Last name
-MH
+MH w/ TL from HANA
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter last_name_keep_bad_cpd ^
---experiment mh ^
+--experiment mh-tl ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
---lr 0.5 ^
 -b 128 ^
 --input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
 --config ./cfgs/efficientnetv2_s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last-mh\last-new-style-format.pth.tar ^
 --log-wandb ^
 --initial-log
 ```
@@ -73,19 +73,19 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 ```
 
 ### First name
-MH
+MH w/ TL from HANA
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter first_name_keep_bad_cpd ^
---experiment mh ^
+--experiment mh-tl ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
---lr 0.5 ^
 -b 128 ^
 --input-size 3 91 530 ^
 --data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
 --dataset image-datasets-train ^
 --dataset-cells nurse-name ^
 --config ./cfgs/efficientnetv2_s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first-mh\last-new-style-format.pth.tar ^
 --log-wandb ^
 --initial-log
 ```
