@@ -18,8 +18,6 @@ from typing import Union
 
 import pandas as pd
 
-# from matplotlib import pyplot as plt
-
 
 def load() -> pd.DataFrame:
     directory = r'Y:\RegionH\Scripts\data\storage\tableparsing_summary\TypeA'
@@ -91,8 +89,6 @@ def main():
     # Move to script or data
     # If useful to obtain "bad segmentation", place appropriately in README and
     # use in data/gen_labels.py
-
-    # plt.hist(data['score'], bins=100)
 
 
 if __name__ == '__main__':
