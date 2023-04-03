@@ -72,8 +72,8 @@ For full rundown, refer to markdowns in following order (some parts need to run 
 1. [Preterm birth number of weeks](cmds/preterm_weeks.md)
 1. [Table B visits information](cmds/tab_b.md)
 1. [Weight at birth and at visits](cmds/weight.md)
-
-**TODO**: Once/if joint models added, update the list. Lists these *last* as dependent on above.
+1. [Circle number model](cmds/circle_model.md)
+1. [Seq. of integers model](cmds/int_model.md)
 
 ### Post-transcription
 To produce table with transcription accuracies:
@@ -81,7 +81,7 @@ To produce table with transcription accuracies:
 python data/summ_preds.py ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\circle-s2s\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\int-s2s-5d\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-full-table\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\s2s-full-table\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\int-s2s-5d\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\s2s-tl\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\s2s-tl\preds.csv ^
@@ -90,14 +90,14 @@ Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\int-s2s-5d\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\int-s2s-5d\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\date\s2s\preds.csv ^
 --cihvr-duplicate-drop ^
---out-dir ./
+--out-dir path/to/out/
 ```
 
 **Note**: Performance on [Preterm birth number of weeks](cmds/preterm_weeks.md) appears very poor.
 However, this is in large part due to inconsistent labelling:
 Images often contains a range, such as "5-6", whereas the label only contains 1 number and not a range, even if present on the image.
 Further, it is not consistent whether the first or the second number in a range was used as the label.
-To try to get a better measure of performance, calculate accuracy when allowing a difference of 1 between label and transcription, see `python scripts/preterm_weeks_error_rate.py --files Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\int-s2s-5d\preds.csv --fn-out path/to/output.tex`
+To try to get a better measure of performance, calculate accuracy when allowing a difference of 1 between label and transcription, see `python scripts/preterm_weeks_error_rate.py --files Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\int-s2s-5d\preds.csv --fn-out path/to/output.tex`.
 
 To format predictions to wide form:
 ```
@@ -109,15 +109,15 @@ python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\l
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-mh\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\int-s2s-5d-restrict-2d\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\int-s2s-5d-restrict-2d\preds.csv
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\s2s\preds.csv
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\mh\preds.csv --use-cihvr-name-if-available
 ```
 
 To prepare data for upload to DST use `python data/prepare_data_dst.py`.
 
-To compare to older upload use `python scripts/compare_uploads.py --fn-old path/to/old.csv --fn-new path/to/new --fn-out path/to/out.csv`.
+To compare to older upload use `python scripts/compare_uploads.py --fn-old path/to/old.csv --fn-new path/to/new --fn-out path/to/out.tex`.
 
-To create balance table (with respect to born 1-3) use `python scripts/balance_tables.py --fn-in path/to/transcriptions.csv --fn-out path/to/out.tex`
+To create balance table (with respect to born 1-3) use `python scripts/balance_tables.py --fn-in path/to/transcriptions.csv --fn-out path/to/out.tex`.
 
 ## License
 Our code is licensed under Apache 2.0 (see [LICENSE](LICENSE)).

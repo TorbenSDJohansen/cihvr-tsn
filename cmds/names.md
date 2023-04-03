@@ -55,7 +55,7 @@ for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch 
 --log-wandb
 ```
 
-S2S w/ TL from HANA **NOTE** potentially experiment with --weight-decay 0
+S2S w/ TL from HANA
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --formatter s2s_last_name_keep_bad_cpd ^
