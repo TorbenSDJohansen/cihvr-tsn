@@ -144,8 +144,6 @@ def main():
         inplace=True
         )
 
-    # TODO potentially group some rows/fields? Otherwise > 100 rows
-
     if args.fn_out.lower().endswith('.csv'):
         results.to_csv(args.fn_out, index=False)
         return
