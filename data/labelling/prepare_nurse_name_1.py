@@ -403,8 +403,8 @@ def create_workspaces(current_round: int):
     elif current_round == 2:
         raise NotImplementedError
 
-        fn_pred_ln=None
-        fn_pred_fn=None
+        fn_pred_ln = None
+        fn_pred_fn = None
 
         pred_ln = pd.read_csv(fn_pred_ln)
         pred_fn = pd.read_csv(fn_pred_fn)
