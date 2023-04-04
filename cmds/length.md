@@ -70,3 +70,15 @@ python evaluate.py ^
 ## Predict
 While MH outperforms int-s2s-5d-restrict-2d, still go with int-s2s-5d-restrict-2d as MH has never seen empty cases, and thus is speculated to generalize poorer.
 For that reason, see [Integer model](int_model.md) for prediction code.
+
+## Preparing workspaces to add labels of empty cases
+No examples of empty fields in labels.
+Create workspace by selecting predictions of empty and then go through those.
+Since too few predicted "0=Mangler", select remaining by choosing predictions with lowest certainty.
+```
+python data/labelling/empty.py ^
+--fn-preds Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\int-s2s-5d-restrict-2d\preds.csv ^
+--label-dir Y:\RegionH\Scripts\data\storage\labels ^
+--outdir Y:\RegionH\Scripts\users\tsdj\storage\datasets\length-fields-empty ^
+-n 1000
+```
