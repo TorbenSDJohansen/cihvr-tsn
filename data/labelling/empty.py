@@ -38,7 +38,10 @@ def parse_args() -> argparse.Namespace:
     if not os.path.isfile(args.fn_preds):
         raise FileNotFoundError(f'--fn-preds {args.fn_preds} does not exist')
 
-    if os.path.isfile(args.outdir):
+    if not os.path.isdir(args.label_dir):
+        raise NotADirectoryError(f'--label-dir {args.label_dir} does not exist')
+
+    if not os.path.isdir(args.outdir):
         raise NotADirectoryError(f'--outdir {args.outdir} does not exist')
 
     if args.n <= 0:
@@ -60,7 +63,7 @@ def create_workspaces(
         'currentTag': 'field',
         'isModified': False,
         'savePath': None,
-        'cursor': 1,
+        'cursor': 0,
         'useInference': True,
         }
 
