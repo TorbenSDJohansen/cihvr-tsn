@@ -128,12 +128,12 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 ## Evaluate
 
 ### Last name
-MH
+MH w/ TL from HANA
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh-tl ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
@@ -151,7 +151,7 @@ python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh-tl\preds.cs
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
 ```
 
-S2S
+S2S w/ TL from HANA
 ```
 python evaluate.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\s2s ^
@@ -162,12 +162,12 @@ python evaluate.py ^
 ```
 
 ### First name
-MH
+MH w/ TL from HANA
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
@@ -185,12 +185,12 @@ python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl\preds.c
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn-loose.pkl
 ```
 
-S2S
+S2S w/ TL from HANA
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\s2s ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\s2s\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\s2s\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\s2s-tl ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\s2s-tl\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\s2s-tl\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
@@ -198,12 +198,24 @@ python evaluate.py ^
 ## Predict
 
 ### Last name
-Currently only model trained and ready for predict.
+S2S w/ TL from HANA
 ```
 python predict.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\s2s-tl ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s-tl\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s-tl\last.pth.tar ^
+-b 2048 ^
+--predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-1 Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-2 Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-3 ^
+--plots montage
+```
+
+### First name
+MH w/ TL from HANA
+```
+python predict.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl\last.pth.tar ^
 -b 2048 ^
 --predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-1 Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-2 Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-3 ^
 --plots montage
