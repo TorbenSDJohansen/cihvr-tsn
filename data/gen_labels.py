@@ -411,14 +411,15 @@ def gen_labels(
 
         new_labels = labels[~labels['fname'].isin(np.concatenate([labels_train[:, 0], labels_test[:, 0]]))]
         new_labels = np.array(new_labels)
-        new_labels = drop_if_too_many_bad_segmentation(
-            new_labels,
-            max_share_bad_segmentation,
-            )
 
         if len(new_labels) == 0: # no new labels, continue to next field
             print(f'No new labels to append to {key}')
             continue
+
+        new_labels = drop_if_too_many_bad_segmentation(
+            new_labels,
+            max_share_bad_segmentation,
+            )
 
         if len(new_labels) == 1: # Not possible to split, so only add to train
             labels_train_new = new_labels
