@@ -11,7 +11,7 @@ Merge cells to two image folders for all Table B (one for train and one for test
 python data\create_train_dataset.py ^
 --dir Y:\RegionH\Scripts\data\storage ^
 --labels-subdir keep ^
---fields %DATASET-CELLS-TAB-B-SUB% ^
+--fields %DATASET-CELLS-TAB-B% ^
 --out-dir Y:\RegionH\Scripts\users\tsdj\storage\image-datasets-train ^
 --name tab-b ^
 --nb-pools 8
