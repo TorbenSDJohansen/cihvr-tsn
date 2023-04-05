@@ -189,6 +189,42 @@ def merge_new_table_b(
     return df_main
 
 
+def merge_new_empty(df_main: pd.DataFrame) -> pd.DataFrame:
+    ''' Issue with some fields w/ zero training examples of "0=Mangler" led to
+    problem, manually created additional labels to fix this. Merge those in
+    here.
+
+    Note that while this is sampled to heavily consit of "0=Mangler" cases, it
+    is more general and will also add non-"0=Mangler" labels.
+
+    '''
+    dir_ds = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets'
+    fields = [
+        'length-fields-empty',
+        'tab-b-fields-empty',
+        ]
+
+    for field in fields:
+        new_labels = pd.read_csv(os.path.join(dir_ds, field, 'new-labels.csv'))
+        new_labels['Journal'] = new_labels['image_id'].transform(lambda x: x.split('.')[0])
+        new_labels = new_labels.drop(columns='image_id')
+
+        # Safe with normal merge for cols not already in df_main
+        new_cols = ['Journal'] + [x for x in new_labels.columns if x not in df_main.columns]
+        df_main = df_main.merge(new_labels[new_cols], on='Journal', how='left')
+
+        # For those already in df_main, only replace when no value. Useful to
+        # let index be journal to match journals between the two data frames
+        new_labels.index = new_labels['Journal']
+
+        for col in [x for x in new_labels.columns if x not in new_cols]:
+            repl = df_main.loc[df_main['Journal'].isin(new_labels['Journal']), ['Journal', col]]
+            repl = repl.loc[repl[col].isna(), 'Journal']
+            df_main.loc[df_main['Journal'].isin(repl), col] = new_labels.loc[repl, col].values
+
+    return df_main
+
+
 def drop_if_too_many_bad_segmentation(
         labels: np.array,
         max_share_bad_segmentation: float,
@@ -314,6 +350,9 @@ def gen_labels(
         raise ValueError(f'requested --fields {bad_fields} not in {map_lookup_df.keys()}')
 
     empty_weight_cells = load_mod_weight()
+
+    # Merge info on empty fields from manual/assisted labelling
+    df_main = merge_new_empty(df_main=df_main)
 
     # Merge info on nurse names into main_df
     df_main = merge_nurse_names(
