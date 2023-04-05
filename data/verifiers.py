@@ -36,7 +36,7 @@ class Verifiers: # pylint: disable=C0115
 
     @staticmethod
     def verify_length(length): # pylint: disable=C0116
-        if length == 'bad cpd':
+        if length in ('bad cpd', '0=Mangler'):
             return length
 
         if float(length) == int(float(length)):
