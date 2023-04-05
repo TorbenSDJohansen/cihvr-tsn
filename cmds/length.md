@@ -82,3 +82,10 @@ python data/labelling/empty.py ^
 --outdir Y:\RegionH\Scripts\users\tsdj\storage\datasets\length-fields-empty ^
 -n 1000
 ```
+
+Post manual check, map to file useable format for creating/adding to labels
+```
+python data/labelling/empty_wsp_to_label.py ^
+--wsp-dir Y:\RegionH\Scripts\users\tsdj\storage\datasets\length-fields-empty ^
+--fn-out Y:\RegionH\Scripts\users\tsdj\storage\datasets\length-fields-empty\new-length-labels.csv
+```

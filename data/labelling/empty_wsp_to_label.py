@@ -74,11 +74,9 @@ def workspace_to_labels_dataframe(wsp_dir: dir) -> pd.DataFrame:
 
     labels = pd.concat(labels)
 
-    # Drop cases not real labels/we don't want to use as label
-    new_labels = labels[~labels['label'].isin({'x', 'r', '?'})].copy()
-
-    # Check all (remaining) values of proper type
-    assert set(new_labels['label'].unique()).issubset({'', *{str(x) for x in range(10)}})
+    # Only keep labels with values we expect/are useable
+    allowed_values = {'', *{str(x) for x in range(10_000)}}
+    new_labels = labels[labels['label'].isin(allowed_values)].copy()
 
     # Change '' to '0=Mangler' format for empty
     new_labels['label'] = new_labels['label'].replace('', '0=Mangler')

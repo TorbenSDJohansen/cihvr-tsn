@@ -137,3 +137,10 @@ python data/labelling/empty.py ^
 -n 100 ^
 --package-size 1000
 ```
+
+Post manual check, map to file useable format for creating/adding to labels
+```
+python data/labelling/empty_wsp_to_label.py ^
+--wsp-dir Y:\RegionH\Scripts\users\tsdj\storage\datasets\tab-b-fields-empty ^
+--fn-out Y:\RegionH\Scripts\users\tsdj\storage\datasets\tab-b-fields-empty\new-tab-b-labels.csv
+```
