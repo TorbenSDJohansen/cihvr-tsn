@@ -189,13 +189,13 @@ def merge_new_table_b(
     return df_main
 
 
-def merge_new_empty(df_main: pd.DataFrame) -> pd.DataFrame:
+def merge_new_labels(df_main: pd.DataFrame) -> pd.DataFrame:
     ''' Issue with some fields w/ zero training examples of "0=Mangler" led to
     problem, manually created additional labels to fix this. Merge those in
     here.
 
-    Note that while this is sampled to heavily consit of "0=Mangler" cases, it
-    is more general and will also add non-"0=Mangler" labels.
+    Note that while this is sampled to heavily consists of "0=Mangler" cases,
+    it is more general and will also add non-"0=Mangler" labels.
 
     '''
     dir_ds = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets'
@@ -354,7 +354,7 @@ def gen_labels(
     empty_weight_cells = load_mod_weight()
 
     # Merge info on empty fields from manual/assisted labelling
-    df_main = merge_new_empty(df_main=df_main)
+    df_main = merge_new_labels(df_main=df_main)
 
     # Merge info on nurse names into main_df
     df_main = merge_nurse_names(

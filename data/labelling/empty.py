@@ -5,8 +5,12 @@
 Current training sets are heavily selected for some fields with few and in many
 cases even zero examples of empty fields.
 
-Use a first round of predictions to select likely empty and then create work-
-space for labelling.
+This scripts creates workspaces from prediction .csv on a per-field basis,
+while making sure to not add any which are already in our current labels. It is
+possible to sample "empty", "random", or "low-prob".
+
+Example use: Use a first round of predictions to select likely empty and then
+create work-space for labelling.
 
 """
 
@@ -32,6 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--outdir', type=str)
     parser.add_argument('-n', type=int, default=100, help='number selected per field')
     parser.add_argument('--package-size', type=int, default=None, help='maximum package size')
+    parser.add_argument('--sample', type=str, default='empty', choices=['empty', 'random', 'low-prob'])
 
     args = parser.parse_args()
 
@@ -131,7 +136,7 @@ def get_current_labels(
     return labels
 
 
-def select_images(sub: pd.DataFrame, number: int) -> pd.DataFrame:
+def select_images_empty(sub: pd.DataFrame, number: int) -> pd.DataFrame:
     empty = sub[sub['pred'] == '0=Mangler']
 
     if len(empty) < number: # add those predicted with lowest certainty
@@ -143,6 +148,14 @@ def select_images(sub: pd.DataFrame, number: int) -> pd.DataFrame:
         empty = empty.sample(n=number, replace=False, random_state=42)
 
     return empty
+
+
+def select_images_random(sub: pd.DataFrame, number: int) -> pd.DataFrame:
+    return sub.sample(n=number, replace=False, random_state=42)
+
+
+def select_images_low_prob(sub: pd.DataFrame, number: int) -> pd.DataFrame:
+    return sub.nsmallest(number, columns='prob')
 
 
 def main():
@@ -166,11 +179,22 @@ def main():
         to_exclude = labels.loc[labels['field'] == field, 'image']
         sub = sub[~sub['image'].isin(to_exclude)]
 
-        # Select those predicted as empty (or with low prob if not enough empty)
-        sub = select_images(sub, number=args.n)
+        if args.sample == 'empty':
+            # Select those predicted as empty (or with low prob if not enough empty)
+            sub = select_images_empty(sub, number=args.n)
+        elif args.sample == 'random':
+            sub = select_images_random(sub, number=args.n)
+        elif args.sample == 'low-prob':
+            sub = select_images_low_prob(sub, number=args.n)
+        else:
+            raise ValueError(f'--sample arg {args.sample} not allowed')
+
         to_label.append(sub)
 
     to_label = pd.concat(to_label)
+
+    # Since "0=Mangler" long to type, replace with "" and map back when going
+    # from workspace to labels
     to_label['pred'] = to_label['pred'].replace(to_replace='0=Mangler', value='')
 
     create_workspaces(
