@@ -75,7 +75,7 @@ For that reason, see [Circle model](circle_model.md) for prediction code.
 Few examples of empty fields in labels.
 Create workspace by selecting predictions of empty and then go through those.
 ```
-python data/labelling/empty.py ^
+python data/labelling/create_wsp.py ^
 --fn-preds Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-mh\preds.csv ^
 --label-dir Y:\RegionH\Scripts\data\storage\labels ^
 --outdir Y:\RegionH\Scripts\users\tsdj\storage\datasets\preterm-fields-empty ^
@@ -84,7 +84,7 @@ python data/labelling/empty.py ^
 
 Post manual check, map to file useable format for creating/adding to labels
 ```
-python data/labelling/empty_wsp_to_label.py ^
+python data/labelling/wsp_to_label.py ^
 --wsp-dir Y:\RegionH\Scripts\users\tsdj\storage\datasets\preterm-fields-empty ^
 --fn-out Y:\RegionH\Scripts\users\tsdj\storage\datasets\preterm-fields-empty\new-labels.csv
 ```

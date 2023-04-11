@@ -132,7 +132,7 @@ However, only barely, and int-s2s-5d model speculated to generalize better.
 Very few (and for most fields 0) examples of empty as labels.
 Create workspace by selecting predictions of empty and then go through those.
 ```
-python data/labelling/empty.py ^
+python data/labelling/create_wsp.py ^
 --fn-preds Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\s2s\preds.csv ^
 --label-dir Y:\RegionH\Scripts\data\storage\labels ^
 --outdir Y:\RegionH\Scripts\users\tsdj\storage\datasets\tab-b-fields-empty ^
@@ -142,7 +142,7 @@ python data/labelling/empty.py ^
 
 Post manual check, map to file useable format for creating/adding to labels
 ```
-python data/labelling/empty_wsp_to_label.py ^
+python data/labelling/wsp_to_label.py ^
 --wsp-dir Y:\RegionH\Scripts\users\tsdj\storage\datasets\tab-b-fields-empty ^
 --fn-out Y:\RegionH\Scripts\users\tsdj\storage\datasets\tab-b-fields-empty\new-labels.csv
 ```

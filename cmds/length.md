@@ -76,7 +76,7 @@ No examples of empty fields in labels.
 Create workspace by selecting predictions of empty and then go through those.
 Since too few predicted "0=Mangler", select remaining by choosing predictions with lowest certainty.
 ```
-python data/labelling/empty.py ^
+python data/labelling/create_wsp.py ^
 --fn-preds Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\int-s2s-5d-restrict-2d\preds.csv ^
 --label-dir Y:\RegionH\Scripts\data\storage\labels ^
 --outdir Y:\RegionH\Scripts\users\tsdj\storage\datasets\length-fields-empty ^
@@ -85,7 +85,7 @@ python data/labelling/empty.py ^
 
 Post manual check, map to file useable format for creating/adding to labels
 ```
-python data/labelling/empty_wsp_to_label.py ^
+python data/labelling/wsp_to_label.py ^
 --wsp-dir Y:\RegionH\Scripts\users\tsdj\storage\datasets\length-fields-empty ^
 --fn-out Y:\RegionH\Scripts\users\tsdj\storage\datasets\length-fields-empty\new-labels.csv
 ```
