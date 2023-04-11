@@ -2,7 +2,7 @@
 """
 @author: sa-tsdj
 
-Take workspaces created by empty.py (and then manually reviwed) and create
+Take workspaces created by create_wsp.py (and then manually reviwed) and create
 label file(s).
 
 """

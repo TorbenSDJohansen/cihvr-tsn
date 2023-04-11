@@ -5,7 +5,7 @@
 Current training sets are heavily selected for some fields with few and in many
 cases even zero examples of empty fields.
 
-This scripts creates workspaces from prediction .csv on a per-field basis,
+This script creates workspaces from prediction .csv on a per-field basis,
 while making sure to not add any which are already in our current labels. It is
 possible to sample "empty", "random", or "low-prob".
 
