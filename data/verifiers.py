@@ -108,7 +108,7 @@ class Verifiers: # pylint: disable=C0115
 
     @staticmethod
     def verify_bfdurany(duration): # pylint: disable=C0116
-        if duration == 'bad cpd':
+        if duration in ('bad cpd', '0=Mangler'):
             return duration
 
         if float(duration) == int(float(duration)):

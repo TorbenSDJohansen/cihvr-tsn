@@ -200,7 +200,9 @@ def merge_new_empty(df_main: pd.DataFrame) -> pd.DataFrame:
     '''
     dir_ds = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets'
     fields = [
+        'dabf-fields-empty',
         'length-fields-empty',
+        'preterm-fields-empty',
         'tab-b-fields-empty',
         ]
 
