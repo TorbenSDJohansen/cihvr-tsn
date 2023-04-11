@@ -68,7 +68,6 @@ python train.py ^
 --initial-log
 ```
 
-
 ## Evaluate
 MH
 ```

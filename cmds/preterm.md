@@ -70,3 +70,21 @@ python evaluate.py ^
 ## Predict
 Current highest achieving model on test set is the circle-mh model (tie with MH).
 For that reason, see [Circle model](circle_model.md) for prediction code.
+
+## Preparing workspaces to add labels of empty cases
+Few examples of empty fields in labels.
+Create workspace by selecting predictions of empty and then go through those.
+```
+python data/labelling/empty.py ^
+--fn-preds Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-mh\preds.csv ^
+--label-dir Y:\RegionH\Scripts\data\storage\labels ^
+--outdir Y:\RegionH\Scripts\users\tsdj\storage\datasets\preterm-fields-empty ^
+-n 1000
+```
+
+Post manual check, map to file useable format for creating/adding to labels
+```
+python data/labelling/empty_wsp_to_label.py ^
+--wsp-dir Y:\RegionH\Scripts\users\tsdj\storage\datasets\preterm-fields-empty ^
+--fn-out Y:\RegionH\Scripts\users\tsdj\storage\datasets\preterm-fields-empty\new-labels.csv
+```
