@@ -125,6 +125,9 @@ python predict.py ^
 --plots montage
 ```
 
+**Update**: After first round of adding "likely empty"-labels, MH overtook.
+However, only barely, and int-s2s-5d model speculated to generalize better.
+
 ## Preparing workspaces to add labels of empty cases
 Very few (and for most fields 0) examples of empty as labels.
 Create workspace by selecting predictions of empty and then go through those.
