@@ -201,9 +201,11 @@ def merge_new_labels(df_main: pd.DataFrame) -> pd.DataFrame:
     dir_ds = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets'
     fields = [
         'dabf-fields-empty',
+        'dabf-fields-empty/round-0', # 2x labelling rounds
         'length-fields-empty',
         'preterm-fields-empty',
         'tab-b-fields-empty',
+        'tab-b-fields-empty/round-0', # 2x labelling rounds
         ]
 
     for field in fields:
