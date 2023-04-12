@@ -188,6 +188,10 @@ def prepare_tab_b(
     for name in map_name.values():
         inspect_tab_b_cell_overlap(df_cpc, df_cc, overlap, name)
 
+    # For `df_cpc`, if column "no_weight_data" equals 1, we know all Table B
+    # cells are empty
+    df_cpc.loc[df_cpc['no_weight_data'] == 1, list(map_name.values())] = '0=Mangler'
+
     # Concatenate - note we now have 117 duplicates for 'Filename'
     tab_b = pd.concat([
         df_cpc[['Filename', *map_name.values()]],
