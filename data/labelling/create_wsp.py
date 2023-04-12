@@ -37,6 +37,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('-n', type=int, default=100, help='number selected per field')
     parser.add_argument('--package-size', type=int, default=None, help='maximum package size')
     parser.add_argument('--sample', type=str, default='empty', choices=['empty', 'random', 'low-prob'])
+    parser.add_argument('--fields', type=str, nargs='+', default=None)
 
     args = parser.parse_args()
 
@@ -171,7 +172,12 @@ def main():
 
     to_label = []
 
-    for field in preds['field'].unique():
+    if args.fields is None:
+        fields = preds['field'].unique()
+    else:
+        fields = args.fields
+
+    for field in fields:
         # Select specific field
         sub = preds[preds['field'] == field]
 
