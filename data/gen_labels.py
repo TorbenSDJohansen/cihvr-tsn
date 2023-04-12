@@ -12,10 +12,6 @@ segmentation" examples and add those.
 """
 
 
-# TODO (1) Probably want to add some "bad segmentation" labels in some way
-# TODO (2) might want to add some empty labels in some way
-
-
 import argparse
 import os
 import pickle
@@ -205,7 +201,8 @@ def merge_new_labels(df_main: pd.DataFrame) -> pd.DataFrame:
         'length-fields-empty',
         'preterm-fields-empty',
         'tab-b-fields-empty',
-        'tab-b-fields-empty/round-0', # 2x labelling rounds
+        'tab-b-fields-empty/round-0',
+        'tab-b-fields-empty/round-1', # 3x labelling rounds
         ]
 
     for field in fields:
@@ -440,20 +437,6 @@ def gen_labels(
 
         np.save(fn_out_train, labels_train_new)
         np.save(fn_out_test, labels_test_new)
-
-    # Below not alway work, e.g., 'tab-b-c9-1-mo' not exist for `handle_bad_cpd='ignore'`
-    # coolstuff = {x: np.load(
-    #     ''.join((labels_root, 'train/', x, '.npy')), allow_pickle=True,
-    #     ) for x in map_lookup_df.keys()}
-    # print({k: len(v) for k, v in coolstuff.items()})
-    # print({k: len(set(v[:, 1])) for k, v in coolstuff.items()})
-    # print({k: sum(v[:, 1] == 'bad cpd') for k, v in coolstuff.items()})
-
-    # Maybe also use this script to generate auxillary columns, as this allows
-    # us to use 'date-0-mo', for example (derive from the birth date cols or
-    # even CPR).
-    # Prob do in other script run BEFORE this, so it can be incorporated
-    # directly in `gen_map_lookup_df.py` as well!!
 
 
 def main():
