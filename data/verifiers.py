@@ -67,7 +67,7 @@ class Verifiers: # pylint: disable=C0115
         if tab_b_entry in ('bad cpd', '0=Mangler'):
             return tab_b_entry
 
-        tab_b_entry = {0.0: '0=Mangler', 1.0: '1=god', 2.0: 'middel', 3.0: 'dårlig'}.get(tab_b_entry, tab_b_entry)
+        tab_b_entry = {1.0: '1=god', 2.0: '2=middel', 3.0: '3=dårlig'}.get(tab_b_entry, tab_b_entry)
         _allowed = {1, 2, 3}
 
         if int(tab_b_entry[0]) not in _allowed:
@@ -77,12 +77,16 @@ class Verifiers: # pylint: disable=C0115
         return tab_b_entry
 
     @staticmethod
-    def verify_tab_b_12(tab_b_entry): # pylint: disable=C0116
+    def verify_tab_b_012(tab_b_entry): # pylint: disable=C0116
+        """ Binary fields vary between whether use 1/2 or 1/0 - hence need to
+        also accept 0. Both 0 and 2 correspond to "nej"
+
+        """
         if tab_b_entry in ('bad cpd', '0=Mangler'):
             return tab_b_entry
 
-        tab_b_entry = {0.0: '0=Mangler', 1.0: '1=ja', 2.0: 'nej'}.get(tab_b_entry, tab_b_entry)
-        _allowed = {1, 2}
+        tab_b_entry = {0.0: '0=nej', 1.0: '1=ja', 2.0: '2=nej'}.get(tab_b_entry, tab_b_entry)
+        _allowed = {0, 1, 2}
 
         if int(tab_b_entry[0]) not in _allowed:
             print(f'Bad table B (1, 2) value: {tab_b_entry}. Casting to None.')
