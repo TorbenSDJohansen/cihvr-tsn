@@ -119,10 +119,13 @@ def balance_table(
 def cast_variable_binary(series: pd.Series) -> pd.Series:
     ''' If a variable -- such as lifts head (tab-b-c12-X-mo( -- is binary,
     create new series for which this holds and for which all predictions that
-    # are neither 1 nor 2 are replaced with NaN.
+    # are neither 0, 1, or 2 are replaced with NaN.
+
+    Recall that both 0 and 2 may refer to "no", depending on table type.
 
     '''
-    mapping = {val: np.nan for val in series.unique() if val not in ('1', '2', '0=Mangler')}
+    mapping = {val: np.nan for val in series.unique() if val not in ('0', '1', '2', '0=Mangler')}
+    mapping['0'] = '1'
     mapping['1'] = '0'
     mapping['2'] = '1'
 
