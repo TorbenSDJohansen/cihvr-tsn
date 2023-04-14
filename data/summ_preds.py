@@ -42,6 +42,7 @@ def parse_args() -> argparse.Namespace:
         '--threshold', type=float, default=0,
         help='The prob. thresholding applied, droppings predictions below value.',
         )
+    parser.add_argument('--no-field-merge', action='store_true', default=False)
 
     args = parser.parse_args()
 
@@ -121,8 +122,11 @@ def main():
         print('Handling CIHVR duplicates!')
         pred_df = drop_duplicates(pred_df)
 
-    # Group columns into meta-categories
-    pred_df['meta_cell'] = [group_mapping.get(x, x) for x in pred_df['cell'].values]
+    if args.no_field_merge:
+        pred_df['meta_cell'] = pred_df['cell']
+    else:
+        # Group columns into meta-categories
+        pred_df['meta_cell'] = [group_mapping.get(x, x) for x in pred_df['cell'].values]
 
     print('Summarizing!')
     pred_df['correct'] = pred_df['pred'] == pred_df['label']
