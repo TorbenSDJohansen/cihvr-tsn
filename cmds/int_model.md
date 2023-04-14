@@ -45,9 +45,10 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 ## Evaluate
 
 ### Duration any breastfeeding
-S2S 5-digits
+S2S 5-digits force max 2 digits
 ```
 python evaluate.py ^
+--formatter s2s_two_digit_keep_bad_cpd ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\int-s2s-5d ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
@@ -56,22 +57,11 @@ python evaluate.py ^
 --eval-plots-omit-most-occ 3
 ```
 
+### Length
 S2S 5-digits force max 2 digits
 ```
 python evaluate.py ^
 --formatter s2s_two_digit_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\int-s2s-5d-restrict-2d ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
---dataset-cells dura-any-breastfeed ^
---plots montage cov-acc cer-acc ^
---eval-plots-omit-most-occ 3
-```
-
-### Length
-S2S 5-digits
-```
-python evaluate.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\int-s2s-5d ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
@@ -80,22 +70,11 @@ python evaluate.py ^
 --eval-plots-omit-most-occ 3
 ```
 
+### Preterm number weeks
 S2S 5-digits force max 2 digits
 ```
 python evaluate.py ^
 --formatter s2s_two_digit_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\int-s2s-5d-restrict-2d ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
---dataset-cells length ^
---plots montage cov-acc cer-acc ^
---eval-plots-omit-most-occ 3
-```
-
-### Preterm number weeks
-S2S 5-digits
-```
-python evaluate.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\int-s2s-5d ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
@@ -109,7 +88,7 @@ python evaluate.py ^
 ```
 python evaluate.py ^
 --formatter s2s_two_digit_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-restrict-2d-train-fields ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-train-fields ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
 --dataset-cells tab-b ^
@@ -121,7 +100,7 @@ python evaluate.py ^
 ```
 python evaluate.py ^
 --formatter s2s_two_digit_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-restrict-2d-full-table ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-full-table ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
 --dataset-cells tab-b-test ^
@@ -148,7 +127,7 @@ S2S 5-digits force max 2 digits
 ```
 python predict.py ^
 --formatter s2s_two_digit_keep_bad_cpd ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\int-s2s-5d-restrict-2d ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\int-s2s-5d ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
 -b 2048 ^
