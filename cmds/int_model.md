@@ -105,10 +105,11 @@ python evaluate.py ^
 ```
 
 ### Table B
-**Train fields**: S2S 5-digits
+**Train fields**: S2S 5-digits force max 2 digits
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-train-fields ^
+--formatter s2s_two_digit_keep_bad_cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-restrict-2d-train-fields ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
 --dataset-cells tab-b ^
@@ -116,10 +117,11 @@ python evaluate.py ^
 --eval-plots-omit-most-occ 3
 ```
 
-**~100x112 test set**: S2S 5-digits
+**~100x112 test set**: S2S 5-digits force max 2 digits
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-full-table ^
+--formatter s2s_two_digit_keep_bad_cpd ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d-restrict-2d-full-table ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\int\s2s-5d\last.pth.tar ^
 --dataset-cells tab-b-test ^
