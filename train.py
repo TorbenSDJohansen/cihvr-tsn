@@ -29,7 +29,6 @@ from timm.models import (
     convert_splitbn_model,
     )
 from timm.utils import (
-    CheckpointSaver,
     NativeScaler,
     distribute_bn,
     setup_default_logging,
@@ -56,6 +55,7 @@ from timmsn.utils import (
     initial_log,
     update_summary,
     wandb_init,
+    CheckpointSaver,
     )
 from timmsn.models import create_model_v2
 from timmsn.data import create_loader, Mixup, FastCollateMixup
