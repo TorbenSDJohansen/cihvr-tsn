@@ -62,8 +62,118 @@ def format_args(args):
     return args.files, args.cihvr_duplicate_drop, args.threshold
 
 
+def merge_on_cpr_info(data: pd.DataFrame) -> pd.DataFrame:
+    cpr = pd.read_stata('Y:/RegionH/SPJ/CPR info and duplicate info/spj_cprlist-plusID_180227_181106.dta')
+
+    cpr['dob'] = cpr['cpr'].apply(lambda x: x[:-4])
+    cpr['bdy'] = cpr['dob'].apply(lambda x: x[4:])
+
+    cpr = cpr.rename(columns={'id_s': 'Id'})
+    cpr = cpr.drop(columns=['id_c', 'dob', 'cpr'])
+
+    data = data.merge(cpr, on='Id', how='left')
+
+    return data
+
+
+def merge_on_birth_info(pred_df) -> pd.DataFrame:
+    main_df = pd.read_csv('Y:/RegionH/SPJ/Database/export_181106.txt', sep=';', na_values=[''], keep_default_na=False)
+
+    main_df = main_df[['Id', 'Filename']]
+    main_df = main_df.rename(columns={'Filename': 'journal'})
+    main_df = merge_on_cpr_info(main_df)
+    main_df = main_df.drop(columns='Id')
+
+    pred_df = pred_df.merge(main_df, on='journal', how='left')
+
+    return pred_df
+
+
 def _create_summary_table(dataframe):
     return dataframe.groupby('meta_cell')['correct'].agg(['mean', 'count']).reset_index()
+
+
+def create_table_by_birthyear(data: pd.DataFrame, fname: str):
+    birth_years = [str(x) for x in range(59, 68)]
+    results = None
+    colnames = ['Data']
+
+    for bdy in birth_years:
+        by_cell_x_bdy = _create_summary_table(data[data['bdy'] == bdy])
+
+        if results is None:
+            results = by_cell_x_bdy.copy()
+        else:
+            results = results.merge(by_cell_x_bdy, on='meta_cell', how='inner')
+
+        colnames.extend([f'Accuracy ({bdy})', f'Count ({bdy})'])
+
+    results.columns = colnames
+
+    reordered_cols = list(results.columns[:1]) + sorted(results.columns[1:])
+    results = results[reordered_cols]
+
+    # Cast percentage and round
+    results[results.columns[1:len(birth_years) + 1]] = (100 * results[results.columns[1:len(birth_years) + 1]]).round(1)
+
+    # Write .tex
+
+    with pd.option_context("max_colwidth", 1000):
+        results_str = results[results.columns[:len(birth_years) + 1]].to_latex(
+            index=False,
+            escape=False,
+            )
+
+    results_str = '\n'.join(results_str.split('\n')[4:-3])
+
+    with open(fname, 'w', encoding='utf-8') as file:
+        print(results_str, file=file)
+
+
+def create_table_by_subset(
+        pred_df,
+        no_bad_cpd_label,
+        no_empty_label,
+        no_bad_cpd_or_empty_label,
+        fname: str,
+        ):
+    # Tables
+    by_cell = _create_summary_table(pred_df)
+    by_cell_no_bad_cpd_label = _create_summary_table(no_bad_cpd_label)
+    by_cell_no_empty_label = _create_summary_table(no_empty_label)
+    by_cell_no_bad_cpd_or_empty_label = _create_summary_table(no_bad_cpd_or_empty_label)
+
+    # Merge together...
+    results = by_cell.merge(by_cell_no_bad_cpd_label, on='meta_cell', how='left')
+    results = results.merge(by_cell_no_empty_label, on='meta_cell', how='left')
+    results = results.merge(by_cell_no_bad_cpd_or_empty_label, on='meta_cell', how='left')
+
+    results.columns = [
+        'Data',
+        'Accuracy (all)', 'Count (all)',
+        'Accuracy (successful crop)', 'Count (successful crop)',
+        'Accuracy (non-empty)', 'Count (non-empty)',
+        'Accuracy (successful crops and non-empty)', 'Count (successful crops and non-empty)',
+        ]
+
+    reordered_cols = list(results.columns[:1]) + sorted(results.columns[1:])
+    results = results[reordered_cols]
+
+    # Cast percentage and round
+    results[results.columns[1:5]] = (100 * results[results.columns[1:5]]).round(1)
+
+    # Write .tex
+
+    with pd.option_context("max_colwidth", 1000):
+        results_str = results[results.columns[:5]].to_latex(
+            index=False,
+            escape=False,
+            )
+
+    results_str = '\n'.join(results_str.split('\n')[4:-3])
+
+    with open(fname, 'w', encoding='utf-8') as file:
+        print(results_str, file=file)
 
 
 def main():
@@ -112,6 +222,7 @@ def main():
         pred_df.loc[to_change, 'filename'] = pred_df.loc[to_change, 'filename'].apply(lambda x: x[(len(cell) + 1):])
 
     pred_df['journal'] = pred_df['filename'].apply(lambda x: map_images_journals_ss[x])
+    pred_df = merge_on_birth_info(pred_df)
 
     pred_df['colname_cihvr_data'] = pred_df['cell']
 
@@ -131,59 +242,36 @@ def main():
     print('Summarizing!')
     pred_df['correct'] = pred_df['pred'] == pred_df['label']
 
-    by_cell = _create_summary_table(pred_df)
-    by_cell_no_bad_cpd_label = _create_summary_table(pred_df[pred_df['label'] != 'bad cpd'])
-
-    # Non-consistent empty coding is a bit messy
-    by_cell_no_empty_label = _create_summary_table(
-        pred_df[
-            (pred_df['label'] != '0=Mangler')
-            & (pred_df['label'] != ',:,')
-            & (pred_df['label'] != 'empty')
-            ]
-        )
-    by_cell_no_bad_cpd_or_empty_label = _create_summary_table(
-        pred_df[
-            (pred_df['label'] != '0=Mangler')
-            & (pred_df['label'] != ',:,')
-            & (pred_df['label'] != 'empty')
-            & (pred_df['label'] != 'bad cpd')
-            ]
-        )
-
-    # Merge together...
-    results = by_cell.merge(by_cell_no_bad_cpd_label, on='meta_cell', how='left')
-    results = results.merge(by_cell_no_empty_label, on='meta_cell', how='left')
-    results = results.merge(by_cell_no_bad_cpd_or_empty_label, on='meta_cell', how='left')
-
-    results.columns = [
-        'Data',
-        'Accuracy (all)', 'Count (all)',
-        'Accuracy (successful crop)', 'Count (successful crop)',
-        'Accuracy (non-empty)', 'Count (non-empty)',
-        'Accuracy (successful crops and non-empty)', 'Count (successful crops and non-empty)',
+    # Subsets
+    no_bad_cpd_label = pred_df[pred_df['label'] != 'bad cpd']
+    no_empty_label = pred_df[ # Non-consistent empty coding is a bit messy
+        (pred_df['label'] != '0=Mangler')
+        & (pred_df['label'] != ',:,')
+        & (pred_df['label'] != 'empty')
+        ]
+    no_bad_cpd_or_empty_label = pred_df[
+        (pred_df['label'] != '0=Mangler')
+        & (pred_df['label'] != ',:,')
+        & (pred_df['label'] != 'empty')
+        & (pred_df['label'] != 'bad cpd')
         ]
 
-    reordered_cols = list(results.columns[:1]) + sorted(results.columns[1:])
-    results = results[reordered_cols]
-
-    # Cast percentage and round
-    results[results.columns[1:5]] = (100 * results[results.columns[1:5]]).round(1)
-
-    # Write .tex
-
-    with pd.option_context("max_colwidth", 1000):
-        results_str = results[results.columns[:5]].to_latex(
-            index=False,
-            escape=False,
-            )
-
-    results_str = '\n'.join(results_str.split('\n')[4:-3])
-
+    # File names
     date = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
+    fn_split = os.path.join(args.out_dir, f'transcr-accs-split-{date}.tex')
+    fn_years = os.path.join(args.out_dir, f'transcr-accs-years-{date}.tex')
+    fn_years_no_empty = os.path.join(args.out_dir, f'transcr-accs-years-no-empty-{date}.tex')
 
-    with open(os.path.join(args.out_dir, f'transcr-accs-{date}.tex'), 'w', encoding='utf-8') as file:
-        print(results_str, file=file)
+    # Tables
+    create_table_by_subset(
+        pred_df=pred_df,
+        no_bad_cpd_label=no_bad_cpd_label,
+        no_empty_label=no_empty_label,
+        no_bad_cpd_or_empty_label=no_bad_cpd_or_empty_label,
+        fname=fn_split,
+        )
+    create_table_by_birthyear(pred_df, fn_years)
+    create_table_by_birthyear(no_empty_label, fn_years_no_empty)
 
 
 if __name__ == '__main__':
