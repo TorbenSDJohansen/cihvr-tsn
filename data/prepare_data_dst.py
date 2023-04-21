@@ -49,7 +49,7 @@ FN_INTENSITY_R2 = 'Y:/RegionH/Scripts/users/jfl/Treatment_intensity/intensity_df
 
 ## CELLS (PREDICTIONS)
 FN_BF7DO_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\circle-s2s\wide-preds.csv'
-FN_DABF_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\XXX\wide-preds.csv'
+FN_DABF_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\int-s2s-5d\wide-preds.csv'
 FN_DATE_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\mh\wide-preds.csv'
 FN_LENGTH_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\XXX\wide-preds.csv'
 FN_NURSE_LASTNAME_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\XXX\wide-preds.csv'
