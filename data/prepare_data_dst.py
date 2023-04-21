@@ -16,6 +16,10 @@ this includes 11 duplicates. For all data generated at SDU, we merge on
 solving any potential issues.
 """
 
+# FIXME CHECK if new ID column(s) added, NEED to drop before DST upload
+# TODO merge nurse district in some way... maybe merge wrt nurse name, maybe
+# upload as separate file - BUT if they re-key nurse name, we need to merge on
+# before upload!
 
 import os
 import csv
@@ -44,16 +48,16 @@ FN_INTENSITY = 'Y:/RegionH/Scripts/users/jfl/Treatment_intensity/intensity_df_un
 FN_INTENSITY_R2 = 'Y:/RegionH/Scripts/users/jfl/Treatment_intensity/intensity_df_sup_r2.pkl'
 
 ## CELLS (PREDICTIONS)
-FN_WEIGHT_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\base\wide-preds.csv'
-FN_DATE_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\base\wide-preds.csv'
-FN_TAB_B_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab_b\base\wide-preds.csv'
-FN_LENGTH_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\base\wide-preds.csv'
-FN_DABF_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\base\wide-preds.csv'
-FN_NURSE_LASTNAME_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\XXX\wide-preds.csv'
-FN_NURSE_FIRSTNAME_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\wide-preds.csv'
-FN_PRETERM_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\base\wide-preds.csv'
-FN_PRETERM_WEEKS_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\base\wide-preds.csv'
-FN_BF7DO_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\base\wide-preds.csv'
+FN_BF7DO_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\circle-s2s\wide-preds.csv'
+FN_DABF_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\int-s2s-5d-restrict-2d\wide-preds.csv'
+FN_DATE_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\mh\wide-preds.csv'
+FN_LENGTH_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\int-s2s-5d-restrict-2d\wide-preds.csv'
+FN_NURSE_LASTNAME_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\s2s-tl\wide-preds.csv'
+FN_NURSE_FIRSTNAME_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl\wide-preds.csv'
+FN_PRETERM_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-s2s\wide-preds.csv'
+FN_PRETERM_WEEKS_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\int-s2s-5d-restrict-2d\wide-preds.csv'
+FN_WEIGHT_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\mh\wide-preds.csv'
+FN_TAB_B_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\int-s2s-5d-restrict-2d\wide-preds.csv'
 
 def _prepare_main() -> pd.DataFrame:
     main = pd.read_csv(FN_MAIN, sep=';', na_values=[''], keep_default_na=False)
@@ -313,7 +317,6 @@ def _prepare_nurse_lastname() -> pd.DataFrame:
     assert nurse_lastname.shape[1] == len(prob_cols + pred_cols) + 1
 
     for i, prob_col in enumerate(prob_cols, start=1):
-        assert nurse_lastname[prob_col].dropna().min() >= 0.5
         nurse_lastname.rename(columns={prob_col: f'nn_ln_m_{i}_prob'}, inplace=True)
 
     for i, pred_col in enumerate(pred_cols, start=1):
@@ -339,7 +342,6 @@ def _prepare_nurse_firstname() -> pd.DataFrame:
     assert nurse_firstname.shape[1] == len(prob_cols + pred_cols) + 1
 
     for i, prob_col in enumerate(prob_cols, start=1):
-        assert nurse_firstname[prob_col].dropna().min() >= 0.5
         nurse_firstname.rename(columns={prob_col: f'nn_fn_m_{i}_prob'}, inplace=True)
 
     for i, pred_col in enumerate(pred_cols, start=1):
@@ -723,13 +725,10 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
                 look_through[col] = pd.DataFrame({'vals': vals, 'counts': counts})
 
     # Save...
-
-    fn_out = ''.join((
+    fn_out = os.path.join(
         'Y:/RegionH/Scripts/users/tsdj/data_to_dst/',
-        datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S'),
-        '-repo-cihvr-branch-master-folder-code-data-file-prepare_data_dst'
-        '-to-dst.csv',
-        ))
+        '-'.join((datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S'), 'to-dst.csv')),
+        )
 
     assert not os.path.isfile(fn_out)
     print(f'Writing file {fn_out}!')

@@ -67,5 +67,5 @@ python evaluate.py ^
 ```
 
 ## Predict
-Current highest achieving model on test set is the circle-s2s model.
+Close to perfect tie between models, with s2s == circle-mh > circle-s2s > mh; use circle-s2s as speculated to generalize better.
 For that reason, see [Circle model](circle_model.md) for prediction code.

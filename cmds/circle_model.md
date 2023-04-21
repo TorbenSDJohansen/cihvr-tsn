@@ -104,10 +104,10 @@ python predict.py ^
 ```
 
 ### Preterm birth
-MH
+S2S
 ```
 python predict.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-mh ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-s2s ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\s2s\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\circle\s2s\last.pth.tar ^
 -b 2048 ^
