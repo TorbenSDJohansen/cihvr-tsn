@@ -80,6 +80,6 @@ python predict.py ^
 --config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\mh\args.yaml ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\date\mh\last.pth.tar ^
 -b 2048 ^
---predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-1-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-2-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-3-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-4-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-6-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-9-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-12-mo
+--predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-1-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-2-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-3-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-4-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-6-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-9-mo Y:\RegionH\Scripts\data\storage\minipics\TypeA\date-12-mo ^
 --plots montage
 ```

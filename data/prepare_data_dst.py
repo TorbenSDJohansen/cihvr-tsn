@@ -49,15 +49,15 @@ FN_INTENSITY_R2 = 'Y:/RegionH/Scripts/users/jfl/Treatment_intensity/intensity_df
 
 ## CELLS (PREDICTIONS)
 FN_BF7DO_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\circle-s2s\wide-preds.csv'
-FN_DABF_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\int-s2s-5d-restrict-2d\wide-preds.csv'
-FN_DATE_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\mh\wide-preds.csv'
-FN_LENGTH_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\int-s2s-5d-restrict-2d\wide-preds.csv'
-FN_NURSE_LASTNAME_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\s2s-tl\wide-preds.csv'
-FN_NURSE_FIRSTNAME_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl\wide-preds.csv'
+FN_DABF_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\XXX\wide-preds.csv'
+FN_DATE_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\XXX\wide-preds.csv'
+FN_LENGTH_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\XXX\wide-preds.csv'
+FN_NURSE_LASTNAME_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\XXX\wide-preds.csv'
+FN_NURSE_FIRSTNAME_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\wide-preds.csv'
 FN_PRETERM_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-s2s\wide-preds.csv'
-FN_PRETERM_WEEKS_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\int-s2s-5d-restrict-2d\wide-preds.csv'
-FN_WEIGHT_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\mh\wide-preds.csv'
-FN_TAB_B_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\int-s2s-5d-restrict-2d\wide-preds.csv'
+FN_PRETERM_WEEKS_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\XXX\wide-preds.csv'
+FN_WEIGHT_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\XXX\wide-preds.csv'
+FN_TAB_B_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\XXX\wide-preds.csv'
 
 def _prepare_main() -> pd.DataFrame:
     main = pd.read_csv(FN_MAIN, sep=';', na_values=[''], keep_default_na=False)
