@@ -57,7 +57,7 @@ FN_NURSE_FIRSTNAME_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\m
 FN_PRETERM_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-s2s\wide-preds.csv'
 FN_PRETERM_WEEKS_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\int-s2s-5d\wide-preds.csv'
 FN_TAB_B_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\int-s2s-5d\wide-preds.csv'
-FN_WEIGHT_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\XXX\wide-preds.csv'
+FN_WEIGHT_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\mh\wide-preds.csv'
 
 def _prepare_main() -> pd.DataFrame:
     main = pd.read_csv(FN_MAIN, sep=';', na_values=[''], keep_default_na=False)

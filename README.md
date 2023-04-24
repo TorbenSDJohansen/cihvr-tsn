@@ -88,7 +88,7 @@ Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\circle-s2s\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\int-s2s-5d\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\int-s2s-5d\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\XXX\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\mh\preds.csv ^
 --cihvr-duplicate-drop ^
 --out-dir path/to/out/
 ```
@@ -111,7 +111,7 @@ python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\f
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-s2s\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\int-s2s-5d\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\int-s2s-5d\preds.csv
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\XXX\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\mh\preds.csv --use-cihvr-name-if-available
 ```
 
 To prepare data for upload to DST use `python data/prepare_data_dst.py`.
