@@ -37,24 +37,6 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --initial-log
 ```
 
-MH (TL; search for LR; disable weight decay)
-```
-for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter last_name_keep_bad_cpd ^
---experiment mh-tl-lr=%i ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last ^
---lr %i ^
---weight-decay 0 ^
--b 128 ^
---input-size 3 91 530 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-train ^
---dataset-cells nurse-name ^
---config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\last-mh\last-new-style-format.pth.tar ^
---log-wandb
-```
-
 S2S w/ TL from HANA
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
@@ -90,24 +72,6 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --initial-log
 ```
 
-MH (TL; search for LR; disable weight decay)
-```
-for %i in (1.0, 0.5, 0.25, 0.125, 0.0625) DO python -m torch.distributed.launch --nproc_per_node=2 train.py ^
---formatter first_name_keep_bad_cpd ^
---experiment mh-tl-lr=%i ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first ^
---lr %i ^
---weight-decay 0 ^
--b 128 ^
---input-size 3 91 530 ^
---data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
---dataset image-datasets-train ^
---dataset-cells nurse-name ^
---config ./cfgs/efficientnetv2_s.yaml ^
---initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first-mh\last-new-style-format.pth.tar ^
---log-wandb
-```
-
 S2S w/ TL from HANA
 ```
 python -m torch.distributed.launch --nproc_per_node=2 train.py ^
@@ -138,15 +102,8 @@ python evaluate.py ^
 --eval-plots-omit-most-occ 3
 ```
 
-MH (TL, with post-match)
+MH w/ TL from HANA post w/ match
 ```
-python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh-tl ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-lr=XXX\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\mh-tl-lr=XXX\last.pth.tar ^
---plots montage cov-acc cer-acc ^
---eval-plots-omit-most-occ 3
-
 python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh-tl\preds.csv ^
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
 ```
@@ -154,9 +111,9 @@ python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh-tl\preds.cs
 S2S w/ TL from HANA
 ```
 python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\s2s ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s\last.pth.tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\s2s-tl ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s-tl\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s-tl\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
 ```
@@ -172,15 +129,8 @@ python evaluate.py ^
 --eval-plots-omit-most-occ 3
 ```
 
-MH (TL, with post-match)
+MH w/ TL from HANA post w/ match
 ```
-python evaluate.py ^
---output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl ^
---config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl-lr=XXX\args.yaml ^
---checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\mh-tl-lr=XXX\last.pth.tar ^
---plots montage cov-acc cer-acc ^
---eval-plots-omit-most-occ 3
-
 python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl\preds.csv ^
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn-loose.pkl
 ```
@@ -198,7 +148,7 @@ python evaluate.py ^
 ## Predict
 
 ### Last name
-S2S w/ TL from HANA
+S2S w/ TL from HANA (not that there is much difference)
 ```
 python predict.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\s2s-tl ^
@@ -210,7 +160,7 @@ python predict.py ^
 ```
 
 ### First name
-MH w/ TL from HANA
+S2S w/ TL from HANA (not that there is much difference)
 ```
 python predict.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl ^

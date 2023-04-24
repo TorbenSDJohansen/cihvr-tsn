@@ -83,8 +83,8 @@ Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\circle-s2s\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\int-s2s-5d\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\XXX\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\int-s2s-5d\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\XXX\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\XXX\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\s2s-tl\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\circle-s2s\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm-wks\XXX\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\XXX\preds.csv ^
