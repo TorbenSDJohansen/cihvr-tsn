@@ -819,4 +819,4 @@ if __name__ == '__main__':
     print('READ CAREFULLY IF BELOW SETTINGS ARE CORRECT!\n')
     print(DATASETS)
 
-    # load_prepare_merge()
+    load_prepare_merge()

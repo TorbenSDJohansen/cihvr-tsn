@@ -31,6 +31,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--out-dir', type=str)
 
     # OPTIONAL
+    parser.add_argument('--suffix', type=str, default=None)
     parser.add_argument(
         '--cihvr-duplicate-drop', default=False, action='store_true',
         help=(
@@ -257,10 +258,14 @@ def main():
         ]
 
     # File names
-    date = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
-    fn_split = os.path.join(args.out_dir, f'transcr-accs-splits-{date}.tex')
-    fn_years = os.path.join(args.out_dir, f'transcr-accs-years-{date}.tex')
-    fn_years_no_empty = os.path.join(args.out_dir, f'transcr-accs-years-no-empty-{date}.tex')
+    if args.suffix is None:
+        suffix = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
+    else:
+        suffix = args.suffix
+
+    fn_split = os.path.join(args.out_dir, f'accs-splits-{suffix}.tex')
+    fn_years = os.path.join(args.out_dir, f'accs-years-{suffix}.tex')
+    fn_years_no_empty = os.path.join(args.out_dir, f'accs-years-drop-empty-{suffix}.tex')
 
     # Tables
     create_table_by_subset(
