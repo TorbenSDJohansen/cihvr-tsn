@@ -258,7 +258,7 @@ def main():
 
     # File names
     date = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M')
-    fn_split = os.path.join(args.out_dir, f'transcr-accs-split-{date}.tex')
+    fn_split = os.path.join(args.out_dir, f'transcr-accs-splits-{date}.tex')
     fn_years = os.path.join(args.out_dir, f'transcr-accs-years-{date}.tex')
     fn_years_no_empty = os.path.join(args.out_dir, f'transcr-accs-years-no-empty-{date}.tex')
 
