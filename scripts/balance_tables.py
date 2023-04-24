@@ -117,7 +117,7 @@ def balance_table(
 
 
 def cast_variable_binary(series: pd.Series) -> pd.Series:
-    ''' If a variable -- such as lifts head (tab-b-c12-X-mo( -- is binary,
+    ''' If a variable -- such as lifts head (tab-b-c12-X-mo) -- is binary,
     create new series for which this holds and for which all predictions that
     # are neither 0, 1, or 2 are replaced with NaN.
 
