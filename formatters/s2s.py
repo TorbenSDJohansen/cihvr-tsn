@@ -8,6 +8,7 @@ S2S style formatters
 
 
 import string
+import warnings
 
 from typing import Tuple, Dict, Union
 
@@ -152,6 +153,30 @@ class CIHVRNamesFormatter(CharSeqSepSubsetFormatter):
             clean = self.empty_value # cast back to, e.g., '0=Mangler'
 
         return clean
+
+
+class CIHVRNamesFirstAndLastFormatter(CIHVRNamesFormatter):
+    def grab_first_and_last(self, seq: str) -> str:
+        split = seq.split(self.sep_value)
+
+        if len(split) < 2:
+            warnings.warn(f'{seq} must be at least 2 names, discarding')
+            return None
+
+        seq = self.sep_value.join([split[0], split[-1]])
+
+        return seq
+
+    def sanitize(self, raw_input: Union[None, str]) -> Union[None, str]:
+        seq = super().sanitize(raw_input)
+
+        if seq is None:
+            return None
+
+        if seq not in ('', self.bad_cpd_char):
+            seq = self.grab_first_and_last(seq)
+
+        return seq
 
 
 class CIHVRDatesFormatter(CharSeqSepSubsetFormatter):
@@ -337,6 +362,30 @@ def s2s_dates_keep_bad_cpd() -> CIHVRDatesFormatter:
         map_idx_char=map_idx_char,
         allowed_empty={',', '0=Mangler'},
         empty_value=',',
+        unk_value='?',
+        invalid_pred_value='InvalidPred',
+        )
+
+    return formatter
+
+
+@register_formatter
+def s2s_first_and_last_name_keep_bad_cpd() -> CIHVRNamesFormatter:
+    bad_cpd_char = '*' # important part is **NOT** part of a-å
+    map_char_idx, map_idx_char = construct_names_keep_bad_cpd_map(bad_cpd_char)
+
+    formatter = CIHVRNamesFirstAndLastFormatter(
+        start=0,
+        end=None,
+        allowed_seps={' '},
+        sep_value=' ',
+        handle_bad_cpd='keep',
+        bad_cpd_char=bad_cpd_char,
+        max_seq_len=18*2, # this is before BOS and EOS tokens added
+        map_char_idx=map_char_idx,
+        map_idx_char=map_idx_char,
+        allowed_empty={'', '0=Mangler'},
+        empty_value='0=Mangler',
         unk_value='?',
         invalid_pred_value='InvalidPred',
         )
