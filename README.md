@@ -82,7 +82,7 @@ python data/summ_preds.py ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\bf7do\circle-s2s\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\dabf\int-s2s-5d\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\tab-b\XXX\preds.csv ^
-Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\XXX\preds.csv ^
+Z:\faellesmappe\tsdj\cihvr-timmsn\eval\length\int-s2s-5d\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\XXX\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\XXX\preds.csv ^
 Z:\faellesmappe\tsdj\cihvr-timmsn\eval\preterm\circle-s2s\preds.csv ^
@@ -105,7 +105,7 @@ To format predictions to wide form:
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\circle-s2s\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\int-s2s-5d\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\mh\preds.csv --use-cihvr-name-if-available
-python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\XXX\preds.csv --use-cihvr-name-if-available
+python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\int-s2s-5d\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\XXX\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\XXX\preds.csv --use-cihvr-name-if-available
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-s2s\preds.csv --use-cihvr-name-if-available
