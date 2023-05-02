@@ -4,11 +4,12 @@
 """
 
 
-import time
-import difflib
 import argparse
+import difflib
 import os
 import pickle
+import string
+import time
 
 import numpy as np
 import pandas as pd
@@ -46,7 +47,7 @@ class MatchToStr():
         self.potential_strs = potential_strs
         self.cutoff = cutoff
         self.ignore = ignore
-        self.fuzzy_map = dict()
+        self.fuzzy_map = {}
 
     def match(self, strs_to_match: np.ndarray) -> (np.ndarray, int, int, dict):
         """
@@ -101,7 +102,7 @@ class MatchToStr():
             else:
                 nb_fuzzy += 1
 
-                if str_to_match in self.fuzzy_map.keys():
+                if str_to_match in self.fuzzy_map:
                     str_matched = self.fuzzy_map[str_to_match]
                 else:
                     near_matches = difflib.get_close_matches(
@@ -139,11 +140,17 @@ def _parse():
         help='The lower threshold to performin matching. Must be in [0, 1].',
         )
     parser.add_argument(
-        '--ignore', type=str, nargs='+', default=['0=Mangler', 'bad cpd'],
+        '--ignore', type=str, nargs='+', default=['0=Mangler', 'bad cpd', 'initials'],
         help='Cases to NOT match, such as e.g. empty, bad cpd, etc.'
         )
 
     args = parser.parse_args()
+
+    if 'initials' in args.ignore:
+        args.ignore.pop(args.ignore.index('initials'))
+
+        for letter in string.ascii_lowercase + 'æøå':
+            args.ignore.append(letter)
 
     return args
 
@@ -158,7 +165,9 @@ def _format_args(args) -> (pd.DataFrame, dict, float, set):
     assert args.lex[-4:].lower() == '.pkl'
 
     preds = pd.read_csv(args.file, na_values=[''], keep_default_na=False)
-    lex = pickle.load(open(args.lex, 'rb'))
+
+    with open(args.lex, 'rb') as lex_file:
+        lex = pickle.load(lex_file)
 
     assert isinstance(lex, set)
     assert 'pred' in preds.columns
