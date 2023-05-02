@@ -105,7 +105,7 @@ python evaluate.py ^
 MH w/ TL from HANA post w/ match
 ```
 python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\mh-tl\preds.csv ^
---lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln-loose.pkl
+--lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln.pkl
 ```
 
 S2S w/ TL from HANA
@@ -116,6 +116,12 @@ python evaluate.py ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\last\s2s-tl\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
+```
+
+S2S w/ TL from HANA post w/ match
+```
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\last\s2s-tl\preds.csv ^
+--lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln.pkl
 ```
 
 ### First name
@@ -132,7 +138,7 @@ python evaluate.py ^
 MH w/ TL from HANA post w/ match
 ```
 python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\mh-tl\preds.csv ^
---lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn-loose.pkl
+--lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn.pkl
 ```
 
 S2S w/ TL from HANA
@@ -143,6 +149,12 @@ python evaluate.py ^
 --checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first\s2s-tl\last.pth.tar ^
 --plots montage cov-acc cer-acc ^
 --eval-plots-omit-most-occ 3
+```
+
+S2S w/ TL from HANA post w/ match
+```
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\s2s-tl\preds.csv ^
+--lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn.pkl
 ```
 
 ## Predict
@@ -159,8 +171,14 @@ python predict.py ^
 --plots montage
 ```
 
+S2S w/ TL from HANA post w/ match
+```
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\s2s-tl\preds.csv ^
+--lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\ln.pkl
+```
+
 ### First name
-S2S w/ TL from HANA (not that there is much difference)
+MH w/ TL from HANA (not that there is much difference)
 ```
 python predict.py ^
 --output Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl ^
@@ -169,4 +187,10 @@ python predict.py ^
 -b 2048 ^
 --predict-folders Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-1 Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-2 Y:\RegionH\Scripts\data\storage\minipics\TypeA\nurse-name-3 ^
 --plots montage
+```
+
+MH w/ TL from HANA post w/ match
+```
+python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl\preds.csv ^
+--lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn.pkl
 ```
