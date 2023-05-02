@@ -8,7 +8,6 @@
 import math
 import string
 import os
-import pickle
 import warnings
 
 import pandas as pd
@@ -18,96 +17,6 @@ FN_MAIN = 'Y:/RegionH/SPJ/Database/export_181106.txt'
 FN_NN_LIST = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-names-list.xlsx'
 LETTERS = list(string.ascii_lowercase) + ['æ', 'ø', 'å', ' ']
 LETTERS_SET = set(LETTERS)
-
-
-def _load():
-    lex = pd.read_excel(FN_NN_LIST, sheet_name=None)
-    allowed_chars = LETTERS_SET - {' '}
-
-    # The loop below checks that:
-        # Proper cols present
-        # No missing first or last name
-        # All chars in allowed_chars, which also implies all are lower cast
-    for sheet, vals in lex.items():
-        assert {'Fornavn', 'Mellemnavn', 'Efternavn', 'Year'}.issubset(vals.columns)
-        assert 'Gruppe' in vals.columns or 'Kreds' in vals.columns or 'Period' in vals.columns or len(vals.columns) == 4
-        assert len(vals.columns) <= 5
-
-        assert vals['Fornavn'].isnull().sum() + vals['Efternavn'].isnull().sum() == 0
-
-        for col in ['Fornavn', 'Mellemnavn', 'Efternavn']:
-            sub = vals.loc[~vals[col].isnull(), col]
-
-            if sheet == '0172-0173' and col == 'Fornavn':
-                sub = sub[sub != '?']
-
-            assert sub.apply(lambda x: set(x).issubset(allowed_chars)).all()
-
-    return lex
-
-
-def _create_lexicon():
-    # Interested in three things, first two easiest:
-        # 1) All unique last names
-        # 2) All unique first names
-        # 3) All unique combinations
-
-    lex_dfs = _load()
-    names = []
-
-    for sheet, vals in lex_dfs.items():
-        if sheet == '0172-0173':
-            continue # Can only use as additional names, contains duplicates
-
-        # Check last name duplicates
-        if vals['Efternavn'].value_counts().max() > 1:
-            pass # there are several; print('duplicates in last name')
-
-        vals['fn-ln'] = vals['Fornavn'] + vals['Efternavn']
-        vals['fn-i-ln'] = vals['Fornavn'].apply(lambda x: x[0]) + vals['Efternavn']
-
-        # Assert no duplicates in first + last name
-        assert vals['fn-ln'].value_counts().max() == 1, sheet
-
-        if vals['fn-i-ln'].value_counts().max() > 1:
-            dup = vals[vals['fn-i-ln'].duplicated(False)]
-            print(f'\nDuplicates for {sheet} in initial + last name: \n\n{dup}')
-
-        sub = vals[['Fornavn', 'Mellemnavn', 'Efternavn']].copy()
-        sub['sheet'] = sheet
-        names.append(sub)
-
-    names = pd.concat(names).reset_index(drop=True)
-
-    # Ideas:
-        # SOMEHOW (not sure) check when collapse fn to fn-i, no collisions
-            # -> notably collisions with OTHER sheet
-
-    # Useful to manually check last names (if one case only, more likely wrong)
-    ln_count = names['Efternavn'].value_counts().reset_index().rename(
-        columns={'index': 'Efternavn', 'Efternavn': 'ln_count'},
-        )
-    names = names.merge(ln_count, on='Efternavn', how='left')
-
-    # Useful to manually check first names (if one case only, more likely wrong)
-    fn_count = names['Fornavn'].value_counts().reset_index().rename(
-        columns={'index': 'Fornavn', 'Fornavn': 'fn_count'},
-        )
-    names = names.merge(fn_count, on='Fornavn', how='left')
-
-    # Potentially other useable last names in lex_dfs['0172-0173']['Efternavn']),
-    # but turns out not to be the case
-    assert set(lex_dfs['0172-0173']['Efternavn']) - set(names['Efternavn']) == set()
-
-    lex_last = set(names['Efternavn'])
-    lex_first = set(x for x in names['Fornavn'] if len(x) > 1)
-    lex_first_i = set(names['Fornavn'].apply(lambda x: x[0])) # Perhaps include all/more letters?
-
-    return {
-        'ln': lex_last,
-        'fn': lex_first,
-        'fn-i': lex_first_i,
-        }
 
 
 def _recast_name(name: str):
@@ -179,64 +88,6 @@ def _format_name(name_raw: str):
     return ' '.join((names_split))
 
 
-def _get_unique_names(names: pd.DataFrame, col: str, last: bool):
-    sub = names[col]
-    sub = sub[~sub.isnull()]
-    sub = sub[sub != '0=Mangler']
-    split = sub.str.split(' ')
-
-    if last:
-        unique_names = split.apply(lambda x: x[-1]).unique()
-    else:
-        split = split[split.apply(lambda x: len(x) > 1)] # drop when only one name
-        unique_names = split.apply(lambda x: x[0]).unique()
-
-    return unique_names
-
-
-def _get_all_unique_names(names, last: bool):
-    unique_names = set()
-
-    for i in (1, 2, 3):
-        _unique = set(_get_unique_names(names, f'nurse-name-{i}', last))
-        unique_names = unique_names.union(_unique)
-
-    return unique_names
-
-
-def _save_lex(lex: set, path: str, fname: str):
-    fname_full = os.path.join(path, fname)
-
-    if not os.path.isfile(fname_full):
-        with open(fname_full, 'wb') as file:
-            pickle.dump(lex, file)
-    else:
-        warnings.warn(f'File "{fname_full}" already exists! Not writing.')
-
-
-def _save_lexicons(lex: dict, last_names: set, first_names: set):
-    assert set(lex.keys()) == {'ln', 'fn', 'fn-i'}
-    path = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex'
-
-    # Different levels of strictness:
-        # 1) Most strict: Only use lex
-        # 2) Least strict: Include also ALL names in last_names
-        # 3) Some combinations, probably dropping rare names from other...
-
-    lex_ln_loose = lex['ln'].union(last_names)
-
-    # All all single letters, initials often used.
-    lex_fn_strict = lex['fn'].union(LETTERS_SET - {' '})
-    lex_fn_loose = lex_fn_strict.union(first_names)
-
-    _save_lex(lex['ln'], path, 'ln-strict.pkl')
-    _save_lex(lex_ln_loose, path, 'ln-loose.pkl')
-
-    _save_lex(lex_fn_strict, path, 'fn-strict.pkl')
-    _save_lex(lex_fn_loose, path, 'fn-loose.pkl')
-
-
-
 def main():
     """
     Creates a cleaned dataset of nurse first and last names.
@@ -288,12 +139,6 @@ def main():
     # names_merged['v'] = names_merged.groupby('jnr')['jnr'].transform('count')
 
     names_merged = names_merged.reset_index(drop=True)
-
-    lex = _create_lexicon()
-    unique_last_names = _get_all_unique_names(names_merged, last=True)
-    unique_first_names = _get_all_unique_names(names_merged, last=False)
-
-    _save_lexicons(lex, last_names=unique_last_names, first_names=unique_first_names)
 
     fname = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse_names.csv'
 
