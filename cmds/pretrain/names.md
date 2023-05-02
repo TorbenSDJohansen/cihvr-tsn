@@ -81,3 +81,34 @@ python train.py ^
 --log-wandb ^
 --initial-log
 ```
+
+First and last name model (S2S)
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter s2s_first_and_last_name_keep_bad_cpd ^
+--experiment first-and-last-s2s ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
+--input-size 3 80 522 ^
+--epochs 90 ^
+--data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
+--dataset HANA ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--log-wandb ^
+--initial-log
+```
+
+First and last name model (S2S), train from tar
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter s2s_first_and_last_name_keep_bad_cpd ^
+--experiment first-and-last-s2s-tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
+--input-size 3 80 522 ^
+--epochs 90 ^
+--data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
+--dataset HANA ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--read-from-tar ^
+--log-wandb ^
+--initial-log
+```
