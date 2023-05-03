@@ -150,7 +150,7 @@ def create_merge_district_to_name(info: Dict[str, pd.DataFrame]) -> pd.DataFrame
                 'Fornavn', 'Mellemnavn', 'Efternavn', 'Gruppe', 'Year',
                 ])
             # only [Fornavn, Mellemnavn, Efternavn, Gruppe, Year]
-            # -> nothing in relation to group
+            # -> nothing in relation to group/district/etc
             continue
 
         frame['sheet'] = sheet
@@ -189,7 +189,7 @@ def create_merge_district_to_name(info: Dict[str, pd.DataFrame]) -> pd.DataFrame
     districts = districts[~districts['is-dupl']]
 
     # Select cols and then rehape
-    districts = districts[['nn', 'Fornavn', 'Efternavn', 'Year', 'sheet', *value_cols]]
+    districts = districts[['nn', 'Fornavn', 'Efternavn', 'Year', 'sheet', *value_cols]] # TODO maybe just drop the Year variable? Contained in sheet
 
     # Pivot to wide format. By col, then merge
     wide = None
@@ -224,12 +224,24 @@ def create_merge_district_to_name(info: Dict[str, pd.DataFrame]) -> pd.DataFrame
         if wide[col].isnull().all():
             wide = wide.drop(columns=col)
 
-    fname = os.path.join(DATASET_DIR, 'nurse-districts.csv')
+    return wide
 
-    if os.path.isfile(fname):
-        warnings.warn('{fname} already exists, not writing')
-    else:
-        wide.to_csv(fname, index=False)
+
+def nurse_merge_stats(wide: pd.DataFrame):
+    wide['full-name'] = wide['nn_fn'] + ' ' + wide['nn_ln']
+    wide['ini-and-last'] = wide['nn_fn_i'] + ' ' + wide['nn_ln']
+
+    nb_unique_first_and_last = wide['full-name'].nunique()
+    nb_unique_ini_and_last = wide['ini-and-last'].nunique()
+    nb_unique_first = wide['nn_fn'].nunique()
+    nb_unique_ini = wide['nn_fn_i'].nunique()
+    nb_unique_last = wide['nn_ln'].nunique()
+
+    print(f'{nb_unique_first_and_last=}')
+    print(f'{nb_unique_ini_and_last=}')
+    print(f'{nb_unique_first=}')
+    print(f'{nb_unique_ini=}')
+    print(f'{nb_unique_last=}')
 
 
 def main():
@@ -246,7 +258,15 @@ def main():
         )
 
     # Create merge district to name set
-    create_merge_district_to_name(info=nurse_info)
+    wide = create_merge_district_to_name(info=nurse_info)
+    nurse_merge_stats(wide)
+
+    fname = os.path.join(DATASET_DIR, 'nurse-districts.csv')
+
+    if os.path.isfile(fname):
+        warnings.warn('{fname} already exists, not writing')
+    else:
+        wide.to_csv(fname, index=False)
 
 
 if __name__ == '__main__':
