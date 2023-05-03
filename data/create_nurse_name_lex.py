@@ -228,6 +228,7 @@ def create_merge_district_to_name(info: Dict[str, pd.DataFrame]) -> pd.DataFrame
 
 
 def nurse_merge_stats(wide: pd.DataFrame):
+    wide = wide.copy()
     wide['full-name'] = wide['nn_fn'] + ' ' + wide['nn_ln']
     wide['ini-and-last'] = wide['nn_fn_i'] + ' ' + wide['nn_ln']
 
