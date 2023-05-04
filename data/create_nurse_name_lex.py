@@ -138,113 +138,6 @@ def nurse_info_to_nurse_names(nurse_info: Dict[str, pd.DataFrame]) -> np.ndarray
     return names['nurse-name'].unique()
 
 
-def create_merge_district_to_name(info: Dict[str, pd.DataFrame]) -> pd.DataFrame:
-    frames = []
-    value_cols = ['Kreds', 'District', 'Letter', 'Period']
-
-    for sheet, frame in info.items():
-        frame = frame.copy()
-
-        if len(frame.columns) == 5:
-            assert set(frame.columns) == set([
-                'Fornavn', 'Mellemnavn', 'Efternavn', 'Gruppe', 'Year',
-                ])
-            # only [Fornavn, Mellemnavn, Efternavn, Gruppe, Year]
-            # -> nothing in relation to group/district/etc
-            continue
-
-        frame['sheet'] = sheet
-        frames.append(frame)
-
-    districts = pd.concat(frames)
-
-    # Joint name columns
-    districts['nn'] = districts['Fornavn'] + ' ' + districts['Efternavn']
-    districts['nn-s'] = districts['nn'] + '-' + districts['sheet']
-
-    # Remove cases with bad char "?" (special char -> place \ in front)
-    districts = districts[~districts['nn'].str.contains('\?')] # pylint: disable=W1401
-
-    # Fill NAs (before duplicate drop)
-    # NOTE: Did not actually check if there are any NAs, probably not
-    for col in value_cols:
-        # Never two conflicting values -> free to use whichever as long as not NaN
-        assert (districts.groupby('nn-s')[col].nunique() < 2).all()
-
-        # How many ffill/bffill? One of each suffices
-        districts[col] = districts.groupby('nn-s')[col].transform(
-            lambda x: x.fillna(method='ffill').fillna(method='bfill')
-            )
-
-    # 27 cases of duplicates: Identify and drop
-    # >>> (districts['nn-s'].value_counts() > 1).sum()
-
-    # Verify when duplicate, all values are identical
-    dupl = districts[districts['nn-s'].duplicated(keep=False)]
-    counts = dupl.groupby('nn-s')[value_cols].nunique()
-    assert (counts < 2).all().all()
-
-    # Since always identical, fine to drop arbitrarily
-    districts['is-dupl'] = districts['nn-s'].duplicated(keep='first')
-    districts = districts[~districts['is-dupl']]
-
-    # Select cols and then rehape
-    districts = districts[['nn', 'Fornavn', 'Efternavn', 'Year', 'sheet', *value_cols]] # TODO maybe just drop the Year variable? Contained in sheet
-
-    # Pivot to wide format. By col, then merge
-    wide = None
-
-    for col in ['Year', *value_cols]:
-        pivoted = districts.pivot(
-            index='nn',
-            columns='sheet',
-            values=col,
-            ).reset_index()
-
-        pivoted.columns = ['nn'] + [f'{col}_{x}'.replace('-', '_') for x in pivoted.columns[1:]]
-
-        if wide is None:
-            wide = pivoted
-        else:
-            wide = wide.merge(pivoted, on='nn', how='inner')
-
-    # Split name to first and last. Create first name initial column
-    wide['nn_fn'] = wide['nn'].transform(lambda x: x.split(' ')[0])
-    wide['nn_ln'] = wide['nn'].transform(lambda x: x.split(' ')[-1])
-
-    wide['nn_fn_i'] = wide['nn_fn'].transform(lambda x: x[0])
-
-    # Check duplicated with fn initial + ln-> multiple cases
-    # >>> wide[['nn_fn_i', 'nn_ln']].duplicated().sum()
-
-    wide = wide.drop(columns='nn')
-
-    # Drop variables that are always NaN for one/multiple sheets
-    for col in wide.columns:
-        if wide[col].isnull().all():
-            wide = wide.drop(columns=col)
-
-    return wide
-
-
-def nurse_merge_stats(wide: pd.DataFrame):
-    wide = wide.copy()
-    wide['full-name'] = wide['nn_fn'] + ' ' + wide['nn_ln']
-    wide['ini-and-last'] = wide['nn_fn_i'] + ' ' + wide['nn_ln']
-
-    nb_unique_first_and_last = wide['full-name'].nunique()
-    nb_unique_ini_and_last = wide['ini-and-last'].nunique()
-    nb_unique_first = wide['nn_fn'].nunique()
-    nb_unique_ini = wide['nn_fn_i'].nunique()
-    nb_unique_last = wide['nn_ln'].nunique()
-
-    print(f'{nb_unique_first_and_last=}')
-    print(f'{nb_unique_ini_and_last=}')
-    print(f'{nb_unique_first=}')
-    print(f'{nb_unique_ini=}')
-    print(f'{nb_unique_last=}')
-
-
 def main():
     nurse_info = load_nurse_name_info_from_archive()
     nurse_label_names = load_nurse_name_list_from_labels()
@@ -257,17 +150,6 @@ def main():
         nurse_names=[nurse_info_names, nurse_label_names],
         out_dir=r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex',
         )
-
-    # Create merge district to name set
-    wide = create_merge_district_to_name(info=nurse_info)
-    nurse_merge_stats(wide)
-
-    fname = os.path.join(DATASET_DIR, 'nurse-districts.csv')
-
-    if os.path.isfile(fname):
-        warnings.warn('{fname} already exists, not writing')
-    else:
-        wide.to_csv(fname, index=False)
 
 
 if __name__ == '__main__':
