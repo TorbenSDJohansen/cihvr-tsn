@@ -45,6 +45,8 @@ To prepare the @CMD & @TSDJ ~100x112 Table B test labels use `python data/prepar
 
 To prepare train and test labels use `python data/gen_labels.py --dir Y:\RegionH\Scripts\data\storage\labels\keep`.
 
+To prepare nurse name lexicon for post-predict matching use `python data/create_nurse_name_lex.py`.
+
 **Note**: For details on how to cluster journal pages, see [Applications of machine learning in tabular document digitisation](https://www.tandfonline.com/doi/abs/10.1080/01615440.2023.2164879).
 
 ### Segmentation
