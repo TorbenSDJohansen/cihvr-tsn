@@ -26,7 +26,11 @@ from typing import Dict
 import pandas as pd
 
 from create_nurse_name_lex import load_nurse_name_info_from_archive
-from prepare_data_dst import prepare_nurse_firstname, prepare_nurse_lastname
+from prepare_data_dst import (
+    prepare_nurse_firstname,
+    prepare_nurse_lastname,
+    names_to_numeric,
+    )
 
 
 def create_merge_district_to_name(info: Dict[str, pd.DataFrame]) -> pd.DataFrame:
@@ -266,6 +270,10 @@ def main():
     merged = create_merge(wide, name)
     merged = merged.drop(columns='nn') # redundant
 
+    # Hash names
+    merged['nn_fn'] = names_to_numeric(merged['nn_fn'].values, only_initial=False)
+    merged['nn_ln'] = names_to_numeric(merged['nn_ln'].values, only_initial=False)
+
     fname = os.path.join(
         r'Y:\RegionH\Scripts\users\tsdj\storage\datasets',
         'nurse-districts.csv',
@@ -274,7 +282,7 @@ def main():
     if os.path.isfile(fname):
         warnings.warn('{fname} already exists, not writing')
     else:
-        wide.to_csv(fname, index=False)
+        merged.to_csv(fname, index=False)
 
 
 if __name__ == '__main__':
