@@ -16,10 +16,6 @@ this includes 11 duplicates. For all data generated at SDU, we merge on
 solving any potential issues.
 """
 
-# FIXME CHECK if new ID column(s) added, NEED to drop before DST upload
-# TODO merge nurse district in some way... maybe merge wrt nurse name, maybe
-# upload as separate file - BUT if they re-key nurse name, we need to merge on
-# before upload!
 
 import os
 import csv
@@ -27,6 +23,9 @@ import pickle
 import datetime
 import string
 import math
+import warnings
+
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -52,8 +51,8 @@ FN_BF7DO_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\bf7do\circle-s2s\wide-p
 FN_DABF_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\dabf\int-s2s-5d\wide-preds.csv'
 FN_DATE_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\date\mh\wide-preds.csv'
 FN_LENGTH_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\length\int-s2s-5d\wide-preds.csv'
-FN_NURSE_LASTNAME_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\s2s-tl\wide-preds.csv'
-FN_NURSE_FIRSTNAME_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl\wide-preds.csv'
+FN_NURSE_LASTNAME_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\last\s2s-tl\wide-preds_matched.csv'
+FN_NURSE_FIRSTNAME_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\names\first\mh-tl\wide-preds_matched.csv'
 FN_PRETERM_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm\circle-s2s\wide-preds.csv'
 FN_PRETERM_WEEKS_PRED = r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\preterm-wks\int-s2s-5d\wide-preds.csv'
 FN_TAB_B_PRED =  r'Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\int-s2s-5d\wide-preds.csv'
@@ -302,7 +301,7 @@ def _prepare_bf7do() -> pd.DataFrame:
     return bf7do
 
 
-def _prepare_nurse_lastname() -> pd.DataFrame:
+def prepare_nurse_lastname() -> pd.DataFrame:
     nurse_lastname = pd.read_csv(FN_NURSE_LASTNAME_PRED, na_values=[''], keep_default_na=False)
 
     nurse_lastname = nurse_lastname.rename(columns={'journal': 'Filename'})
@@ -316,18 +315,19 @@ def _prepare_nurse_lastname() -> pd.DataFrame:
     pred_cols = [f'nurse_name_{i}_pred' for i in range(1, 4)]
     assert nurse_lastname.shape[1] == len(prob_cols + pred_cols) + 1
 
+    # Rename prob cols
     for i, prob_col in enumerate(prob_cols, start=1):
         nurse_lastname.rename(columns={prob_col: f'nn_ln_m_{i}_prob'}, inplace=True)
 
+    # Rename pred cols
     for i, pred_col in enumerate(pred_cols, start=1):
         nurse_lastname[f'nn_ln_m_{i}_pred_cat'] = list(map(_create_name_category, nurse_lastname[pred_col])) # pylint: disable=C0301
-        nurse_lastname[pred_col] = _names_to_numeric(nurse_lastname[pred_col].values, False)
         nurse_lastname.rename(columns={pred_col: f'nn_ln_m_{i}_pred'}, inplace=True)
 
     return nurse_lastname
 
 
-def _prepare_nurse_firstname() -> pd.DataFrame:
+def prepare_nurse_firstname() -> pd.DataFrame:
     nurse_firstname = pd.read_csv(FN_NURSE_FIRSTNAME_PRED, na_values=[''], keep_default_na=False)
 
     nurse_firstname = nurse_firstname.rename(columns={'journal': 'Filename'})
@@ -344,16 +344,15 @@ def _prepare_nurse_firstname() -> pd.DataFrame:
     for i, prob_col in enumerate(prob_cols, start=1):
         nurse_firstname.rename(columns={prob_col: f'nn_fn_m_{i}_prob'}, inplace=True)
 
+    # Rename pred cols
     for i, pred_col in enumerate(pred_cols, start=1):
         nurse_firstname[f'nn_fn_m_{i}_pred_cat'] = list(map(_create_name_category, nurse_firstname[pred_col])) # pylint: disable=C0301
-        nurse_firstname[f'nn_fn_m_{i}_pred_ini'] = _names_to_numeric(nurse_firstname[pred_col].values, True) # pylint: disable=C0301
-        nurse_firstname[pred_col] = _names_to_numeric(nurse_firstname[pred_col].values, False)
         nurse_firstname.rename(columns={pred_col: f'nn_fn_m_{i}_pred'}, inplace=True)
 
     return nurse_firstname
 
 
-def _names_to_numeric(names: np.ndarray, only_initial: bool) -> list:
+def names_to_numeric(names: np.ndarray, only_initial: bool) -> List[str]:
     '''
     Maps names to numeric values using hashing. Asserts no "collisions", i.e.
     same number of distincs cases post cast.
@@ -401,7 +400,7 @@ def _name_to_numeric(name: str) -> str:
     if hashed < 0:
         hashed *= -1
 
-    qhashed = str(hashed)[:10]
+    qhashed = 'h' + str(hashed)[:10]
 
     return qhashed
 
@@ -549,23 +548,28 @@ def recode_array_str(array: np.ndarray) -> str:
     return ' '.join([str(x[0]) for x in array])
 
 
+def _find_notimported(path):
+    return 'NotImported' in path
+
+
 def drop_not_imported_entries(data_frame: pd.DataFrame) -> pd.DataFrame:
     ''' Drop all entries that stem from the NotImported folder, as they
     are all duplicates, see "./../checks/verify_notimported_duplicates.html".
     This is then run for both cluster and intensity data frames.
     '''
-    find_notimported = lambda x: 'NotImported' in x
-    from_notimported = pd.Series([find_notimported(x) for x in data_frame['path'].values])
+    from_notimported = pd.Series([_find_notimported(x) for x in data_frame['path'].values])
     data_frame_sub = data_frame[~from_notimported]
 
     return data_frame_sub
 
 
+def _find_page_number(path):
+    return path[(path.find('page') + 5):(path.find('.jpg'))]
+
 def create_page_number_col(data_frame: pd.DataFrame) -> pd.Series:
     ''' From path column create page number column.
     '''
-    find_page_number = lambda x: x[(x.find('page') + 5):(x.find('.jpg'))]
-    page = pd.Series([find_page_number(x) for x in data_frame['path'].values])
+    page = pd.Series([_find_page_number(x) for x in data_frame['path'].values])
 
     return page
 
@@ -574,6 +578,31 @@ def create_row_number(intensity_df):
     ''' Create row number col to intensity data frame.
     '''
     return intensity_df.groupby('path').cumcount() + 1
+
+
+def cast_name_cols(main: pd.DataFrame):
+    ''' Change names to hashed values, including adding such columns for first
+    name initials.
+
+    Changes DataFrame in place.
+    '''
+    last_name_cols = [
+        'nn_ln_m_1_pred',
+        'nn_ln_m_2_pred',
+        'nn_ln_m_3_pred',
+        ]
+    first_name_cols = [
+        'nn_fn_m_1_pred',
+        'nn_fn_m_2_pred',
+        'nn_fn_m_3_pred',
+        ]
+
+    for col in last_name_cols:
+        main[col] = names_to_numeric(main[col].values, only_initial=False)
+
+    for col in first_name_cols:
+        main[f'{col}_ini'] = names_to_numeric(main[col].values, only_initial=True)
+        main[col] = names_to_numeric(main[col].values, only_initial=False)
 
 
 def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
@@ -684,6 +713,9 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
         how='left',
         )
 
+    # Cast names to hashed versions + add such a column for first name initials
+    cast_name_cols(main)
+
     # Drop Filename since we are done merging and it is an ID var
     main = main.drop(columns='Filename')
 
@@ -708,7 +740,7 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
     # Not currently. To see, use variable explorer on look_through
 
     submain = main.drop_duplicates('Id')
-    look_through = dict()
+    look_through = {}
 
     for col in submain.columns:
         try:
@@ -730,7 +762,10 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
         '-'.join((datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S'), 'to-dst.csv')),
         )
 
-    assert not os.path.isfile(fn_out)
+    if os.path.isfile(fn_out):
+        warnings.warn(f'file {fn_out} already exists, not writing new file')
+        return
+
     print(f'Writing file {fn_out}!')
     main.to_csv(fn_out, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
@@ -763,7 +798,7 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
                 # Handles bools converted to strings for example
                 continue
 
-        raise Exception(col, main[col], main_reloaded[col]) # pylint: disable=E1136
+        raise ValueError(col, main[col], main_reloaded[col]) # pylint: disable=E1136
 
     # Check balance across those with long tables and those without
     # main['longtable'] = main['type'].isin({4, 5, 25, 27})
@@ -799,8 +834,8 @@ if __name__ == '__main__':
             'loader': [
                 _prepare_main, _prepare_cpr, _prepare_status, _prepare_cluster,
                 _prepare_intensity, _prepare_weight, _prepare_date, _prepare_tab_b,
-                _prepare_length, _prepare_dabf, _prepare_nurse_lastname,
-                _prepare_nurse_firstname,
+                _prepare_length, _prepare_dabf, prepare_nurse_lastname,
+                prepare_nurse_firstname,
                 _prepare_preterm, _prepare_preterm_weeks, _prepare_bf7do,
                 ],
             'merge-var': [
