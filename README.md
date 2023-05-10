@@ -94,7 +94,7 @@ Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\mh\preds.csv ^
 --cihvr-duplicate-drop ^
 --out-dir path/to/out/
 ```
-**FIXME** should we split this, currently we "merge" first and last name to one field in table as same name if field(s)
+**FIXME** should we split this, currently we "merge" first and last name to one field in table as same name of field(s).
 
 **Note**: Performance on [Preterm birth number of weeks](cmds/preterm_weeks.md) appears very poor.
 However, this is in large part due to inconsistent labelling:
@@ -116,7 +116,7 @@ python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\tab-b\i
 python data/format_preds_cihvr.py Z:\faellesmappe\tsdj\cihvr-timmsn\pred\weight\mh\preds.csv --use-cihvr-name-if-available
 ```
 
-To prepare data for upload to DST use `python data/prepare_data_dst.py`.
+To prepare data for upload to DST use `python data/prepare_data_dst.py` and `python data/gen_nurse_name_merge.py`, where the second script prepares a second dataset that provides a bridge between the primary dataset and nurse districts.
 
 To compare to older upload use `python scripts/compare_uploads.py --fn-old path/to/old.csv --fn-new path/to/new --fn-out path/to/out.tex`.
 
