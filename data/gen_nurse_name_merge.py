@@ -266,9 +266,6 @@ def main():
     merged = create_merge(wide, name)
     merged = merged.drop(columns='nn') # redundant
 
-    # TODO need to scramble names in same way as in "prepare_data_dst".
-    # Potentially just do that in "prepare_data_dst.py"
-
     fname = os.path.join(
         r'Y:\RegionH\Scripts\users\tsdj\storage\datasets',
         'nurse-districts.csv',
