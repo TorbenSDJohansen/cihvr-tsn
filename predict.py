@@ -10,7 +10,6 @@ import shutil
 
 from functools import partial
 from contextlib import suppress
-from functools import partial
 
 import torch
 
@@ -33,6 +32,7 @@ from timmsn.models import create_model_v2
 from timmsn.data import create_loader
 from timmsn.data.parsers import (
     setup_sqnet_parser,
+    setup_tarball_parser,
     setup_bdatasets_parser,
     setup_sqnet_parser_predict_folders,
     )
@@ -101,7 +101,9 @@ def main(): # pylint: disable=R0914, R0912, R0915
             formatter_kwargs=args.formatter_kwargs,
             )
     elif args.formatter is not None:
-        parser_predict, _, clean_pred, num_classes = setup_sqnet_parser(
+        setup_fn = setup_tarball_parser if args.read_from_tar else setup_sqnet_parser
+
+        parser_predict, _, clean_pred, num_classes = setup_fn(
             purpose='predict',
             dataset=args.dataset,
             data_dir=args.data_dir,
@@ -224,13 +226,14 @@ def main(): # pylint: disable=R0914, R0912, R0915
     else:
         predict_fn = predict_sequence_v2
 
-    preds, seq_prob, files, _, digit_probs = predict_fn(
+    preds, seq_prob, files, _, token_probs = predict_fn(
         model=model,
         loader=loader,
         amp_autocast=amp_autocast,
         no_prefetcher=args.no_prefetcher,
         channels_last=args.channels_last,
         retrieve_labels=False,
+        retrieve_all_probs=args.retrieve_all_probs,
         )
 
     if unpacked_folders is not None and not args.keep_unpacked:
@@ -248,16 +251,26 @@ def main(): # pylint: disable=R0914, R0912, R0915
         'prob': seq_prob,
         })
 
-    if args.return_individual_probs:
-        for i, probs in enumerate(digit_probs.T):
-            pred_df[f'prob_{i}'] = probs
+    if args.return_individual_probs or args.retrieve_all_probs:
+        if isinstance(token_probs, np.ndarray):
+            for i, probs in enumerate(token_probs.T):
+                pred_df[f'prob_{i}'] = probs
+        else:
+            for i in range(len(token_probs['full'])):
+                pred_df[f'prob_{i}'] = token_probs['max'][:, i]
+
+                for j, probs in enumerate(token_probs['full'][i].T):
+                    pred_df[f'prob_{i}_{j}'] = probs
 
     os.makedirs(output_dir)
     print(f'Writing output to "{output_dir}".')
 
     pred_df.to_csv(os.path.join(output_dir, 'preds.csv'), index=False)
 
-    if args.plots is not None and 'montage' in args.plots:
+    if args.plots is not None and 'montage' in args.plots and args.read_from_tar:
+        _logger.warning('montage from --plots will not be created as '
+                        '--read-from-tar specified')
+    elif args.plots is not None and 'montage' in args.plots:
         if has_cv2:
             montage_maker = MontageMaker(
                 files=files,

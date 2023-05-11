@@ -59,7 +59,11 @@ from timmsn.utils import (
     )
 from timmsn.models import create_model_v2
 from timmsn.data import create_loader, Mixup, FastCollateMixup
-from timmsn.data.parsers import setup_sqnet_parser, setup_bdatasets_parser
+from timmsn.data.parsers import (
+    setup_sqnet_parser,
+    setup_bdatasets_parser,
+    setup_tarball_parser,
+    )
 from timmsn.data.formatters.constants import PAD_IDX
 
 # other imports
@@ -105,7 +109,9 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
             formatter_kwargs=args.formatter_kwargs,
             )
     elif args.formatter is not None:
-        parser_train, parser_eval, clean_pred, num_classes = setup_sqnet_parser(
+        setup_fn = setup_tarball_parser if args.read_from_tar else setup_sqnet_parser
+
+        parser_train, parser_eval, clean_pred, num_classes = setup_fn(
             purpose='train',
             dataset=args.dataset,
             data_dir=args.data_dir,
@@ -337,8 +343,8 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
         distributed=args.distributed,
         collate_fn=collate_fn,
         pin_memory=args.pin_mem,
-        use_multi_epochs_loader=args.use_multi_epochs_loader
-    )
+        use_multi_epochs_loader=args.use_multi_epochs_loader,
+        )
 
     loader_eval = create_loader(
         dataset_eval,
@@ -354,7 +360,7 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
         distributed=args.distributed,
         crop_pct=data_config['crop_pct'],
         pin_memory=args.pin_mem,
-    )
+        )
 
     if mixup_active and args.ctc:
         raise ValueError('Mixup not implemented for ctc models')
@@ -368,7 +374,8 @@ def main(): # pylint: disable=R0914, R0912, R0915, C0116
         raise NotImplementedError
         # Recall challenges related to need to keep unmixed targets, and in
         # particular how this is difficult with pre-fetching
-    elif mixup_active:
+
+    if mixup_active:
         train_loss_fn = SoftTargetSequenceCrossEntropy().cuda()
     elif args.ctc:
         # FIXME does not work with --amp

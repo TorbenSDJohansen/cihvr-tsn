@@ -325,6 +325,8 @@ def construct_parser(): # pylint: disable=R0915
                         help='Replace initial transform(s) with other resize method.')
     parser.add_argument('--return-individual-probs', action='store_true', default=False,
                         help='Return prob. of each element in sequence when predicting.')
+    parser.add_argument('--retrieve-all-probs', action='store_true', default=False,
+                        help='Return prob. of each candidate element for each element in sequence when predicting.')
     parser.add_argument('--initial-log', action='store_true', default=False,
                         help='Whether to perform initial save of train and eval images.')
     parser.add_argument('--plots', type=str, nargs='+', default=None, choices=['montage', 'cov-acc', 'cer-acc'],
@@ -354,6 +356,8 @@ def construct_parser(): # pylint: disable=R0915
     parser.add_argument('--decoder', type=str, default=None, help='Type of decoder (e.g., greedy, beam-X (X is int and controls beam size) to use for evalution, prediction for autoregressive models.')
     parser.add_argument('--tl-from-input-size', type=int, nargs='+', default=None,
                         help='When using --initial-checkpoint and TL to other image size with ViT-style model, pass original input size to allow proper resizing of positional embedding.')
+
+    parser.add_argument('--read-from-tar', action='store_true', default=False)
 
     # TODO filetypes (perhaps see BYU projects, might be something there to grab)
 

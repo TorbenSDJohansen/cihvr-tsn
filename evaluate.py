@@ -42,7 +42,11 @@ from timmsn.utils import (
     )
 from timmsn.models import create_model_v2
 from timmsn.data import create_loader
-from timmsn.data.parsers import setup_sqnet_parser, setup_bdatasets_parser
+from timmsn.data.parsers import (
+    setup_sqnet_parser,
+    setup_tarball_parser,
+    setup_bdatasets_parser,
+    )
 from timmsn.data.formatters.constants import PAD_IDX, BOS_IDX, EOS_IDX
 
 # other imports
@@ -103,7 +107,9 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
             formatter_kwargs=args.formatter_kwargs,
             )
     elif args.formatter is not None:
-        parser_eval, _, clean_pred, num_classes = setup_sqnet_parser(
+        setup_fn = setup_tarball_parser if args.read_from_tar else setup_sqnet_parser
+
+        parser_eval, _, clean_pred, num_classes = setup_fn(
             purpose='test',
             dataset=args.dataset,
             data_dir=args.data_dir,
@@ -236,13 +242,14 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
     else:
         predict_fn = predict_sequence_v2
 
-    preds, seq_prob, files, labels, digit_probs = predict_fn(
+    preds, seq_prob, files, labels, token_probs = predict_fn(
         model=model,
         loader=loader,
         amp_autocast=amp_autocast,
         no_prefetcher=args.no_prefetcher,
         channels_last=args.channels_last,
         retrieve_labels=True,
+        retrieve_all_probs=args.retrieve_all_probs,
         )
 
     print('Cleaning predictions and labels.')
@@ -263,11 +270,18 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
     if has_torchmetrics:
         metric = CharErrorRate()
         cer = 100 * metric(pred_df['pred'].values, pred_df['label'].values)
-        print(f'CER: {cer:.2f}%. NOTE: CER might not be meaningful for many tasks.')
+        print(f'CER: {cer:.2f}%. NOTE: CER might not be meaningful for all tasks.')
 
-    if args.return_individual_probs:
-        for i, probs in enumerate(digit_probs.T):
-            pred_df[f'prob_{i}'] = probs
+    if args.return_individual_probs or args.retrieve_all_probs:
+        if isinstance(token_probs, np.ndarray):
+            for i, probs in enumerate(token_probs.T):
+                pred_df[f'prob_{i}'] = probs
+        else:
+            for i in range(len(token_probs['full'])):
+                pred_df[f'prob_{i}'] = token_probs['max'][:, i]
+
+                for j, probs in enumerate(token_probs['full'][i].T):
+                    pred_df[f'prob_{i}_{j}'] = probs
 
     os.makedirs(output_dir, exist_ok=False)
     print(f'Writing output to "{output_dir}".')
@@ -300,7 +314,10 @@ def validate(args): # pylint: disable=C0116, R0914, R0912, R0915
             fn_cer_acc_plot=os.path.join(output_dir, 'cer_acc.png'),
             )
 
-    if args.plots is not None and 'montage' in args.plots:
+    if args.plots is not None and 'montage' in args.plots and args.read_from_tar:
+        _logger.warning('montage from --plots will not be created as '
+                        '--read-from-tar specified')
+    elif args.plots is not None and 'montage' in args.plots:
         if has_cv2:
             montage_maker = MontageMaker(
                 files=files,
