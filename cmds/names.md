@@ -89,6 +89,25 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --initial-log
 ```
 
+### First and last name
+S2S w/ TL from HANA
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter s2s_first_and_last_name_keep_bad_cpd ^
+--experiment s2s-tl ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first-and-last ^
+--input-size 3 91 530 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells nurse-name ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first-and-last-s2s\last.pth.tar ^
+--tl-from-input-size 3 80 522 ^
+--log-wandb ^
+--read-from-tar ^
+--initial-log
+```
+
 ## Evaluate
 
 ### Last name
@@ -155,6 +174,17 @@ S2S w/ TL from HANA post w/ match
 ```
 python match.py Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first\s2s-tl\preds.csv ^
 --lex Y:\RegionH\Scripts\users\tsdj\storage\datasets\nurse-name-lex\fn.pkl
+```
+
+### First and last name
+S2S w/ TL from HANA
+```
+python evaluate.py ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\eval\names\first-and-last\s2s-tl ^
+--config Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first-and-last\s2s-tl\args.yaml ^
+--checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first-and-last\s2s-tl\last.pth.tar ^
+--plots montage cov-acc cer-acc ^
+--eval-plots-omit-most-occ 3
 ```
 
 ## Predict

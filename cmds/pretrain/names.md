@@ -112,3 +112,41 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --log-wandb ^
 --initial-log
 ```
+
+First and last name model (S2S-large), train from tar
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter s2s_first_and_last_name_keep_bad_cpd ^
+--experiment first-and-last-s2s-large-tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
+--input-size 3 80 522 ^
+--epochs 90 ^
+--data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
+--dataset HANA ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--model deit3_large_patch16_224_in21ft1k ^
+-b 64 ^
+--read-from-tar ^
+--log-wandb ^
+--initial-log
+```
+
+First and last name model (S2S-large), train from tar, properly increase --drop-path and try with lower LR (batch size 4 times lower, use 2 times lower LR as middle-ground)
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter s2s_first_and_last_name_keep_bad_cpd ^
+--experiment first-and-last-s2s-large-drop-path-0.4-tar ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr ^
+--input-size 3 80 522 ^
+--epochs 90 ^
+--data_dir "Z:\data_cropouts\Labels\HANA\HANA format" ^
+--dataset HANA ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--model deit3_large_patch16_224_in21ft1k ^
+-b 64 ^
+--drop-path 0.4 ^
+--lr 0.0005 ^
+--read-from-tar ^
+--log-wandb ^
+--initial-log
+```
