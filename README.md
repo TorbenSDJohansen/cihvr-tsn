@@ -3,6 +3,7 @@ Transcription code related to the papers:
 1. Universal Investments in Toddler Health: Learning from a Large Government Trial
 1. Cohort Profile: Copenhagen Infant Health Nurse Records (CIHNR) cohort
 1. **Nurse cluster project**
+1. **BF and SES project**
 
 ## Clone Repository and Prepare Environment
 To get started, first clone the repository locally:
