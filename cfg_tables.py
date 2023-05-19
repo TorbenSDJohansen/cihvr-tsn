@@ -20,13 +20,52 @@ import argparser # needed to get formatters -> seq. len. pylint: disable=W0611
 
 
 NUM_GPUS = {
-    r'date\mn': 2,
-    r'first\mh-tl': 2,
-    r'weight\mh': 2,
+    r'bf7do\mh': 1,
+    r'bf7do\s2s': 2,
+    r'circle\mh': 1,
     r'circle\s2s': 1,
+    r'date\mh': 2,
+    r'date\s2s': 2,
+    r'dabf\mh': 1,
+    r'dabf\s2s': 1,
     r'int\s2s-5d': 2,
+    r'length\mh': 1,
+    r'length\s2s': 1,
+    r'names/first\mh-tl': 2,
+    r'names/first\s2s-tl': 2,
+    r'names/last\mh-tl': 2,
+    r'names/last\s2s-tl': 2,
+    r'first\mh-tl': 2,
+    r'first\s2s-tl': 2,
+    r'last\mh-tl': 2,
     r'last\s2s-tl': 2,
+    r'preterm\mh': 1,
+    r'preterm\s2s': 1,
+    r'preterm-wks\mh': 1,
+    r'preterm-wks\s2s': 1,
+    r'tab_b\mh': 2,
+    r'tab_b\s2s': 1,
+    r'weight\mh': 2,
+    r'weight\s2s': 1,
     }
+
+def get_all_arg_files() -> List[Union[str, os.PathLike]]:
+    root = r'Z:\faellesmappe\tsdj\cihvr-timmsn\experiments'
+    folders = [x for x in os.listdir(root) if x not in ('names', 'int')]
+
+    arg_files = []
+
+    for folder in folders + ['names/first', 'names/last']:
+        for model_type in ('mh', 's2s'):
+            if folder.startswith('names') or folder.startswith('last'):
+                model_type += '-tl'
+
+            arg_files.append(os.path.join(root, folder, model_type, 'args.yaml'))
+
+    arg_files.append(os.path.join(root, 'int', 's2s-5d', 'args.yaml'))
+
+    return arg_files
+
 
 def parse_args():
     default = [
@@ -42,8 +81,12 @@ def parse_args():
 
     parser.add_argument('--files', type=str, nargs='+', default=default)
     parser.add_argument('--out-dir', type=str, default='')
+    parser.add_argument('--suffix', type=str, default='')
 
     args = parser.parse_args()
+
+    if args.files[0] == 'ALL_MODELS':
+        args.files = get_all_arg_files()
 
     if len(args.files) != len(set(args.files)):
         raise ValueError('same arg file specified multiple times: {arg_files}')
@@ -113,7 +156,7 @@ def write_tex(cfg_ds: pd.DataFrame, fname: Union[str, os.PathLike]):
     # List values to str format
     # cfg_ds['Fields'] = cfg_ds['Fields'].transform(lambda x: ', '.join(x))
     cfg_ds['Fields'] = cfg_ds['Fields'].transform(', '.join)
-    cfg_ds['Image size'] = cfg_ds['Image size'].transform(lambda x: 'x'.join([str(e) for e in x]))
+    cfg_ds['Image size'] = cfg_ds['Image size'].transform(lambda x: 'x'.join([str(e) for e in x[1:]]))
 
     # Extract seq. len.
     formatters = [create_formatter(x) for x in cfg_ds['Tokenization']]
@@ -144,11 +187,11 @@ def write_tex(cfg_ds: pd.DataFrame, fname: Union[str, os.PathLike]):
     cfg_ds = cfg_ds[target_cols]
 
     # Fix batch size for multi-gpu models
-    for model, num_gpus in NUM_GPUS.items():
-        cfg_ds.loc[cfg_ds.index == model, 'Batch size'] *= num_gpus
+    for model in cfg_ds.index:
+        cfg_ds.loc[cfg_ds.index == model, 'Batch size'] *= NUM_GPUS[model]
 
     # Prettier index name
-    cfg_ds.index = [os.path.dirname(x).capitalize() for x in cfg_ds.index]
+    cfg_ds.index = [os.path.dirname(x).replace('_', '-').capitalize() for x in cfg_ds.index]
 
     # Write .tex
     with pd.option_context("max_colwidth", 1000):
@@ -189,11 +232,11 @@ def main():
 
     write_tex(
         cfg_ds=mh_ds,
-        fname=os.path.join(args.out_dir, 'mh-models-diff.tex'),
+        fname=os.path.join(args.out_dir, f'mh-models-diff{args.suffix}.tex'),
         )
     write_tex(
         cfg_ds=s2s_ds,
-        fname=os.path.join(args.out_dir, 's2s-models-diff.tex'),
+        fname=os.path.join(args.out_dir, f's2s-models-diff{args.suffix}.tex'),
         )
 
 
