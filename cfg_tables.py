@@ -16,7 +16,7 @@ import pandas as pd
 
 from timmsn.data.formatters import create_formatter
 
-import argparser # needed to get formatters pylint: disable=W0611
+import argparser # needed to get formatters -> seq. len. pylint: disable=W0611
 
 
 NUM_GPUS = {
