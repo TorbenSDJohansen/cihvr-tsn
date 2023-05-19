@@ -48,6 +48,41 @@ NUM_GPUS = {
     r'weight\mh': 2,
     r'weight\s2s': 1,
     }
+MAP_NAMES_PRETTY = {
+    'bf7do': 'BF 7 do.',
+    'circle': 'Circle',
+    'date': 'Date',
+    'dabf': 'Dura. any BF',
+    'int': 'Integer seq.',
+    'length': 'Length',
+    'first': 'First name',
+    'last': 'Last name',
+    'preterm': 'Preterm (Y/N)',
+    'preterm-wks': 'Weeks preterm',
+    'tab_b': 'Integer',
+    'weight': 'Weight',
+    }
+
+def match_name_to_pretty(name: str) -> str:
+    if name.startswith('preterm-wks'):
+        return MAP_NAMES_PRETTY['preterm-wks']
+    if name.startswith('preterm'):
+        return MAP_NAMES_PRETTY['preterm']
+
+    match = None
+
+    for key, pretty_name in MAP_NAMES_PRETTY.items():
+        if key in name:
+            if match is not None:
+                raise ValueError(f'Duplicate match of {name}: {match} and {pretty_name}')
+
+            match = pretty_name
+
+    if match is None:
+        raise ValueError(f'No match for {name}')
+
+    return match
+
 
 def get_all_arg_files() -> List[Union[str, os.PathLike]]:
     root = r'Z:\faellesmappe\tsdj\cihvr-timmsn\experiments'
@@ -95,8 +130,8 @@ def parse_args():
 
 
 def load(fname: str) -> dict:
-    with open(fname, 'r') as f:
-        cfg = yaml.safe_load(f)
+    with open(fname, 'r', encoding='utf8') as file:
+        cfg = yaml.safe_load(file)
 
     return cfg
 
@@ -191,7 +226,7 @@ def write_tex(cfg_ds: pd.DataFrame, fname: Union[str, os.PathLike]):
         cfg_ds.loc[cfg_ds.index == model, 'Batch size'] *= NUM_GPUS[model]
 
     # Prettier index name
-    cfg_ds.index = [os.path.dirname(x).replace('_', '-').capitalize() for x in cfg_ds.index]
+    cfg_ds.index = [match_name_to_pretty(name) for name in cfg_ds.index]
 
     # Write .tex
     with pd.option_context("max_colwidth", 1000):
