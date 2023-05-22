@@ -78,6 +78,15 @@ For full rundown, refer to markdowns in following order (some parts need to run 
 1. [Circle number model](cmds/circle_model.md)
 1. [Seq. of integers model](cmds/int_model.md)
 
+To create tables of hyperparameter differences between (final selected) transcription models use:
+```
+python cfg_tables.py --out-dir path/to/output
+```
+To create tables for all tested models use:
+```
+python cfg_tables.py --out-dir path/to/output --files ALL_MODELS [--suffix all]
+```
+
 ### Post-transcription
 To produce table with transcription accuracies:
 ```
