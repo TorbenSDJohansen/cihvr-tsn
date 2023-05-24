@@ -714,7 +714,7 @@ def load_prepare_merge(): # pylint: disable=R0914, R0912, R0915, C0116
         )
 
     # Save for EPI before name hash and before drop filename
-    fname_epi = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\transcribed.csv'
+    fname_epi = r'Y:\RegionH\Scripts\users\tsdj\storage\datasets\epi\transcribed.csv'
 
     if os.path.isfile(fname_epi):
         warnings.warn('{fname_epi} already exists, not writing')

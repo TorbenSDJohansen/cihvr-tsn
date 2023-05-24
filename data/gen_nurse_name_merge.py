@@ -280,7 +280,7 @@ def main():
     merged = merged.drop(columns='nn') # redundant
 
     # Save for EPI before name hash
-    save(merged, 'nurse-districts-no-hash.csv')
+    save(merged, 'epi/nurse-districts-no-hash.csv')
 
     # Hash names
     merged['nn_fn'] = names_to_numeric(merged['nn_fn'].values, only_initial=False)
