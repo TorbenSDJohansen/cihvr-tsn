@@ -21,7 +21,7 @@ Different approaches from more to gradually less stringent merge. For example:
 import os
 import warnings
 
-from typing import Dict
+from typing import Dict, Union
 
 import pandas as pd
 
@@ -260,6 +260,15 @@ def create_merge(wide: pd.DataFrame, name: pd.DataFrame) -> pd.DataFrame:
     return merged
 
 
+def save(data: pd.DataFrame, fname: Union[str, os.PathLike]):
+    fname = os.path.join(r'Y:\RegionH\Scripts\users\tsdj\storage\datasets', fname)
+
+    if os.path.isfile(fname):
+        warnings.warn('{fname} already exists, not writing')
+    else:
+        data.to_csv(fname, index=False)
+
+
 def main():
     info = load_nurse_name_info_from_archive()
     wide = create_merge_district_to_name(info=info)
@@ -270,19 +279,14 @@ def main():
     merged = create_merge(wide, name)
     merged = merged.drop(columns='nn') # redundant
 
+    # Save for EPI before name hash
+    save(merged, 'epi/nurse-districts-no-hash.csv')
+
     # Hash names
     merged['nn_fn'] = names_to_numeric(merged['nn_fn'].values, only_initial=False)
     merged['nn_ln'] = names_to_numeric(merged['nn_ln'].values, only_initial=False)
 
-    fname = os.path.join(
-        r'Y:\RegionH\Scripts\users\tsdj\storage\datasets',
-        'nurse-districts.csv',
-        )
-
-    if os.path.isfile(fname):
-        warnings.warn('{fname} already exists, not writing')
-    else:
-        merged.to_csv(fname, index=False)
+    save(merged, 'nurse-districts.csv')
 
 
 if __name__ == '__main__':

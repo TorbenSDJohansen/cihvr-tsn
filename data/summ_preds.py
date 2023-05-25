@@ -137,6 +137,7 @@ def create_table_by_subset(
         no_empty_label,
         no_bad_cpd_or_empty_label,
         fname: str,
+        fname_small: str = '',
         ):
     # Tables
     by_cell = _create_summary_table(pred_df)
@@ -175,6 +176,33 @@ def create_table_by_subset(
 
     with open(fname, 'w', encoding='utf-8') as file:
         print(results_str, file=file)
+
+    if not fname_small:
+        return
+
+    # Table without succesful crop columns
+    results_small = results[[
+        'Data',
+        'Accuracy (all)',
+        'Accuracy (non-empty)',
+        ]]
+
+    # Add column with share (5) non-empty
+    results_small['Share non-empty'] = 100 * results['Count (non-empty)'] / results['Count (all)']
+    results_small['Share non-empty'] = results_small['Share non-empty'].round(1)
+
+    # Write .tex
+
+    with pd.option_context("max_colwidth", 1000):
+        results_small_str = results_small[results_small.columns[:4]].to_latex(
+            index=False,
+            escape=False,
+            )
+
+    results_small_str = '\n'.join(results_small_str.split('\n')[4:-3])
+
+    with open(fname_small, 'w', encoding='utf-8') as file:
+        print(results_small_str, file=file)
 
 
 def main():
@@ -264,6 +292,7 @@ def main():
         suffix = args.suffix
 
     fn_split = os.path.join(args.out_dir, f'accs-splits-{suffix}.tex')
+    fn_split_small = os.path.join(args.out_dir, f'accs-splits-small-{suffix}.tex')
     fn_years = os.path.join(args.out_dir, f'accs-years-{suffix}.tex')
     fn_years_no_empty = os.path.join(args.out_dir, f'accs-years-drop-empty-{suffix}.tex')
 
@@ -274,6 +303,7 @@ def main():
         no_empty_label=no_empty_label,
         no_bad_cpd_or_empty_label=no_bad_cpd_or_empty_label,
         fname=fn_split,
+        fname_small=fn_split_small,
         )
     create_table_by_birthyear(pred_df, fn_years)
     create_table_by_birthyear(no_empty_label, fn_years_no_empty)
