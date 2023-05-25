@@ -3,6 +3,7 @@ Transcription code related to the papers:
 1. Universal Investments in Toddler Health: Learning from a Large Government Trial
 1. Cohort Profile: Copenhagen Infant Health Nurse Records (CIHNR) cohort
 1. **Nurse cluster project**
+1. **BF and SES project**
 
 ## Clone Repository and Prepare Environment
 To get started, first clone the repository locally:
@@ -76,6 +77,15 @@ For full rundown, refer to markdowns in following order (some parts need to run 
 1. [Weight at birth and at visits](cmds/weight.md)
 1. [Circle number model](cmds/circle_model.md)
 1. [Seq. of integers model](cmds/int_model.md)
+
+To create tables of hyperparameter differences between (final selected) transcription models use:
+```
+python cfg_tables.py --out-dir path/to/output
+```
+To create tables for all tested models use:
+```
+python cfg_tables.py --out-dir path/to/output --files ALL_MODELS [--suffix all]
+```
 
 ### Post-transcription
 To produce table with transcription accuracies:

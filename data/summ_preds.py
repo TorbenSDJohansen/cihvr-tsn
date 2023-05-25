@@ -187,10 +187,14 @@ def create_table_by_subset(
         'Accuracy (non-empty)',
         ]]
 
+    # Add column with share (5) non-empty
+    results_small['Share non-empty'] = 100 * results['Count (non-empty)'] / results['Count (all)']
+    results_small['Share non-empty'] = results_small['Share non-empty'].round(1)
+
     # Write .tex
 
     with pd.option_context("max_colwidth", 1000):
-        results_small_str = results_small[results_small.columns[:3]].to_latex(
+        results_small_str = results_small[results_small.columns[:4]].to_latex(
             index=False,
             escape=False,
             )
@@ -288,7 +292,7 @@ def main():
         suffix = args.suffix
 
     fn_split = os.path.join(args.out_dir, f'accs-splits-{suffix}.tex')
-    fn_split_small = os.path.join(args.out_dir, f'accs-splits-3-col-{suffix}.tex')
+    fn_split_small = os.path.join(args.out_dir, f'accs-splits-small-{suffix}.tex')
     fn_years = os.path.join(args.out_dir, f'accs-years-{suffix}.tex')
     fn_years_no_empty = os.path.join(args.out_dir, f'accs-years-drop-empty-{suffix}.tex')
 
