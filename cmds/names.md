@@ -108,6 +108,29 @@ python -m torch.distributed.launch --nproc_per_node=2 train.py ^
 --initial-log
 ```
 
+S2S-large w/ TL from HANA
+```
+python -m torch.distributed.launch --nproc_per_node=2 train.py ^
+--formatter s2s_first_and_last_name_keep_bad_cpd ^
+--experiment s2s-large-tl ^
+--output Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\first-and-last ^
+--input-size 3 91 530 ^
+--data_dir Y:\RegionH\Scripts\users\tsdj\storage ^
+--dataset image-datasets-train ^
+--dataset-cells nurse-name ^
+--config ./cfgs/deit3_b_s2s.yaml ^
+--initial-checkpoint Z:\faellesmappe\tsdj\cihvr-timmsn\experiments\names\pr\first-and-last-s2s-large-drop-path-0.4-tar\last.pth.tar ^
+--tl-from-input-size 3 80 522 ^
+--model deit3_large_patch16_224_in21ft1k ^
+-b 64 ^
+--drop-path 0.4 ^
+--lr 0.0005 ^
+--read-from-tar ^
+--log-wandb ^
+--read-from-tar ^
+--initial-log
+```
+
 ## Evaluate
 
 ### Last name
