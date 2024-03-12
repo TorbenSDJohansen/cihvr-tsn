@@ -84,7 +84,7 @@ def load_nurse_name_info_from_archive() -> Dict[str, pd.DataFrame]:
     return info
 
 
-def load_nurse_name_list_from_labels() -> np.ndarray[str]:
+def load_nurse_name_list_from_labels() -> np.ndarray:
     labels = []
 
     for split in ('train', 'test'):
@@ -125,7 +125,7 @@ def create_lex(
     save_lex(os.path.join(out_dir, 'ln.pkl'), last_names)
 
 
-def nurse_info_to_nurse_names(nurse_info: Dict[str, pd.DataFrame]) -> np.ndarray[str]:
+def nurse_info_to_nurse_names(nurse_info: Dict[str, pd.DataFrame]) -> np.ndarray:
     names = pd.concat( # extract as fn prob...
         [df[['Fornavn', 'Efternavn']] for df in nurse_info.values()]
         )
