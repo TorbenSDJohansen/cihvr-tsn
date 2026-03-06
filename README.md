@@ -2,8 +2,7 @@
 Transcription code related to the papers:
 1. Universal Investments in Toddler Health: Learning from a Large Government Trial
 1. Cohort Profile: Copenhagen Infant Health Nurse Records (CIHNR) cohort
-1. **Nurse cluster project**
-1. **BF and SES project**
+1. Duration and intensity of being breastfed and educational attainment, income and labour force participation: a prospective cohort and sibling study from Denmark
 
 ## Clone Repository and Prepare Environment
 To get started, first clone the repository locally:
@@ -53,7 +52,7 @@ To prepare nurse name lexicon for post-predict matching use `python data/create_
 ### Segmentation
 To create figures showcasing different page heights, use `python data/check_image_by_dob.py`.
 
-**TODO**: Refer to new @CMD code once ready and merged to main.
+For image segmentation, reach out to Christian Møller Dahl (not part of this repository).
 
 To merge Type A and Type B segmentations (by copying B to A), use
 ```
@@ -104,7 +103,6 @@ Z:\faellesmappe\tsdj\cihvr-timmsn\eval\weight\mh\preds.csv ^
 --cihvr-duplicate-drop ^
 --out-dir path/to/out/
 ```
-**FIXME** should we split this, currently we "merge" first and last name to one field in table as same name of field(s).
 
 **Note**: Performance on [Preterm birth number of weeks](cmds/preterm_weeks.md) appears very poor.
 However, this is in large part due to inconsistent labelling:
