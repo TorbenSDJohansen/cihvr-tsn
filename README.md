@@ -23,6 +23,8 @@ After making sure all dependencies are installed, use the following code to inst
 pip install path/to/timm-sequence-net
 ```
 
+**Note**: Version 0.3.0 used.
+
 ## Replicate results
 **Note**:
 A number of scripts refer to specific full paths.
